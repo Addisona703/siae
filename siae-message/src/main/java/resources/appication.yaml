@@ -1,0 +1,25 @@
+server:
+  port: 8005
+
+spring:
+  mvc:
+    servlet:
+      path: /api/v1/message
+    path match.matching-strategy: ant_path_matcher
+  mail:
+    host: smtp.qq.com                     # SMTP 服务器
+    port: 587                             # 启用 STARTTLS 的标准端口
+    username: 3183389935@qq.com           # 发件邮箱
+    password: uzzvjxjovoeudfbj           # 授权码（非邮箱密码）
+    default-encoding: UTF-8              # 邮件编码
+    properties:
+      mail:
+        # from: 软件协会 <3183389935@qq.com> # 发件人
+        smtp:
+          auth: true                     # 是否开启认证
+          starttls:
+            enable: true                 # 启用 STARTTLS
+            required: true              # 要求使用 STARTTLS
+          timeout: 5000                 # 连接超时（毫秒）
+          connectiontimeout: 5000       # 建立连接超时
+          writetimeout: 5000            # 写超时

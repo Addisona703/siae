@@ -1,0 +1,97 @@
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+*.log
+logs/
+!**/src/main/resources/logs/
+
+### Build output ###
+target/
+build/
+out/
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Maven ###
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+### Gradle ###
+.gradle/
+gradlew
+gradlew.bat
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Eclipse / STS ###
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### Temp Files ###
+*.tmp
+*.bak
+*.swp
+*.swo
+
+### Test coverage ###
+coverage/
+jacoco.exec
+
+### Local env/config ###
+.env
+.env.local
+application-local.yml
+
+### Node.js (如果前端集成在项目中) ###
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+### 其他本地配置文件 ###
+# application-dev.yml
+# application-test.yml
+# application-prod.yml
+# bootstrap-local.yml
+
+### 编译产物 ###
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+
+### 证书文件 ###
+*.pem
+*.key
+*.crt
+*.cer
+
+### 其他常见忽略项 ###
+.history/
+.metadata/
+bin/

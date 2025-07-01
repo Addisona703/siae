@@ -1,0 +1,71 @@
+package com.hngy.siae.user.service;
+
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.user.dto.request.AwardLevelDTO;
+import com.hngy.siae.user.dto.response.AwardLevelVO;
+
+import java.util.List;
+
+/**
+ * 奖项等级字典服务接口
+ *
+ * @author KEYKB
+ */
+public interface AwardLevelService {
+
+    /**
+     * 创建奖项等级
+     *
+     * @param awardLevelDTO 奖项等级实体
+     * @return 奖项等级实体
+     */
+    AwardLevelVO createAwardLevel(AwardLevelDTO awardLevelDTO);
+
+    /**
+     * 更新奖项等级
+     *
+     * @param awardLevelDTO 奖项等级实体
+     * @return 奖项等级实体
+     */
+    AwardLevelVO updateAwardLevel(AwardLevelDTO awardLevelDTO);
+
+    /**
+     * 根据ID获取奖项等级
+     *
+     * @param id 奖项等级ID
+     * @return 奖项等级实体
+     */
+    AwardLevelVO getAwardLevelById(Long id);
+
+    /**
+     * 根据名称获取奖项等级
+     *
+     * @param name 奖项等级名称
+     * @return 奖项等级实体
+     */
+    AwardLevelVO getAwardLevelByName(String name);
+
+    /**
+     * 获取所有奖项等级
+     *
+     * @return 奖项等级实体列表
+     */
+    List<AwardLevelVO> listAllAwardLevels();
+
+    /**
+     * 分页查询奖项等级
+     *
+     * @param pageDTO 分页参数
+     * @return 分页奖项等级实体
+     */
+    PageVO<AwardLevelVO> listAwardLevelsByPage(PageDTO<AwardLevelDTO> pageDTO);
+
+    /**
+     * 根据ID删除奖项等级
+     *
+     * @param id 奖项等级ID
+     * @return 是否删除成功
+     */
+    boolean deleteAwardLevel(Long id);
+} 
