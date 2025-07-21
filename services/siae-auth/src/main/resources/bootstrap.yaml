@@ -1,0 +1,19 @@
+# ===================================================================
+# BOOTSTRAP CONFIGURATION (The ONLY local config file)
+# Location: siae-auth/src/main/resources/bootstrap.yaml
+# ===================================================================
+spring:
+  application:
+    name: siae-auth
+  cloud:
+    nacos:
+      # Nacos server address
+      server-addr: localhost:8848
+      # Nacos config settings
+      config:
+        server-addr: ${spring.cloud.nacos.server-addr}
+        group: SIAE_GROUP
+        file-extension: yaml
+  config:
+    # Import the configuration from Nacos
+    import: nacos:siae-auth.yaml?group=SIAE_GROUP&refresh=true

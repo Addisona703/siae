@@ -1,10 +1,12 @@
 package com.hngy.siae.common.exception;
 
 
-import com.hngy.siae.common.result.Result;
-import com.hngy.siae.common.result.CommonResultCodeEnum;
+import com.hngy.siae.core.exception.ServiceException;
+import com.hngy.siae.core.result.Result;
+import com.hngy.siae.core.result.CommonResultCodeEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class GlobalExceptionHandler {
 
     /**

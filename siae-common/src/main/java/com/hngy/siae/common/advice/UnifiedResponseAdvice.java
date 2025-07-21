@@ -1,7 +1,8 @@
 package com.hngy.siae.common.advice;
 
-import com.hngy.siae.common.annotation.UnifiedResponse;
-import com.hngy.siae.common.result.Result;
+import com.hngy.siae.core.result.Result;
+import com.hngy.siae.core.annotation.UnifiedResponse;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * 统一响应体包装器
  */
 @RestControllerAdvice(basePackages = "com.hngy.siae") // Only scan your project's base package
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class UnifiedResponseAdvice implements ResponseBodyAdvice<Object> {
 
     /**

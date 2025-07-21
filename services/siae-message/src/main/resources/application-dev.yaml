@@ -1,0 +1,49 @@
+# ===================================================================
+# CENTRALIZED CONFIGURATION FOR SIAE-MESSAGE (DEV)
+# Managed entirely in Nacos
+# ===================================================================
+
+# 1. 服务端口
+server:
+  port: 8030
+  servlet:
+    context-path: /api/v1/message
+
+# 2. 核心业务配置
+spring:
+  # 启用Nacos服务发现
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+  # ❗ 邮件配置 - 包含敏感授权码，已安全移入Nacos
+  mail:
+    host: smtp.qq.com                     # SMTP 服务器
+    port: 587                             # 启用 STARTTLS 的标准端口
+    username: 3183389935@qq.com           # 发件邮箱
+    password: uzzvjxjovoeudfbj            # 授权码（非邮箱密码）
+    default-encoding: UTF-8               # 邮件编码
+    properties:
+      mail:
+        smtp:
+          auth: true                      # 是否开启认证
+          starttls:
+            enable: true                  # 启用 STARTTLS
+            required: true                # 要求使用 STARTTLS
+          timeout: 5000                   # 连接超时（毫秒）
+          connectiontimeout: 5000         # 建立连接超时
+          writetimeout: 5000              # 写超时
+
+# 3. SpringDoc API文档配置 (可选，但建议保持一致)
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'siae-message'
+      paths-to-match: '/api/**'
+  packages-to-scan: com.hngy.siae.message.controller

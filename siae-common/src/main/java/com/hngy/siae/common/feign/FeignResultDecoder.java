@@ -3,13 +3,14 @@ package com.hngy.siae.common.feign;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.hngy.siae.common.exception.ServiceException;
-import com.hngy.siae.common.result.Result;
+import com.hngy.siae.core.exception.ServiceException;
+import com.hngy.siae.core.result.Result;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.Decoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,16 +22,24 @@ import java.lang.reflect.Type;
  */
 @Slf4j
 @Component
+//@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class FeignResultDecoder implements Decoder {
 
     @Autowired
     private ObjectMapper objectMapper; // Spring Boot 会自动注入配置好的 ObjectMapper
+
+    public FeignResultDecoder(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Object decode(Response response, Type type) throws IOException, FeignException {
         // 1. 读取响应体
         String bodyStr = feign.Util.toString(response.body().asReader(feign.Util.UTF_8));
         log.debug("Feign 响应体: {}", bodyStr);
+
+        // 先打印响应，确认格式
+        System.out.println("Feign响应体: " + bodyStr);
 
         // 2. 构造 Result<T> 的 JavaType，这是正确反序列化泛型的关键
         JavaType resultType = TypeFactory.defaultInstance().constructParametricType(Result.class, TypeFactory.defaultInstance().constructType(type));

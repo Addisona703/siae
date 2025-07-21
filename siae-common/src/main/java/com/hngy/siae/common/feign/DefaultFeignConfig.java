@@ -1,7 +1,9 @@
 package com.hngy.siae.common.feign;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Logger;
 import feign.codec.Decoder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,16 +13,17 @@ import org.springframework.context.annotation.Configuration;
  * @EnableFeignClients(defaultConfiguration = DefaultFeignConfig.class) 放到启动类头上，指定默认配置
  */
 @Configuration
+//@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class DefaultFeignConfig {
 
     /**
      * 注入自定义的解码器 Bean
-     * @param feignResultDecoder 我们自己实现的解码器
+     * @param objectMapper 我们自己实现的解码器
      * @return Decoder
      */
     @Bean
-    public Decoder feignDecoder(FeignResultDecoder feignResultDecoder) {
-        return feignResultDecoder;
+    public Decoder feignDecoder(ObjectMapper objectMapper) {
+        return new FeignResultDecoder(objectMapper);
     }
 
     /**

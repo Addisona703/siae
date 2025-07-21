@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -7,53 +8,49 @@
     <groupId>com.hngy</groupId>
     <artifactId>siae-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging> <!-- Crucial: This defines it as a parent POM -->
+    <packaging>pom</packaging> <!-- 定义为父项目 -->
     <name>siae-parent</name>
     <description>软件协会官网</description>
 
-    <!-- 2. 子模块列表 (后续在此处添加) -->
+    <!-- 2. 子模块列表 -->
     <modules>
+        <module>siae-core</module>
         <module>siae-common</module>
         <module>siae-gateway</module>
-
-        <!-- 1. auth服务以及api -->
-        <module>siae-auth</module>
-
-        <!-- 2. user服务以及api -->
-        <module>siae-user</module>
-        <module>siae-user-api</module>
-
-        <!-- 3. content服务以及api -->
-        <module>siae-content</module>
-
-        <!-- 4. 消息通知服务 -->
-        <module>siae-message</module>
+        <module>services/siae-auth</module>
+        <module>services/siae-user</module>
+        <module>services/siae-content</module>
+        <module>services/siae-message</module>
     </modules>
 
-    <!-- 3. 统一属性配置 (使用稳定版本) -->
+    <!-- 3. 统一属性配置 -->
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- 核心框架版本 (升级到稳定版) -->
+
+        <!-- 核心版本 -->
         <spring-boot.version>3.2.5</spring-boot.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
-        <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
-        <!-- 数据库与持久层 -->
+        <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
+
+        <!-- 数据库相关 -->
         <mybatis-plus.version>3.5.6</mybatis-plus.version>
         <druid.version>1.2.22</druid.version>
-        <!-- 工具库版本 -->
+
+        <!-- 工具库 -->
         <lombok.version>1.18.30</lombok.version>
         <hutool.version>5.8.27</hutool.version>
         <springdoc.version>2.5.0</springdoc.version>
         <jwt.version>0.11.5</jwt.version>
+
         <!-- 分布式事务 -->
         <seata.version>1.8.0</seata.version>
     </properties>
 
-    <!-- 4. 统一依赖版本管理 (BOM - Bill of Materials) -->
+    <!-- 4. 统一依赖版本管理 (BOM) -->
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot 依赖物料清单 -->
+            <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -61,7 +58,8 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- Spring Cloud 依赖物料清单 -->
+
+            <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -69,7 +67,8 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- Spring Cloud Alibaba 依赖物料清单 -->
+
+            <!-- Spring Cloud Alibaba BOM -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
@@ -78,33 +77,35 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- =========== 安全认证相关 ============ -->
-            <!-- Spring Security (核心) -->
+            <!-- 安全相关 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-security</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
-
-            <!-- Spring Security OAuth2 Client (用于微信/GitHub等第三方登录) -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-oauth2-client</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
 
-            <!-- =========== 核心依赖 ============ -->
+            <!-- 核心依赖 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-validation</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
 
-            <!-- =========== 数据库相关 (使用 MyBatis-Plus) ============ -->
+            <!-- 数据库相关 -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>3.0.3</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -114,18 +115,17 @@
             <dependency>
                 <groupId>com.mysql</groupId>
                 <artifactId>mysql-connector-j</artifactId>
-                <version>8.0.33</version> <!-- 明确指定一个稳定版本 -->
+                <version>8.0.33</version>
             </dependency>
 
-            <!-- =========== 微服务组件 ============ -->
-            <!-- Seata (分布式事务) -->
+            <!-- 微服务组件 -->
             <dependency>
                 <groupId>io.seata</groupId>
                 <artifactId>seata-spring-boot-starter</artifactId>
                 <version>${seata.version}</version>
             </dependency>
 
-            <!-- =========== 工具库 ============ -->
+            <!-- 工具库 -->
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
@@ -138,7 +138,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- JWT (认证授权) - jjwt-api, jjwt-impl, jjwt-jackson -->
+            <!-- JWT 相关 -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
@@ -155,7 +155,7 @@
                 <version>${jwt.version}</version>
             </dependency>
 
-            <!-- API文档 - 兼容SB3 -->
+            <!-- API文档 -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -169,26 +169,38 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- 5. 统一插件管理和配置 -->
     <build>
-        <plugins>
-            <!-- 统一编译器插件配置 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version> <!-- 建议使用较新的编译器插件版本 -->
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-            <!-- Spring Boot 打包插件 -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!-- 统一编译器插件配置 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+
+                <!-- Spring Boot 打包插件 -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>

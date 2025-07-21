@@ -15,6 +15,11 @@
     <description>公共模块 (工具类, DTO, VO, Enums 等)</description>
 
     <dependencies>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Spring Boot 基础依赖，带 spring-context 和配置注解 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -62,6 +67,41 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- =========== 安全认证相关 ============ -->
+        <!-- Spring Security (核心) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Spring Security OAuth2 Client (用于微信/GitHub等第三方登录) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
+        <!-- JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,95 @@
+# ===================================================================
+# REMOTE CONFIGURATION (Managed in Nacos)
+# Contains all application-specific configurations for siae-gateway in dev environment.
+# ===================================================================
+
+# 服务端口
+server:
+  port: 80
+
+# Spring Cloud Gateway配置
+spring:
+  application:
+    name: siae-gateway
+  cloud:
+    # Nacos服务发现配置 (注意: discovery的配置也可以放在这里)
+    nacos:
+      discovery:
+        server-addr: ${spring.cloud.nacos.server-addr} # 建议引用bootstrap中的地址，保持一致
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 启用服务发现
+          lower-case-service-id: true # 服务名小写
+      routes:
+        # 认证服务路由
+        - id: siae-auth-route
+          uri: lb://siae-auth
+          predicates:
+            - Path=/api/v1/auth/**
+
+        # 用户服务路由
+        - id: siae-user-route
+          uri: lb://siae-user
+          predicates:
+            - Path=/api/v1/users/**
+
+        # 内容服务路由
+        - id: siae-content-route
+          uri: lb://siae-content
+          predicates:
+            - Path=/api/v1/content/**
+
+        # 消息服务路由
+        - id: siae-message-route
+          uri: lb://siae-message
+          predicates:
+            - Path=/api/v1/message/**
+
+        # OpenAPI文档路由
+        - id: openapi-route
+          uri: lb://siae-gateway
+          predicates:
+            - Path=/v3/api-docs/**
+          filters:
+            - RewritePath=/v3/api-docs/(?<segment>.*), /$\{segment}/v3/api-docs
+
+# 开启Actuator端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs/siae-user
+        name: 用户服务
+      - url: /v3/api-docs/siae-auth
+        name: 认证服务
+      - url: /v3/api-docs/siae-content
+        name: 内容服务
+      - url: /v3/api-docs/siae-message
+        name: 消息服务
+
+# ===================================================================
+# !! 重要：将JWT密钥配置在这里 !!
+# ===================================================================
+#jwt:
+#  secret-key: "nD7I9zd0bReTmUiVpV9tlVMlNJTuwNTtcg351xRSxfy3DftE6nEhVnWZk0XiPFd"
+#  access-token-expire: 3600    # 1小时 (单位: 秒)
+#  refresh-token-expire: 604800 # 7天 (单位: 秒)
+#  issuer: siae-auth
+#  audience: siae-*

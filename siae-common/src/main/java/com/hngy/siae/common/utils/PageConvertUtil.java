@@ -3,9 +3,9 @@ package com.hngy.siae.common.utils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

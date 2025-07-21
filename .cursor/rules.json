@@ -1,0 +1,45 @@
+{
+  "guidance": "这是一个基于 Spring Cloud + Spring Security + MyBatis-Plus 的微服务项目。请遵循阿里巴巴 Java 编码规范进行开发。项目结构清晰，请不要引入与项目技术栈无关的第三方库。",
+  "rules": [
+    {
+      "glob": "pom.xml",
+      "behavior": "read-only",
+      "instructions": "项目的 pom.xml 文件定义了核心依赖和模块结构，不应修改。"
+    },
+    {
+      "glob": "**/pom.xml",
+      "behavior": "read-only",
+      "instructions": "各模块的 pom.xml 文件定义了模块依赖，不应随意修改。"
+    },
+    {
+      "glob": "siae-common/src/main/java/com/hngy/siae/common/utils/**/*.java",
+      "behavior": "read-only",
+      "instructions": "siae-common 模块中的工具类是项目的核心工具，禁止修改。如果需要扩展功能，请创建新的工具类。"
+    },
+    {
+      "glob": "siae-gateway/src/main/java/com/hngy/siae/gateway/{filter,config}/**/*.java",
+      "behavior": "default",
+      "instructions": "gateway 模块中的 filter 和 config 包是网关核心配置，可以根据需求自由优化或重构。"
+    },
+    {
+      "glob": "services/siae-user/src/main/java/com/hngy/siae/user/service/**/*.java",
+      "behavior": "default",
+      "instructions": "user 模块中的 service 层是核心业务逻辑，只允许在现有方法基础上新增业务逻辑或添加新方法，严禁删除或重命名已有方法，以免影响其他服务调用。"
+    },
+    {
+      "glob": "**/src/main/java/**/controller/**/*.java",
+      "behavior": "default",
+      "instructions": "controller 层是接口入口，只建议为其补充详细的接口注释（如 Swagger 注解），不建议进行大规模自动重构，以保证接口的稳定性。"
+    },
+    {
+        "glob": "**/src/main/resources/application*.y*ml",
+        "behavior": "default",
+        "instructions": "这些是应用的配置文件。修改时请谨慎，确保配置项正确无误，特别是数据库和中间件的连接信息。"
+    },
+    {
+      "glob": "**/src/test/**/*.java",
+      "behavior": "gen-or-edit",
+      "instructions": "所有 test 目录下的测试类，均可以随意生成、修改或重构，以保证代码质量和覆盖率。"
+    }
+  ]
+} 

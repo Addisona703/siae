@@ -1,0 +1,57 @@
+# ===================================================================
+# CENTRALIZED CONFIGURATION FOR SIAE-CONTENT (DEV)
+# Managed entirely in Nacos
+# ===================================================================
+
+# 1. 服务端口 (为内容服务分配新端口，如8083)
+server:
+  port: 8010
+  servlet:
+    context-path: /api/v1/content
+
+spring:
+  # 2. 启用Nacos服务发现
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+  # 4. 数据库连接配置 (假设内容服务的数据库名为 content_db)
+  # 密码等敏感信息被安全地存放在Nacos中
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/content_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456 # 生产环境请使用更强的密码
+  # 5. Jackson JSON序列化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+# 6. MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+  # 路径修改为指向content模块的mapper和entity
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.hngy.siae.content.entity
+
+# 7. SpringDoc API文档配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    # 分组名修改为siae-content
+    - group: 'siae-content'
+      paths-to-match: '/api/**'
+  # 包路径修改为content模块的controller
+  packages-to-scan: com.hngy.siae.content.controller
