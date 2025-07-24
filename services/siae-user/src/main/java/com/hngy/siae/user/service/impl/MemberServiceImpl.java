@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.MemberDTO;
 import com.hngy.siae.user.dto.response.MemberVO;
 import com.hngy.siae.user.entity.Member;
@@ -114,7 +114,7 @@ public class MemberServiceImpl
     @Override
     public PageVO<MemberVO> pageMember(PageDTO<MemberDTO> pageDTO) {
         LambdaQueryWrapper<Member> wrapper = createQueryWrapper(pageDTO.getParams());
-        Page<Member> page = page(pageDTO.toPage(), wrapper);
+        Page<Member> page = page(PageConvertUtil.toPage(pageDTO), wrapper);
         return PageConvertUtil.convert(page, MemberVO.class);
     }
 

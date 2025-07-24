@@ -4,11 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.UserAwardCreateDTO;
 import com.hngy.siae.user.dto.request.UserAwardQueryDTO;
 import com.hngy.siae.user.dto.request.UserAwardUpdateDTO;
@@ -19,6 +18,7 @@ import com.hngy.siae.user.service.AwardLevelService;
 import com.hngy.siae.user.service.AwardTypeService;
 import com.hngy.siae.user.service.UserAwardService;
 import com.hngy.siae.user.service.UserService;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -139,7 +139,7 @@ public class UserAwardServiceImpl
             wrapper.orderByDesc(sortField);
         }
 
-        Page<UserAward> page = pageDTO.toPage();
+        Page<UserAward> page = PageConvertUtil.toPage(pageDTO);
         Page<UserAward> resultPage = page(page, wrapper);
 
         return PageConvertUtil.convert(resultPage, UserAwardVO.class);

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * 
  * @author KEYKB
  */
-@FeignClient(name = "siae-user", path = "/api/v1/users")
+@FeignClient(name = "siae-user", path = "/api/v1/user")
 public interface UserClient {
     
     /**

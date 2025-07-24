@@ -14,23 +14,25 @@
     <description>内容服务</description>
 
     <dependencies>
-        <!-- 引入公共模块 -->
+        <!-- 引入内部模块 -->
         <dependency>
             <groupId>com.hngy</groupId>
-            <artifactId>siae-common</artifactId>
+            <artifactId>siae-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hngy</groupId>
-            <artifactId>siae-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <artifactId>siae-web-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-security-starter</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
-        <!-- Spring Boot Web Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+
+        <!-- Spring Boot Web Starter 由 siae-web-starter 提供 -->
 
         <!-- Nacos 服务发现 -->
         <dependency>
@@ -97,7 +99,12 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
-
+        <!-- ============ 枚举自动反序列化（Reflections 扫描工具） ============ -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -70,3 +70,66 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+
+# ===================================================================
+# SIAE Starter 配置
+# ===================================================================
+
+# Web功能配置
+siae:
+  web:
+    # 统一响应处理
+    response:
+      enabled: true
+      base-packages: ["com.hngy.siae.auth"]
+      exclude-patterns: ["/actuator/**", "/swagger-ui/**", "/v3/api-docs/**"]
+    # 全局异常处理
+    exception:
+      enabled: true
+      print-stack-trace: true
+      include-stack-trace: false
+    # Jackson序列化
+    jackson:
+      enabled: true
+      date-format: "yyyy-MM-dd HH:mm:ss"
+      time-zone: "GMT+8"
+    # MyBatis Plus
+    mybatis-plus:
+      enabled: true
+      pagination-enabled: true
+      max-limit: 1000
+      logic-delete-enabled: true
+
+  # 安全功能配置
+  security:
+    enabled: true
+    # JWT配置
+    jwt:
+      enabled: true
+      secret: "siae-auth-secret-key-change-in-production"
+      access-token-expiration: 7200  # 2小时
+      refresh-token-expiration: 604800  # 7天
+      token-prefix: "Bearer "
+      header-name: "Authorization"
+      allow-multiple-devices: true
+    # 权限配置
+    permission:
+      cache-enabled: true
+      cache-expiration: 1800  # 30分钟
+      redis-enabled: true
+      fallback-enabled: true
+      throw-exception-on-failure: false
+      log-enabled: false
+    # 需要权限验证的服务
+    auth-required-services: ["siae-auth", "siae-user", "siae-content"]
+    # 白名单路径
+    whitelist-paths:
+      - "/login"
+      - "/register"
+      - "/logout"
+      - "/refresh-token"
+      - "/actuator/**"
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+      - "/favicon.ico"
+      - "/error"

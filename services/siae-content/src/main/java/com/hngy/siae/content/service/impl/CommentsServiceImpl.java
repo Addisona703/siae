@@ -5,17 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
-import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.common.enums.status.CommentStatusEnum;
 import com.hngy.siae.content.dto.request.CommentDTO;
-import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.entity.Comment;
 import com.hngy.siae.content.mapper.CommentMapper;
 import com.hngy.siae.content.service.CommentsService;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -86,16 +85,17 @@ public class CommentsServiceImpl
      * @param pageDTO 分页查询参数
      * @return 分页评论结果
      */
-    public Result<PageVO<CommentVO>> listComments(PageDTO<CommentQueryDTO> pageDTO) {
+    public Result<PageVO<CommentVO>> listComments(PageDTO<CommentDTO> pageDTO) {
         // 构建分页查询条件
-        Page<Comment> page = pageDTO.toPage();
+        Page<Comment> page = PageConvertUtil.toPage(pageDTO);
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
 
         // 添加查询条件
-        CommentQueryDTO params = pageDTO.getParams();
+        CommentDTO params = pageDTO.getParams();
         if (params != null) {
-            queryWrapper.eq(params.getContentId() != null, Comment::getContentId, params.getContentId())
-                       .eq(params.getStatus() != null, Comment::getStatus, params.getStatus())
+            queryWrapper
+//                    .eq(params.getContentId() != null, Comment::getContentId, params.getContentId())
+//                       .eq(params.getStatus() != null, Comment::getStatus, params.getStatus())
                        .eq(params.getUserId() != null, Comment::getUserId, params.getUserId())
                        .eq(params.getParentId() != null, Comment::getParentId, params.getParentId());
         }

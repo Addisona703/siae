@@ -1,8 +1,8 @@
 package com.hngy.siae.auth.feign.dto.request;
 
-import com.hngy.siae.common.validation.CreateGroup;
-import com.hngy.siae.common.validation.LoginGroup;
-import com.hngy.siae.common.validation.UpdateGroup;
+import com.hngy.siae.core.validation.CreateGroup;
+import com.hngy.siae.core.validation.LoginGroup;
+import com.hngy.siae.core.validation.UpdateGroup;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 

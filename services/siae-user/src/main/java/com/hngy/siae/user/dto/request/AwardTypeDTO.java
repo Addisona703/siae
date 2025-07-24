@@ -1,7 +1,7 @@
 package com.hngy.siae.user.dto.request;
 
-import com.hngy.siae.common.validation.CreateGroup;
-import com.hngy.siae.common.validation.UpdateGroup;
+import com.hngy.siae.core.validation.CreateGroup;
+import com.hngy.siae.core.validation.UpdateGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

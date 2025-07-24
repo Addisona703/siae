@@ -1,6 +1,6 @@
 package com.hngy.siae.content.facade;
 
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
 import com.hngy.siae.content.dto.response.HotContentVO;
 import com.hngy.siae.core.result.Result;

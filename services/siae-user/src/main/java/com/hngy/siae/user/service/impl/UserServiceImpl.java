@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.UserDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
@@ -110,7 +110,7 @@ public class UserServiceImpl
         wrapper.eq(User::getIsDeleted, 0)
                 .orderByDesc(User::getCreatedAt);
 
-        Page<User> resultPage = page(pageDTO.toPage(), wrapper);
+        Page<User> resultPage = page(PageConvertUtil.toPage(pageDTO), wrapper);
         return PageConvertUtil.convert(resultPage, UserVO.class);
     }
 

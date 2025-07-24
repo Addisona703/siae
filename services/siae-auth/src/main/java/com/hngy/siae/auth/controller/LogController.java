@@ -3,7 +3,7 @@ package com.hngy.siae.auth.controller;
 import com.hngy.siae.auth.dto.response.LoginFailVO;
 import com.hngy.siae.auth.dto.response.LoginLogVO;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.auth.service.LogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -5,11 +5,10 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.ClassInfoDTO;
 import com.hngy.siae.user.dto.response.ClassInfoVO;
 import com.hngy.siae.user.entity.ClassInfo;
@@ -18,6 +17,7 @@ import com.hngy.siae.user.mapper.ClassInfoMapper;
 import com.hngy.siae.user.mapper.CollegeMapper;
 import com.hngy.siae.user.mapper.MajorMapper;
 import com.hngy.siae.user.service.ClassInfoService;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,7 +127,7 @@ public class ClassInfoServiceImpl
                 .orderByDesc(ClassInfo::getYear)
                 .orderByAsc(ClassInfo::getClassNo);
 
-        Page<ClassInfo> page = pageDTO.toPage();
+        Page<ClassInfo> page = PageConvertUtil.toPage(pageDTO);
         Page<ClassInfo> resultPage = page(page, queryWrapper);
 
         PageVO<ClassInfoVO> pageVO = PageConvertUtil.convert(resultPage, ClassInfoVO.class);

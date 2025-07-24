@@ -1,14 +1,13 @@
 package com.hngy.siae.content.controller;
 
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.common.validation.CreateGroup;
 import com.hngy.siae.content.dto.request.CommentDTO;
-import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.facade.CommentFacade;
 import com.hngy.siae.content.service.CommentsService;
+import com.hngy.siae.core.validation.CreateGroup;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -103,7 +102,7 @@ public class CommentsController {
     })
     public Result<PageVO<CommentVO>> listCommentsPage(
             @Parameter(description = "分页查询参数", required = true)
-            @Valid @RequestBody PageDTO<CommentQueryDTO> pageDTO) {
+            @Valid @RequestBody PageDTO<CommentDTO> pageDTO) {
         return commentsService.listComments(pageDTO);
     }
 }

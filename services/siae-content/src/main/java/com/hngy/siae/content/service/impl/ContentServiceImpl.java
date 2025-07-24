@@ -5,9 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
-import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.web.utils.PageConvertUtil;
 
 import com.hngy.siae.content.common.enums.BaseEnum;
 import com.hngy.siae.content.common.enums.ContentTypeEnum;
@@ -121,7 +121,7 @@ public class ContentServiceImpl
     @Override
     public Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto) {
         // 创建分页参数
-        Page<Content> page = dto.<Content>toPage();
+        Page<Content> page = PageConvertUtil.toPage(dto);
         // 查询数据
         List<Content> list = contentMapper.selectByCondition(dto);
         AssertUtils.notNull(list, "这里没有任何内容");

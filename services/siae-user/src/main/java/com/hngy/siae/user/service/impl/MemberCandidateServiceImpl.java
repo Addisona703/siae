@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.MemberCandidateDTO;
 import com.hngy.siae.user.dto.response.MemberCandidateVO;
 import com.hngy.siae.user.entity.MemberCandidate;
 import com.hngy.siae.user.mapper.MemberCandidateMapper;
 import com.hngy.siae.user.service.MemberCandidateService;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,7 +129,7 @@ public class MemberCandidateServiceImpl
     @Override
     public PageVO<MemberCandidateVO> pageCandidate(PageDTO<MemberCandidateDTO> pageDTO) {
         LambdaQueryWrapper<MemberCandidate> wrapper = createQueryWrapper(pageDTO.getParams());
-        Page<MemberCandidate> page = page(pageDTO.toPage(), wrapper);
+        Page<MemberCandidate> page = page(PageConvertUtil.toPage(pageDTO), wrapper);
         return PageConvertUtil.convert(page, MemberCandidateVO.class);
     }
 

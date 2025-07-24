@@ -1,8 +1,8 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.common.enums.TypeEnum;
 import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
 import com.hngy.siae.content.dto.request.AuditDTO;

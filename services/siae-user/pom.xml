@@ -14,18 +14,25 @@
     <description>用户服务</description>
 
     <dependencies>
-        <!-- 引入公共模块 -->
+        <!-- 引入内部模块 -->
         <dependency>
             <groupId>com.hngy</groupId>
-            <artifactId>siae-common</artifactId>
+            <artifactId>siae-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-web-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-security-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Spring Boot Web Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+
+        <!-- Spring Boot Web Starter 由 siae-web-starter 提供 -->
 
         <!-- Nacos 服务发现 -->
         <dependency>
@@ -36,11 +43,13 @@
         <!-- Nacos 配置中心 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <!-- OpenFeign (由siae-web-starter提供，但需要显式声明以确保可用) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>

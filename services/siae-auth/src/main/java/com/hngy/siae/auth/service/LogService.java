@@ -2,7 +2,7 @@ package com.hngy.siae.auth.service;
 
 import com.hngy.siae.auth.dto.response.LoginFailVO;
 import com.hngy.siae.auth.dto.response.LoginLogVO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageVO;
 
 import java.time.LocalDateTime;
 

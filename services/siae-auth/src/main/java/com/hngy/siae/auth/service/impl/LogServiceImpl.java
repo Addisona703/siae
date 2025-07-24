@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hngy.siae.auth.dto.response.LoginFailVO;
 import com.hngy.siae.auth.dto.response.LoginLogVO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.auth.entity.LoginLog;
 import com.hngy.siae.auth.mapper.LoginLogMapper;
 import com.hngy.siae.auth.service.LogService;

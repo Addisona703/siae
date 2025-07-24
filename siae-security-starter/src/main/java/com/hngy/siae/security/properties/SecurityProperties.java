@@ -1,0 +1,153 @@
+package com.hngy.siae.security.properties;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
+
+/**
+ * 安全相关配置属性
+ * 
+ * @author SIAE开发团队
+ */
+@Data
+@ConfigurationProperties(prefix = "siae.security")
+public class SecurityProperties {
+
+    /**
+     * 是否启用安全功能
+     */
+    private boolean enabled = true;
+
+    /**
+     * JWT配置
+     */
+    private Jwt jwt = new Jwt();
+
+    /**
+     * 权限缓存配置
+     */
+    private Permission permission = new Permission();
+
+    /**
+     * 需要权限验证的服务列表
+     */
+    private List<String> authRequiredServices = List.of("siae-auth", "siae-user", "siae-content", "siae-admin");
+
+    /**
+     * 白名单路径（不需要认证）
+     */
+    private List<String> whitelistPaths = List.of(
+        "/login", "/register", "/logout", "/refresh-token",
+        "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
+        "/favicon.ico", "/error"
+    );
+
+    /**
+     * JWT配置
+     */
+    @Data
+    public static class Jwt {
+        /**
+         * 是否启用JWT认证
+         */
+        private boolean enabled = true;
+
+        /**
+         * JWT密钥
+         */
+        private String secret = "siae-default-secret-key-change-in-production";
+
+        /**
+         * 访问令牌过期时间（秒）
+         */
+        private long accessTokenExpiration = 7200; // 2小时
+
+        /**
+         * 刷新令牌过期时间（秒）
+         */
+        private long refreshTokenExpiration = 604800; // 7天
+
+        /**
+         * 令牌前缀
+         */
+        private String tokenPrefix = "Bearer ";
+
+        /**
+         * 请求头名称
+         */
+        private String headerName = "Authorization";
+
+        /**
+         * 是否允许多设备登录
+         */
+        private boolean allowMultipleDevices = true;
+
+        /**
+         * 令牌发行者
+         */
+        private String issuer = "siae-system";
+    }
+
+    /**
+     * 权限配置
+     */
+    @Data
+    public static class Permission {
+        /**
+         * 是否启用权限缓存
+         */
+        private boolean cacheEnabled = true;
+
+        /**
+         * 权限缓存过期时间（秒）
+         */
+        private long cacheExpiration = 1800; // 30分钟
+
+        /**
+         * 权限缓存键前缀
+         */
+        private String cacheKeyPrefix = "siae:permission:";
+
+        /**
+         * 是否启用Redis权限服务
+         */
+        private boolean redisEnabled = true;
+
+        /**
+         * Redis不可用时是否使用降级服务
+         */
+        private boolean fallbackEnabled = true;
+
+        /**
+         * 权限检查失败时是否抛出异常
+         */
+        private boolean throwExceptionOnFailure = true;
+
+        /**
+         * 是否启用权限日志
+         */
+        private boolean logEnabled = false;
+    }
+
+    /**
+     * 判断当前服务是否需要权限验证
+     * 
+     * @param applicationName 应用名称
+     * @return 是否需要权限验证
+     */
+    public boolean isAuthRequired(String applicationName) {
+        return enabled && authRequiredServices.contains(applicationName);
+    }
+
+    /**
+     * 判断路径是否在白名单中
+     * 
+     * @param path 请求路径
+     * @return 是否在白名单中
+     */
+    public boolean isWhitelistPath(String path) {
+        return whitelistPaths.stream().anyMatch(pattern -> 
+            path.matches(pattern.replace("**", ".*").replace("*", "[^/]*")));
+    }
+}

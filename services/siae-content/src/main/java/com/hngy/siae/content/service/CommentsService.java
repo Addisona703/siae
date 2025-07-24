@@ -1,11 +1,10 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.dto.request.CommentDTO;
-import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.entity.Comment;
 
@@ -61,5 +60,5 @@ public interface CommentsService extends IService<Comment> {
      * @param pageDTO 分页查询参数
      * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
      */
-    Result<PageVO<CommentVO>> listComments(PageDTO<CommentQueryDTO> pageDTO);
+    Result<PageVO<CommentVO>> listComments(PageDTO<CommentDTO> pageDTO);
 }

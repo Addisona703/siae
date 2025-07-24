@@ -15,7 +15,8 @@
     <!-- 2. 子模块列表 -->
     <modules>
         <module>siae-core</module>
-        <module>siae-common</module>
+        <module>siae-web-starter</module>
+        <module>siae-security-starter</module>
         <module>siae-gateway</module>
         <module>services/siae-auth</module>
         <module>services/siae-user</module>
@@ -182,6 +183,10 @@
                         <source>${java.version}</source>
                         <target>${java.version}</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
+                        <parameters>true</parameters>
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                        </compilerArgs>
                     </configuration>
                 </plugin>
 

@@ -8,9 +8,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
-import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import com.hngy.siae.content.dto.request.TagDTO;
 import com.hngy.siae.content.dto.response.TagVO;
 import com.hngy.siae.content.entity.Tag;
@@ -102,7 +102,7 @@ public class TagsServiceImpl
     @Override
     public Result<PageVO<TagVO>> listTags(PageDTO<?> pageDTO) {
         // 构建分页对象
-        Page<Tag> page = pageDTO.toPage();
+        Page<Tag> page = PageConvertUtil.toPage(pageDTO);
 
         // 构建查询条件
         LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();

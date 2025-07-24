@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.AwardTypeDTO;
 import com.hngy.siae.user.dto.response.AwardTypeVO;
 import com.hngy.siae.user.entity.AwardType;
 import com.hngy.siae.user.mapper.AwardTypeMapper;
 import com.hngy.siae.user.service.AwardTypeService;
+import com.hngy.siae.web.utils.PageConvertUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -96,7 +96,7 @@ public class AwardTypeServiceImpl extends ServiceImpl<AwardTypeMapper, AwardType
         }
 
         // 执行分页查询
-        Page<AwardType> page = pageDTO.toPage();
+        Page<AwardType> page = PageConvertUtil.toPage(pageDTO);
         Page<AwardType> resultPage = page(page, queryWrapper); 
         
         return PageConvertUtil.convert(resultPage, AwardTypeVO.class);

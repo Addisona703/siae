@@ -1,9 +1,9 @@
 package com.hngy.siae.content.facade.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.hngy.siae.common.dto.response.PageVO;
-import com.hngy.siae.common.utils.PageConvertUtil;
+// import com.baomidou.mybatisplus.extension.plugins.pagination.Page; // 暂时不需要
+import com.hngy.siae.core.dto.PageVO;
+// import com.hngy.siae.web.utils.PageConvertUtil; // 暂时注释，手动创建PageVO
 import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
 import com.hngy.siae.content.dto.response.HotContentVO;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -150,11 +150,12 @@ public class ContentFacadeImpl implements ContentFacade {
         // 暂时使用当前查询结果的大小作为总数，实际应该添加一个countHotContent方法
         long total = hotContentList.size();
 
-        // 5. 创建分页对象并使用 PageConvertUtil 转换
-        Page<HotContentVO> page = new Page<>(contentHotPageDTO.getPageNum(), contentHotPageDTO.getPageSize(), total);
-        page.setRecords(hotContentList);
-
-        PageVO<HotContentVO> pageVO = PageConvertUtil.convert(page);
+        // 5. 手动创建分页对象
+        PageVO<HotContentVO> pageVO = new PageVO<>();
+        pageVO.setTotal((long) total);
+        pageVO.setPageNum(contentHotPageDTO.getPageNum());
+        pageVO.setPageSize(contentHotPageDTO.getPageSize());
+        pageVO.setRecords(hotContentList);
 
         return Result.success(pageVO);
     }

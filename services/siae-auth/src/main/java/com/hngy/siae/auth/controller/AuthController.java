@@ -8,7 +8,7 @@ import com.hngy.siae.auth.feign.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.auth.service.AuthService;
-import com.hngy.siae.common.utils.WebUtils;
+import com.hngy.siae.web.utils.WebUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

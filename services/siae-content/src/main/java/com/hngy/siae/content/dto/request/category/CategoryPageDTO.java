@@ -1,7 +1,7 @@
 package com.hngy.siae.content.dto.request.category;
 
-import com.hngy.siae.common.dto.request.PageDTO;
 import com.hngy.siae.content.common.enums.status.CategoryStatusEnum;
+import com.hngy.siae.core.dto.PageDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

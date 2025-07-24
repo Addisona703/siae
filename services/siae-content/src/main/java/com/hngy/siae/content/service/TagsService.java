@@ -2,8 +2,8 @@ package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.content.dto.request.TagDTO;
 import com.hngy.siae.content.dto.response.TagVO;
 import com.hngy.siae.content.entity.Tag;

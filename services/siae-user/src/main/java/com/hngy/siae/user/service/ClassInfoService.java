@@ -1,7 +1,7 @@
 package com.hngy.siae.user.service;
 
-import com.hngy.siae.common.dto.request.PageDTO;
-import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.user.dto.request.ClassInfoDTO;
 import com.hngy.siae.user.dto.response.ClassInfoVO;
 

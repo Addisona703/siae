@@ -2,10 +2,10 @@ package com.hngy.siae.content.dto.request.content;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hngy.siae.common.validation.CreateGroup;
-import com.hngy.siae.common.validation.UpdateGroup;
 import com.hngy.siae.content.common.enums.status.ContentStatusEnum;
 import com.hngy.siae.content.dto.request.content.detail.*;
+import com.hngy.siae.core.validation.CreateGroup;
+import com.hngy.siae.core.validation.UpdateGroup;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

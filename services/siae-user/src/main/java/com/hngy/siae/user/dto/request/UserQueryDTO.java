@@ -1,6 +1,5 @@
 package com.hngy.siae.user.dto.request;
 
-import com.hngy.siae.common.validation.QueryGroup;
 import lombok.Data;
 
 import java.io.Serial;

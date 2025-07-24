@@ -1,7 +1,7 @@
 package com.hngy.siae.content.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.content.dto.request.content.ContentPageDTO;
 import com.hngy.siae.content.entity.Content;
 import org.apache.ibatis.annotations.Mapper;
