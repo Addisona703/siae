@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.hngy.siae.core.permissions.AuthPermissions.*;
+
 /**
  * 权限控制器
  * 
@@ -35,7 +37,7 @@ public class PermissionController {
      */
     @Operation(summary = "创建权限", description = "创建新的权限")
     @PostMapping
-    @PreAuthorize("hasAuthority('system:permission:add')")
+    @PreAuthorize("hasAuthority('" + AUTH_PERMISSION_ADD + "')")
     public Result<PermissionVO> createPermission(@Valid @RequestBody PermissionCreateDTO request) {
         PermissionVO permissionVO = permissionService.createPermission(request);
         return Result.success(permissionVO);
@@ -48,7 +50,7 @@ public class PermissionController {
      */
     @Operation(summary = "获取权限列表", description = "获取所有权限的列表")
     @GetMapping
-    @PreAuthorize("hasAuthority('system:permission:query')")
+    @PreAuthorize("hasAuthority('" + AUTH_PERMISSION_QUERY + "')")
     public Result<List<PermissionVO>> getPermissions() {
         List<PermissionVO> permissions = permissionService.getPermissions();
         return Result.success(permissions);
@@ -62,40 +64,40 @@ public class PermissionController {
      */
     @Operation(summary = "获取权限详情", description = "获取指定ID的权限详细信息")
     @GetMapping("/{permissionId}")
-    @PreAuthorize("hasAuthority('system:permission:query')")
+    @PreAuthorize("hasAuthority('" + AUTH_PERMISSION_QUERY + "')")
     public Result<PermissionVO> getPermission(
             @Parameter(description = "权限ID") @PathVariable Long permissionId) {
         PermissionVO permission = permissionService.getPermission(permissionId);
         return Result.success(permission);
     }
     
-    /**
-     * 获取角色权限列表
-     *
-     * @param roleId 角色ID
-     * @return 权限列表
-     */
-    @Operation(summary = "获取角色权限列表", description = "获取指定角色的权限列表")
-    @GetMapping("/by-role/{roleId}")
-    @PreAuthorize("hasAuthority('system:permission:query')")
-    public Result<List<PermissionVO>> getPermissionsByRoleId(
-            @Parameter(description = "角色ID") @PathVariable Long roleId) {
-        List<PermissionVO> permissions = permissionService.getPermissionsByRoleId(roleId);
-        return Result.success(permissions);
-    }
-    
-    /**
-     * 获取用户权限列表
-     *
-     * @param userId 用户ID
-     * @return 权限列表
-     */
-    @Operation(summary = "获取用户权限列表", description = "获取指定用户的权限列表")
-    @GetMapping("/by-user/{userId}")
-    @PreAuthorize("hasAuthority('system:permission:query')")
-    public Result<List<PermissionVO>> getPermissionsByUserId(
-            @Parameter(description = "用户ID") @PathVariable Long userId) {
-        List<PermissionVO> permissions = permissionService.getPermissionsByUserId(userId);
-        return Result.success(permissions);
-    }
+//    /**
+//     * 获取角色权限列表
+//     *
+//     * @param roleId 角色ID
+//     * @return 权限列表
+//     */
+//    @Operation(summary = "获取角色权限列表", description = "获取指定角色的权限列表")
+//    @GetMapping("/by-role/{roleId}")
+//    @PreAuthorize("hasAuthority('system:permission:query')")
+//    public Result<List<PermissionVO>> getPermissionsByRoleId(
+//            @Parameter(description = "角色ID") @PathVariable Long roleId) {
+//        List<PermissionVO> permissions = permissionService.getPermissionsByRoleId(roleId);
+//        return Result.success(permissions);
+//    }
+//
+//    /**
+//     * 获取用户权限列表
+//     *
+//     * @param userId 用户ID
+//     * @return 权限列表
+//     */
+//    @Operation(summary = "获取用户权限列表", description = "获取指定用户的权限列表")
+//    @GetMapping("/by-user/{userId}")
+//    @PreAuthorize("hasAuthority('system:permission:query')")
+//    public Result<List<PermissionVO>> getPermissionsByUserId(
+//            @Parameter(description = "用户ID") @PathVariable Long userId) {
+//        List<PermissionVO> permissions = permissionService.getPermissionsByUserId(userId);
+//        return Result.success(permissions);
+//    }
 } 

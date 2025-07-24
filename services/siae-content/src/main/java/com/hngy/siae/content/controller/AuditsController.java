@@ -1,5 +1,7 @@
 package com.hngy.siae.content.controller;
 
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.common.enums.TypeEnum;
 import com.hngy.siae.content.dto.request.AuditDTO;
@@ -69,14 +71,14 @@ public class AuditsController {
     }
 
 
-//    @GetMapping("/pending")
-//    public Result<PageVO<AuditVO>> getPendingAudits(
-//            @NotNull @RequestParam Integer page,
-//            @NotNull @RequestParam Integer pageSize,
-//            @RequestParam(required = false) TypeEnum targetType,
-//            @RequestParam(required = false) AuditStatusEnum auditStatus) {
-//        return auditsService.getAuditPage(page, pageSize, targetType, auditStatus);
-//    }
+    @GetMapping("/pending")
+    public Result<PageVO<AuditVO>> getPendingAudits(
+            @NotNull @RequestParam Integer page,
+            @NotNull @RequestParam Integer pageSize,
+            @RequestParam(required = false) TypeEnum targetType,
+            @RequestParam(required = false) AuditStatusEnum auditStatus) {
+        return auditsService.getAuditPage(page, pageSize, targetType, auditStatus);
+    }
 
     /**
      * 获取审核记录

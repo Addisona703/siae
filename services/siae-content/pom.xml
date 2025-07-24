@@ -79,10 +79,10 @@
         </dependency>
 
         <!-- Seata for distributed transactions -->
-        <dependency>
-            <groupId>io.seata</groupId>
-            <artifactId>seata-spring-boot-starter</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.seata</groupId>-->
+<!--            <artifactId>seata-spring-boot-starter</artifactId>-->
+<!--        </dependency>-->
 
         <!-- Lombok -->
         <dependency>
@@ -97,12 +97,7 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
-        <!-- ============ 枚举自动反序列化（Reflections 扫描工具） ============ -->
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
-        </dependency>
+
     </dependencies>
 
 </project>

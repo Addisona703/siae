@@ -10,6 +10,9 @@ server:
     context-path: /api/v1/auth
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   application:
     name: siae-auth
   # Enable Nacos service discovery for this service
@@ -23,6 +26,21 @@ spring:
     url: jdbc:mysql://localhost:3306/auth_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456 # Replace with your actual password
+
+  # Redis Configuration for Permission Caching
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: # Set if Redis has password
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
   # Jackson JSON Configuration
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -46,16 +64,9 @@ mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.hngy.siae.auth.entity
 
-# SpringDoc API Documentation
+# SpringDoc API Documentation (使用统一配置)
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  group-configs:
-    - group: 'siae-auth'
-      paths-to-match: '/api/**'
-  packages-to-scan: com.hngy.siae.auth.controller
+    enabled: true

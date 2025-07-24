@@ -17,6 +17,7 @@ import com.hngy.siae.auth.mapper.LoginLogMapper;
 import com.hngy.siae.auth.mapper.PermissionMapper;
 import com.hngy.siae.auth.mapper.UserAuthMapper;
 import com.hngy.siae.auth.service.AuthService;
+import com.hngy.siae.auth.service.RedisPermissionCacheService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.core.exception.ServiceException;
@@ -33,6 +34,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserAuthMapper userAuthMapper;
     private final LoginLogMapper loginLogMapper;
     private final PermissionMapper permissionMapper;
+    private final RedisPermissionCacheService redisPermissionCacheService;
     
     @Override
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
@@ -80,11 +83,15 @@ public class AuthServiceImpl implements AuthService {
                     .stream()
                     .map(Permission::getCode)
                     .collect(Collectors.toList());
-            
-            // 生成令牌
-            String accessToken = jwtUtils.createAccessToken(user.getId(), user.getUsername(), permissions);
+
+            // 生成优化的JWT令牌（不包含权限信息）
+            String accessToken = jwtUtils.createAccessToken(user.getId(), user.getUsername());
             String refreshToken = jwtUtils.createRefreshToken(user.getId(), user.getUsername());
             Date expirationDate = jwtUtils.getExpirationDate(accessToken);
+
+            // 将用户权限缓存到Redis，TTL与JWT过期时间一致
+            long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
+            cacheUserPermissionsToRedis(user.getId(), permissions, tokenExpireSeconds);
             
             // 保存认证信息到数据库
             UserAuth userAuth = new UserAuth();
@@ -144,10 +151,14 @@ public class AuthServiceImpl implements AuthService {
             List<String> permissions = new ArrayList<>();
             permissions.add("user:basic");
             
-            // 生成令牌
-            String accessToken = jwtUtils.createAccessToken(createdUser.getId(), createdUser.getUsername(), permissions);
+            // 生成优化的JWT令牌（不包含权限信息）
+            String accessToken = jwtUtils.createAccessToken(createdUser.getId(), createdUser.getUsername());
             String refreshToken = jwtUtils.createRefreshToken(createdUser.getId(), createdUser.getUsername());
             Date expirationDate = jwtUtils.getExpirationDate(accessToken);
+
+            // 将用户权限缓存到Redis
+            long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
+            cacheUserPermissionsToRedis(createdUser.getId(), permissions, tokenExpireSeconds);
             
             // 保存认证信息到数据库
             UserAuth userAuth = new UserAuth();
@@ -209,11 +220,16 @@ public class AuthServiceImpl implements AuthService {
                 .stream()
                 .map(p -> p.getCode())
                 .collect(Collectors.toList());
+        System.out.println(permissions.get(0));
         
-        // 生成新的令牌
-        String newAccessToken = jwtUtils.createAccessToken(userId, username, permissions);
+        // 生成新的优化JWT令牌（不包含权限信息）
+        String newAccessToken = jwtUtils.createAccessToken(userId, username);
         String newRefreshToken = jwtUtils.createRefreshToken(userId, username);
         Date expirationDate = jwtUtils.getExpirationDate(newAccessToken);
+
+        // 将用户权限缓存到Redis
+        long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
+        cacheUserPermissionsToRedis(userId, permissions, tokenExpireSeconds);
         
         // 更新数据库中的认证信息
         userAuth.setAccessToken(newAccessToken);
@@ -237,17 +253,25 @@ public class AuthServiceImpl implements AuthService {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        
+
         // 验证令牌是否有效
         if (!jwtUtils.validateToken(token)) {
             throw new ServiceException("访问令牌已过期或无效");
         }
-        
+
+        // 获取用户ID用于清除Redis缓存
+        Long userId = jwtUtils.getUserId(token);
+
         // 从数据库中删除认证信息
         userAuthMapper.delete(
                 new LambdaQueryWrapper<UserAuth>()
                         .eq(UserAuth::getAccessToken, token)
         );
+
+        // 清除Redis中的用户权限缓存
+        if (userId != null) {
+            clearUserCacheFromRedis(userId);
+        }
     }
     
     /**
@@ -270,4 +294,43 @@ public class AuthServiceImpl implements AuthService {
             log.error("保存登录日志失败", e);
         }
     }
-} 
+
+    /**
+     * 将用户权限缓存到Redis
+     *
+     * @param userId 用户ID
+     * @param permissions 权限列表
+     * @param expireSeconds 过期时间（秒）
+     */
+    private void cacheUserPermissionsToRedis(Long userId, List<String> permissions, long expireSeconds) {
+        try {
+            // 缓存用户权限，TTL与JWT过期时间一致
+            redisPermissionCacheService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
+
+            // TODO: 如果需要，也可以缓存用户角色
+            // List<String> roles = roleMapper.selectByUserId(userId);
+            // redisPermissionCacheService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
+
+            log.debug("用户权限已缓存到Redis，用户ID: {}, 权限数量: {}, 过期时间: {}秒",
+                     userId, permissions.size(), expireSeconds);
+        } catch (Exception e) {
+            log.error("缓存用户权限到Redis失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响登录流程
+        }
+    }
+
+    /**
+     * 清除Redis中的用户权限缓存
+     *
+     * @param userId 用户ID
+     */
+    private void clearUserCacheFromRedis(Long userId) {
+        try {
+            redisPermissionCacheService.clearUserCache(userId);
+            log.debug("已清除用户权限缓存，用户ID: {}", userId);
+        } catch (Exception e) {
+            log.error("清除用户权限缓存失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响登出流程
+        }
+    }
+}

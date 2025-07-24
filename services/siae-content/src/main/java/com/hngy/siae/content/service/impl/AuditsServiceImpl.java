@@ -2,9 +2,12 @@ package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.content.common.enums.TypeEnum;
 import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
 import com.hngy.siae.content.common.enums.status.CommentStatusEnum;
@@ -79,33 +82,24 @@ public class AuditsServiceImpl
     }
 
 
-//    @Override
-//    public Result<PageVO<AuditVO>> getAuditPage(Integer page, Integer pageSize, TypeEnum targetType, AuditStatusEnum auditStatus) {
-//        // 构造分页对象
-//        Page<Audit> auditPage = new Page<>(page, pageSize);
-//
-//        // 构造查询条件
-//        LambdaQueryWrapper<Audit> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(targetType != null, Audit::getTargetType, targetType);
-//        queryWrapper.eq(auditStatus != null, Audit::getAuditStatus, auditStatus);
-//
-//        // 执行分页查询
-//        Page<Audit> result = this.page(auditPage, queryWrapper);
-//
-//        // 转换成 VO
-//        List<AuditVO> records = result.getRecords().stream()
-//                .map(audit -> BeanUtil.copyProperties(audit, AuditVO.class))
-//                .collect(Collectors.toList());
-//
-//        // 封装分页对象
-//        PageVO<AuditVO> pageVO = new PageVO<>();
-//        pageVO.setPage((int) result.getCurrent());
-//        pageVO.setPageSize((int) result.getSize());
-//        pageVO.setTotal((int) result.getTotal());
-//        pageVO.setRecords(records);
-//
-//        return Result.success(pageVO);
-//    }
+    @Override
+    public Result<PageVO<AuditVO>> getAuditPage(Integer page, Integer pageSize, TypeEnum targetType, AuditStatusEnum auditStatus) {
+        // 构造分页对象
+        Page<Audit> auditPage = new Page<>(page, pageSize);
+
+        // 构造查询条件
+        LambdaQueryWrapper<Audit> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(targetType != null, Audit::getTargetType, targetType);
+        queryWrapper.eq(auditStatus != null, Audit::getAuditStatus, auditStatus);
+
+        // 执行分页查询
+        Page<Audit> result = this.page(auditPage, queryWrapper);
+
+        // 使用 PageConvertUtil 转换分页结果
+        PageVO<AuditVO> pageVO = PageConvertUtil.convert(result, AuditVO.class);
+
+        return Result.success(pageVO);
+    }
 
 
     @Override

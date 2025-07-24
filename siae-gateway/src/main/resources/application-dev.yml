@@ -32,7 +32,7 @@ spring:
         - id: siae-user-route
           uri: lb://siae-user
           predicates:
-            - Path=/api/v1/users/**
+            - Path=/api/v1/user/**
 
         # 内容服务路由
         - id: siae-content-route

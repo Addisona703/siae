@@ -1,5 +1,8 @@
 package com.hngy.siae.content.facade;
 
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
+import com.hngy.siae.content.dto.response.HotContentVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.dto.request.content.ContentDTO;
 import com.hngy.siae.content.dto.response.ContentDetailVO;
@@ -38,11 +41,11 @@ public interface ContentFacade {
      */
     Result<ContentVO<ContentDetailVO>> queryContent(@NotNull Long contentId);
 
-//    /**
-//     * 查询热门内容
-//     *
-//     * @param contentHotPageDTO 内容热点页面dto
-//     * @return {@link Result }<{@link List }<{@link HotContentVO }>>
-//     */
-//    Result<List<HotContentVO>> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO);
+    /**
+     * 查询热门内容
+     *
+     * @param contentHotPageDTO 内容热点页面dto
+     * @return {@link Result }<{@link PageVO }<{@link HotContentVO }>>
+     */
+    Result<PageVO<HotContentVO>> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO);
 }

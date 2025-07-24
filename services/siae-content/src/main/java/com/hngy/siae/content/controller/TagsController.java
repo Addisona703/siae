@@ -2,6 +2,8 @@ package com.hngy.siae.content.controller;
 
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.common.validation.CreateGroup;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.dto.request.TagDTO;
 import com.hngy.siae.content.dto.response.TagVO;
 import com.hngy.siae.content.service.TagsService;
@@ -128,8 +130,8 @@ public class  TagsController {
     }
 
 
-//    @GetMapping
-//    public Result<PageVO<TagVO>> listTags(PageDTO pageDTO) {
-//        return tagsService.listTags(pageDTO);
-//    }
+    @GetMapping
+    public Result<PageVO<TagVO>> listTags(PageDTO<?> pageDTO) {
+        return tagsService.listTags(pageDTO);
+    }
 }

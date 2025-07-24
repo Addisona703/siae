@@ -36,8 +36,31 @@ public class JwtUtils {
 
     // ========================= 令牌生成 =========================
 
+    /**
+     * 创建访问令牌（优化版本 - 不包含权限信息）
+     * 权限信息将从Redis缓存中获取，减少JWT token大小
+     *
+     * @param userId 用户ID
+     * @param username 用户名
+     * @return JWT访问令牌
+     */
+    public String createAccessToken(Long userId, String username) {
+        return createToken(userId, username, null, accessTokenExpire);
+    }
+
+    /**
+     * 创建访问令牌（兼容旧版本 - 包含权限信息）
+     *
+     * @deprecated 使用 createAccessToken(Long, String) 替代
+     * @param userId 用户ID
+     * @param username 用户名
+     * @param authorities 权限列表（将被忽略）
+     * @return JWT访问令牌
+     */
+    @Deprecated
     public String createAccessToken(Long userId, String username, List<String> authorities) {
-        return createToken(userId, username, authorities, accessTokenExpire);
+        // 忽略authorities参数，不再将权限信息存储在JWT中
+        return createToken(userId, username, null, accessTokenExpire);
     }
 
     public String createRefreshToken(Long userId, String username) {
@@ -65,16 +88,25 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * 创建JWT令牌（优化版本 - 仅包含基本信息）
+     *
+     * @param userId 用户ID
+     * @param username 用户名
+     * @param authorities 权限列表（已废弃，将被忽略）
+     * @param expireTime 过期时间（秒）
+     * @return JWT令牌
+     */
     private String createToken(Long userId, String username, List<String> authorities, long expireTime) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expireTime * 1000);
 
+        // 优化后的JWT只包含基本信息：userId, username, exp
+        // 权限信息将从Redis缓存中获取，大大减少token大小
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
-        if (authorities != null) {
-            claims.put("authorities", authorities);
-        }
+        // 不再包含authorities，减少token大小
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -102,9 +134,18 @@ public class JwtUtils {
         return parseToken(token).get("username", String.class);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * 获取权限列表（已废弃）
+     *
+     * @deprecated JWT中不再包含权限信息，请使用Redis缓存获取权限
+     * @param token JWT令牌
+     * @return 空列表（权限信息已移至Redis缓存）
+     */
+    @Deprecated
     public List<String> getAuthorities(String token) {
-        return parseToken(token).get("authorities", List.class);
+        // JWT中不再包含权限信息，返回空列表
+        // 权限信息应该从Redis缓存中获取
+        return Collections.emptyList();
     }
 
     // ========================= Token校验 =========================

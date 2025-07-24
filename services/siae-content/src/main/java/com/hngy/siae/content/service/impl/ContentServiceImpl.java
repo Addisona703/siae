@@ -1,22 +1,32 @@
 package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.asserts.AssertUtils;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.common.utils.PageConvertUtil;
 
 import com.hngy.siae.content.common.enums.BaseEnum;
 import com.hngy.siae.content.common.enums.ContentTypeEnum;
 import com.hngy.siae.content.common.enums.status.ContentStatusEnum;
 import com.hngy.siae.content.dto.request.content.ContentDTO;
+import com.hngy.siae.content.dto.request.content.ContentPageDTO;
+import com.hngy.siae.content.dto.response.ContentVO;
+import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
 import com.hngy.siae.content.mapper.ContentMapper;
 import com.hngy.siae.content.service.ContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -108,33 +118,37 @@ public class ContentServiceImpl
     }
 
 
-//    @Override
-//    public Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto) {
-//        // 创建分页参数
-//        Page<Content> page = dto.toPage();
-//        // 查询数据
-//        List<Content> list = contentMapper.selectByCondition(dto);
-//        AssertUtils.notNull(list, "这里没有任何内容");
-//        // 查询总数
-//        long total = contentMapper.countByCondition(dto.getParams());
-//
-//        // TODO: 整合的时候直接改成用mybatis-plus写多表分页查询
-//
-//        // 转换成 VO
-//        List<ContentVO<EmptyDetailVO>> voList = list.stream().map(content -> {
-//            ContentVO<EmptyDetailVO> vo = new ContentVO<>();
-//            BeanUtils.copyProperties(content, vo);
-//            vo.setDetail(new EmptyDetailVO());
-//            return vo;
-//        }).collect(Collectors.toList());
-//
-//        // 封装分页结果
-//        PageVO<ContentVO<EmptyDetailVO>> pageVO = new PageVO<>();
-//        pageVO.setPage((int) page.getCurrent());
-//        pageVO.setPageSize((int) page.getSize());
-//        pageVO.setTotal((int) total);
-//        pageVO.setRecords(voList);
-//
-//        return Result.success(pageVO);
-//    }
+    @Override
+    public Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto) {
+        // 创建分页参数
+        Page<Content> page = dto.<Content>toPage();
+        // 查询数据
+        List<Content> list = contentMapper.selectByCondition(dto);
+        AssertUtils.notNull(list, "这里没有任何内容");
+        // 查询总数
+        long total = contentMapper.countByCondition(dto.getParams());
+
+        // TODO: 整合的时候直接改成用mybatis-plus写多表分页查询
+
+        // 创建一个临时的 Page 对象用于转换
+        Page<Content> resultPage = new Page<>(page.getCurrent(), page.getSize(), total);
+        resultPage.setRecords(list);
+
+        // 使用 PageConvertUtil 转换，但需要自定义转换逻辑
+        List<ContentVO<EmptyDetailVO>> voList = list.stream().map(content -> {
+            ContentVO<EmptyDetailVO> vo = new ContentVO<>();
+            BeanUtils.copyProperties(content, vo);
+            vo.setDetail(new EmptyDetailVO());
+            return vo;
+        }).collect(Collectors.toList());
+
+        // 创建最终的分页结果
+        Page<ContentVO<EmptyDetailVO>> voPage = new Page<>(page.getCurrent(), page.getSize(), total);
+        voPage.setRecords(voList);
+
+        // 使用 PageConvertUtil 转换
+        PageVO<ContentVO<EmptyDetailVO>> pageVO = PageConvertUtil.convert(voPage);
+
+        return Result.success(pageVO);
+    }
 }

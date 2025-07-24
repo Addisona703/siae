@@ -22,3 +22,5 @@
     private Long id;
     ```
     + 我还是选择多DTO了
+
+2. token长度变长导致存入不了数据库，无法登录，目前选择增大数据库中的token字段类型为varchar(1024)，后面修改存入redis。

@@ -10,6 +10,9 @@ import com.hngy.siae.core.result.Result;
 import com.hngy.siae.auth.service.AuthService;
 import com.hngy.siae.common.utils.WebUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -40,6 +43,9 @@ public class AuthController {
      * @return 登录结果
      */
     @Operation(summary = "用户登录", description = "使用用户名和密码进行登录")
+    @ApiResponse(responseCode = "200", description = "登录成功",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = LoginVO.class)))
     @PostMapping("/login")
     public Result<LoginVO> login(HttpServletRequest request, @Valid @RequestBody LoginDTO loginDTO) {
         String clientIp = WebUtils.getClientIp(request);
@@ -58,6 +64,9 @@ public class AuthController {
      * @return 注册结果
      */
     @Operation(summary = "用户注册", description = "填写相关信息进行注册")
+    @ApiResponse(responseCode = "200", description = "注册成功",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = RegisterVO.class)))
     @PostMapping("/register")
     public Result<RegisterVO> register(HttpServletRequest request, @Valid @RequestBody RegisterDTO registerDTO) {
         String clientIp = WebUtils.getClientIp(request);

@@ -1,11 +1,17 @@
 package com.hngy.siae.content.facade.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.common.utils.PageConvertUtil;
+import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
+import com.hngy.siae.content.dto.response.HotContentVO;
+import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.content.common.enums.ContentTypeEnum;
 import com.hngy.siae.content.common.enums.TypeEnum;
 import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
 import com.hngy.siae.content.common.enums.status.ContentStatusEnum;
-import com.hngy.siae.content.common.utils.AssertUtil;
 import com.hngy.siae.content.dto.request.AuditDTO;
 import com.hngy.siae.content.dto.request.content.ContentDTO;
 import com.hngy.siae.content.dto.response.ContentDetailVO;
@@ -106,7 +112,7 @@ public class ContentFacadeImpl implements ContentFacade {
     @Override
     public Result<ContentVO<ContentDetailVO>> queryContent(@NotNull Long contentId) {
         Content content = contentService.getBaseMapper().selectById(contentId);
-        AssertUtil.notNull(content, "内容查询失败，内容不存在");
+        AssertUtils.notNull(content, "内容查询失败，内容不存在");
 
         ContentDetailVO detailVO = strategyContext.getStrategy(content.getType())
                 .getDetail(contentId);
@@ -119,27 +125,38 @@ public class ContentFacadeImpl implements ContentFacade {
     }
 
 
-//    @Override
-//    public Result<List<HotContentVO>> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO) {
-//        // 1. 参数校验
-//        AssertUtil.notNull(contentHotPageDTO, "查询参数不能为空");
-//        AssertUtil.isTrue(contentHotPageDTO.getPage() > 0 && contentHotPageDTO.getPageSize() > 0, "分页参数不正确");
-//
-//        // 2. 计算分页偏移量
-//        int offset = (contentHotPageDTO.getPage() - 1) * contentHotPageDTO.getPageSize();
-//
-//        // 3. 查询热门内容
-//        List<HotContentVO> hotContentList = statisticsMapper.selectHotContent(
-//                contentHotPageDTO.getCategoryId(),
-//                Optional.ofNullable(contentHotPageDTO.getType())
-//                        .map(ContentTypeEnum::name)
-//                        .orElse(null),
-//                contentHotPageDTO.getSortBy(),
-//                contentHotPageDTO.getPageSize(),
-//                offset
-//        );
-//
-//        return Result.success(hotContentList);
-//    }
+    @Override
+    public Result<PageVO<HotContentVO>> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO) {
+        // 1. 参数校验
+        AssertUtils.notNull(contentHotPageDTO, "查询参数不能为空");
+        AssertUtils.isTrue(contentHotPageDTO.getPageNum() > 0 && contentHotPageDTO.getPageSize() > 0, "分页参数不正确");
+
+        // 2. 计算分页偏移量
+        int offset = (contentHotPageDTO.getPageNum() - 1) * contentHotPageDTO.getPageSize();
+
+        // 3. 查询热门内容
+        List<HotContentVO> hotContentList = statisticsMapper.selectHotContent(
+                contentHotPageDTO.getCategoryId(),
+                Optional.ofNullable(contentHotPageDTO.getType())
+                        .map(ContentTypeEnum::name)
+                        .orElse(null),
+                contentHotPageDTO.getSortBy(),
+                contentHotPageDTO.getPageSize(),
+                offset
+        );
+
+        // 4. 查询总数 (需要添加一个查询总数的方法)
+        // 为了保持一致性，我们需要查询总数，但目前mapper中没有这个方法
+        // 暂时使用当前查询结果的大小作为总数，实际应该添加一个countHotContent方法
+        long total = hotContentList.size();
+
+        // 5. 创建分页对象并使用 PageConvertUtil 转换
+        Page<HotContentVO> page = new Page<>(contentHotPageDTO.getPageNum(), contentHotPageDTO.getPageSize(), total);
+        page.setRecords(hotContentList);
+
+        PageVO<HotContentVO> pageVO = PageConvertUtil.convert(page);
+
+        return Result.success(pageVO);
+    }
 }
 

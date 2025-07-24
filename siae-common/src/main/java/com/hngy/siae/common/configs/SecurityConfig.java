@@ -1,7 +1,8 @@
 package com.hngy.siae.common.configs;
 
-import com.hngy.siae.common.filter.JwtAuthenticationFilter;
+import com.hngy.siae.common.filter.OptimizedJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,16 +16,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * 通用安全配置类，适用于所有需要安全认证的子服务
- * 
+ *
+ * 使用优化的JWT认证过滤器，支持Redis权限缓存
+ * 只有在Redis相关类存在时才会启用
+ *
  * @author KEYKB
  */
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@ConditionalOnClass(name = "org.springframework.data.redis.core.StringRedisTemplate")
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OptimizedJwtAuthenticationFilter optimizedJwtAuthenticationFilter;
 
     /**
      * 密码加密器
@@ -56,7 +61,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(optimizedJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

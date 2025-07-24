@@ -12,12 +12,15 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+
+import static com.hngy.siae.core.permissions.AuthPermissions.*;
 
 /**
  * 日志控制器
@@ -26,7 +29,7 @@ import java.time.LocalDateTime;
  */
 @Tag(name = "日志管理", description = "日志查询相关API")
 @RestController
-@RequestMapping("/api/logs")
+@RequestMapping("/logs")
 @RequiredArgsConstructor
 public class LogController {
 
@@ -51,6 +54,7 @@ public class LogController {
             @Parameter(name = "pageSize", description = "每页大小", in = ParameterIn.QUERY)
     })
     @GetMapping("/login")
+    @PreAuthorize("hasAuthority('" + AUTH_LOG_QUERY + "')")
     public Result<PageVO<LoginLogVO>> getLoginLogs(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
@@ -81,6 +85,7 @@ public class LogController {
             @Parameter(name = "pageSize", description = "每页大小", in = ParameterIn.QUERY)
     })
     @GetMapping("/login/fail")
+    @PreAuthorize("hasAuthority('" + AUTH_LOG_QUERY + "')")
     public Result<PageVO<LoginFailVO>> getLoginFailLogs(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,

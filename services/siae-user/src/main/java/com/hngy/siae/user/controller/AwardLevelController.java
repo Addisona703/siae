@@ -15,10 +15,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.hngy.siae.core.permissions.UserPermissions.*;
 
 /**
  * 奖项等级字典控制器
@@ -26,7 +29,7 @@ import java.util.List;
  * @author KEYKB
  */
 @RestController
-@RequestMapping("/api/award-levels")
+@RequestMapping("/award-levels")
 @RequiredArgsConstructor
 @Tag(name = "奖项等级字典管理", description = "用于管理奖项等级信息的接口")
 @Validated
@@ -37,6 +40,7 @@ public class AwardLevelController {
     @PostMapping
     @Operation(summary = "创建奖项等级")
     @ApiResponse(responseCode = "200", description = "创建成功", content = @Content(schema = @Schema(implementation = AwardLevelVO.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_CREATE + "')")
     public Result<AwardLevelVO> createAwardLevel(@Validated @RequestBody AwardLevelDTO awardLevelDTO) {
         return Result.success(awardLevelService.createAwardLevel(awardLevelDTO));
     }
@@ -44,6 +48,7 @@ public class AwardLevelController {
     @PutMapping
     @Operation(summary = "更新奖项等级")
     @ApiResponse(responseCode = "200", description = "更新成功", content = @Content(schema = @Schema(implementation = AwardLevelVO.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_UPDATE + "')")
     public Result<AwardLevelVO> updateAwardLevel(@Validated(UpdateGroup.class) @RequestBody AwardLevelDTO awardLevelDTO) {
         return Result.success(awardLevelService.updateAwardLevel(awardLevelDTO));
     }
@@ -51,6 +56,7 @@ public class AwardLevelController {
     @GetMapping("/{id}")
     @Operation(summary = "根据ID获取奖项等级")
     @ApiResponse(responseCode = "200", description = "查询成功", content = @Content(schema = @Schema(implementation = AwardLevelVO.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_VIEW + "')")
     public Result<AwardLevelVO> getAwardLevelById(
         @Parameter(description = "奖项等级ID", required = true, example = "1", in = ParameterIn.PATH) @PathVariable Long id) {
         return Result.success(awardLevelService.getAwardLevelById(id));
@@ -59,6 +65,7 @@ public class AwardLevelController {
     @GetMapping("/name/{name}")
     @Operation(summary = "根据名称获取奖项等级")
     @ApiResponse(responseCode = "200", description = "查询成功", content = @Content(schema = @Schema(implementation = AwardLevelVO.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_VIEW + "')")
     public Result<AwardLevelVO> getAwardLevelByName(
         @Parameter(description = "奖项等级名称", required = true, example = "国家级", in = ParameterIn.PATH) @PathVariable String name) {
         return Result.success(awardLevelService.getAwardLevelByName(name));
@@ -67,6 +74,7 @@ public class AwardLevelController {
     @GetMapping
     @Operation(summary = "获取所有奖项等级")
     @ApiResponse(responseCode = "200", description = "查询成功", content = @Content(schema = @Schema(implementation = List.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_LIST + "')")
     public Result<List<AwardLevelVO>> listAllAwardLevels() {
         return Result.success(awardLevelService.listAllAwardLevels());
     }
@@ -74,6 +82,7 @@ public class AwardLevelController {
     @PostMapping("/page")
     @Operation(summary = "分页查询奖项等级")
     @ApiResponse(responseCode = "200", description = "查询成功", content = @Content(schema = @Schema(implementation = PageVO.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_LIST + "')")
     public Result<PageVO<AwardLevelVO>> listAwardLevelsByPage(@RequestBody PageDTO<AwardLevelDTO> pageDTO) {
         return Result.success(awardLevelService.listAwardLevelsByPage(pageDTO));
     }
@@ -81,6 +90,7 @@ public class AwardLevelController {
     @DeleteMapping("/{id}")
     @Operation(summary = "根据ID删除奖项等级")
     @ApiResponse(responseCode = "200", description = "删除成功", content = @Content(schema = @Schema(implementation = Boolean.class)))
+    @PreAuthorize("hasAuthority('" + USER_AWARD_LEVEL_DELETE + "')")
     public Result<Boolean> deleteAwardLevel(
         @Parameter(description = "奖项等级ID", required = true, example = "1", in = ParameterIn.PATH) @PathVariable Long id) {
         return Result.success(awardLevelService.deleteAwardLevel(id));

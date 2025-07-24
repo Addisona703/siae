@@ -2,7 +2,12 @@ package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.dto.request.content.ContentDTO;
+import com.hngy.siae.content.dto.request.content.ContentPageDTO;
+import com.hngy.siae.content.dto.response.ContentVO;
+import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
 
 
@@ -39,11 +44,11 @@ public interface ContentService extends IService<Content> {
      */
     Result<Void> deleteContent(Integer id, Integer isTrash);
 
-//    /**
-//     * 获取内容列表
-//     *
-//     * @param dto 分页查询参数
-//     * @return {@link PageVO }<{@link ContentVO }<{@link EmptyDetailVO }>>
-//     */
-//    Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto);
+    /**
+     * 获取内容列表
+     *
+     * @param dto 分页查询参数
+     * @return {@link PageVO }<{@link ContentVO }<{@link EmptyDetailVO }>>
+     */
+    Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto);
 }

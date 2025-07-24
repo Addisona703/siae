@@ -13,16 +13,16 @@ public class ContentPermissions {
 
     // ==================== 内容管理权限 ====================
     /** 发布内容 */
-    public static final String SYSTEM_CONTENT_PUBLISH = "system:content:publish";
+    public static final String CONTENT_PUBLISH = "content:publish";
 
     /** 编辑内容 */
-    public static final String SYSTEM_CONTENT_EDIT = "system:content:edit";
+    public static final String CONTENT_EDIT = "content:edit";
 
     /** 删除内容 */
-    public static final String SYSTEM_CONTENT_DELETE = "system:content:delete";
+    public static final String CONTENT_DELETE = "content:delete";
 
     /** 查询内容 */
-    public static final String SYSTEM_CONTENT_QUERY = "system:content:query";
+    public static final String CONTENT_QUERY = "content:query";
 
     /** 查询内容列表 */
     public static final String CONTENT_LIST_VIEW = "content:list:view";

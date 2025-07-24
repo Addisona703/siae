@@ -2,9 +2,15 @@ package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.content.dto.request.TagDTO;
 import com.hngy.siae.content.dto.response.TagVO;
 import com.hngy.siae.content.entity.Tag;
@@ -93,37 +99,28 @@ public class TagsServiceImpl
     }
 
 
-//    @Override
-//    public Result<PageVO<TagVO>> listTags(PageDTO pageDTO) {
-//        // 构建分页对象
-//        Page<Tag> page = new Page<>(pageDTO.getPage(), pageDTO.getPageSize());
-//
-//        // 构建查询条件
-//        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
-//        String keyword = pageDTO.getKeyword();
-//        if (StrUtil.isNotBlank(keyword)) {
-//            queryWrapper.and(wrapper ->
-//                    wrapper.like(Tag::getName, keyword)
-//                            .or()
-//                            .like(Tag::getDescription, keyword)
-//            );
-//        }
-//
-//        // 执行分页查询
-//        Page<Tag> result = baseMapper.selectPage(page, queryWrapper);
-//
-//        // 转换结果为 VO 对象列表
-//        List<TagVO> tagVOList = result.getRecords().stream()
-//                .map(tag -> BeanUtil.copyProperties(tag, TagVO.class))
-//                .collect(Collectors.toList());
-//
-//        // 封装分页响应结果
-//        PageVO<TagVO> pageVO = new PageVO<>();
-//        pageVO.setPage((int) result.getCurrent());
-//        pageVO.setPageSize((int) result.getSize());
-//        pageVO.setTotal((int) result.getTotal());
-//        pageVO.setRecords(tagVOList);
-//
-//        return Result.success(pageVO);
-//    }
+    @Override
+    public Result<PageVO<TagVO>> listTags(PageDTO<?> pageDTO) {
+        // 构建分页对象
+        Page<Tag> page = pageDTO.toPage();
+
+        // 构建查询条件
+        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        String keyword = pageDTO.getKeyword();
+        if (StrUtil.isNotBlank(keyword)) {
+            queryWrapper.and(wrapper ->
+                    wrapper.like(Tag::getName, keyword)
+                            .or()
+                            .like(Tag::getDescription, keyword)
+            );
+        }
+
+        // 执行分页查询
+        Page<Tag> result = baseMapper.selectPage(page, queryWrapper);
+
+        // 使用 PageConvertUtil 转换分页结果
+        PageVO<TagVO> pageVO = PageConvertUtil.convert(result, TagVO.class);
+
+        return Result.success(pageVO);
+    }
 }

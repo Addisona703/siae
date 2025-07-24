@@ -3,11 +3,18 @@ package com.hngy.siae.content.controller;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.common.validation.CreateGroup;
 import com.hngy.siae.common.validation.UpdateGroup;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.dto.request.content.ContentDTO;
+import com.hngy.siae.content.dto.request.content.ContentPageDTO;
+import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
 import com.hngy.siae.content.dto.response.ContentDetailVO;
 import com.hngy.siae.content.dto.response.ContentVO;
+import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
+import com.hngy.siae.content.dto.response.HotContentVO;
 import com.hngy.siae.content.facade.ContentFacade;
 import com.hngy.siae.content.service.ContentService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,21 +56,11 @@ public class ContentController {
      * @return 发布的内容详情
      */
     @Operation(summary = "发布内容", description = "创建并发布新的内容，支持文章、笔记、提问、文件、视频等多种类型")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "发布成功",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ContentVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要内容发布权限",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
-            content = @Content(mediaType = "application/json"))
-    })
+    @ApiResponse(responseCode = "200", description = "发布成功",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = ContentVO.class)))
     @PostMapping("/")
-    @PreAuthorize("hasAuthority('" + SYSTEM_CONTENT_PUBLISH + "')")
+    @PreAuthorize("hasAuthority('" + CONTENT_PUBLISH + "')")
     public Result<ContentVO<ContentDetailVO>> publishContent(
             @Parameter(description = "内容发布请求数据，包含标题、类型、描述、分类等信息", required = true)
             @RequestBody @Validated(CreateGroup.class) ContentDTO contentDTO) {
@@ -81,19 +79,11 @@ public class ContentController {
         @ApiResponse(responseCode = "200", description = "编辑成功",
             content = @Content(mediaType = "application/json",
                 schema = @Schema(implementation = ContentVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误或内容ID无效",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要内容编辑权限",
-            content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "内容不存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
             content = @Content(mediaType = "application/json"))
     })
     @PutMapping("/")
-    @PreAuthorize("hasAuthority('" + SYSTEM_CONTENT_EDIT + "')")
+    @PreAuthorize("hasAuthority('" + CONTENT_EDIT + "')")
     public Result<ContentVO<ContentDetailVO>> editContent(
             @Parameter(description = "内容编辑请求数据，必须包含内容ID和要修改的字段", required = true)
             @RequestBody @Validated(UpdateGroup.class) ContentDTO contentDTO) {
@@ -112,19 +102,11 @@ public class ContentController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "删除成功",
             content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "400", description = "请求参数错误，ID或isTrash参数无效",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要内容删除权限",
-            content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "内容不存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
             content = @Content(mediaType = "application/json"))
     })
     @DeleteMapping("/")
-    @PreAuthorize("hasAuthority('" + SYSTEM_CONTENT_DELETE + "')")
+    @PreAuthorize("hasAuthority('" + CONTENT_DELETE + "')")
     public Result<Void> deleteContent(
             @Parameter(description = "内容ID", required = true, example = "1")
             @NotNull @RequestParam Integer id,
@@ -145,19 +127,11 @@ public class ContentController {
         @ApiResponse(responseCode = "200", description = "查询成功",
             content = @Content(mediaType = "application/json",
                 schema = @Schema(implementation = ContentVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误，内容ID无效",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要内容查询权限",
-            content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "内容不存在或已被删除",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
             content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/query/{contentId}")
-    @PreAuthorize("hasAuthority('" + SYSTEM_CONTENT_QUERY + "')")
+    @PreAuthorize("hasAuthority('" + CONTENT_QUERY + "')")
     public Result<ContentVO<ContentDetailVO>> queryContent(
             @Parameter(description = "内容ID，用于唯一标识要查询的内容", required = true, example = "123456")
             @NotNull @PathVariable("contentId") Long contentId) {
@@ -165,16 +139,22 @@ public class ContentController {
     }
 
 
-//    @GetMapping("/")
-//    public Result<PageVO<ContentVO<EmptyDetailVO>>> queryContentList(
-//            @RequestBody @Valid PageDTO<ContentPageDTO> contentPageDTO) {
-//        return contentService.getContentPage(contentPageDTO);
-//    }
+    @Operation(summary = "查询内容列表", description = "分页查询内容列表，支持按分类、标签、状态等条件筛选")
+    @ApiResponse(responseCode = "200", description = "查询成功",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = PageVO.class)))
+    @GetMapping("/")
+    @PreAuthorize("hasAuthority('" + CONTENT_LIST_VIEW + "')")
+    public Result<PageVO<ContentVO<EmptyDetailVO>>> queryContentList(
+            @Parameter(description = "分页查询参数", required = true)
+            @RequestBody @Valid PageDTO<ContentPageDTO> contentPageDTO) {
+        return contentService.getContentPage(contentPageDTO);
+    }
 
 
-//    @GetMapping("/hot")
-//    public Result<List<HotContentVO>> queryHotContent(
-//            @Valid ContentHotPageDTO contentHotPageDTO) {
-//        return contentFacade.queryHotContent(contentHotPageDTO);
-//    }
+    @GetMapping("/hot")
+    public Result<PageVO<HotContentVO>> queryHotContent(
+            @Valid ContentHotPageDTO contentHotPageDTO) {
+        return contentFacade.queryHotContent(contentHotPageDTO);
+    }
 }

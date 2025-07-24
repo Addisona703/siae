@@ -8,7 +8,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import static com.hngy.siae.core.permissions.AuthPermissions.*;
 
 /**
  * 用户角色控制器
@@ -17,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "用户角色管理", description = "用户角色分配相关API")
 @RestController
-@RequestMapping("/api/users/{userId}/roles")
+@RequestMapping("/user-role")
 @RequiredArgsConstructor
 public class UserRoleController {
 
@@ -31,9 +34,10 @@ public class UserRoleController {
      * @return 分配结果
      */
     @Operation(summary = "为用户分配角色", description = "为指定用户分配一个或多个角色")
-    @PostMapping
+    @PostMapping("/{userId}/roles")
+    @PreAuthorize("hasAuthority('" + AUTH_USER_ROLE_ASSIGN + "')")
     public Result<Boolean> assignUserRoles(
-            @Parameter(description = "用户ID") @PathVariable Long userId,
+            @Parameter(description = "用户ID") @PathVariable("userId") Long userId,
             @Valid @RequestBody UserRoleDTO request) {
         boolean result = roleService.assignUserRoles(userId, request.getRoleIds());
         return Result.success(result);

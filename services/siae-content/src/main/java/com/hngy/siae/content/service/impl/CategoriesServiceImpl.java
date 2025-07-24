@@ -1,11 +1,18 @@
 package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.common.dto.response.PageVO;
+import com.hngy.siae.common.utils.PageConvertUtil;
 import com.hngy.siae.content.common.enums.status.CategoryStatusEnum;
 import com.hngy.siae.content.dto.request.category.CategoryDTO;
+import com.hngy.siae.content.dto.request.category.CategoryPageDTO;
 import com.hngy.siae.content.dto.response.CategoryVO;
 import com.hngy.siae.content.entity.Category;
 import com.hngy.siae.content.mapper.CategoryMapper;
@@ -96,40 +103,31 @@ public class CategoriesServiceImpl
     }
 
 
-//    @Override
-//    public Result<PageVO<CategoryVO>> listCategories(CategoryPageDTO categoryPageDTO) {
-//        // 构建分页对象
-//        Page<Category> page = new Page<>(categoryPageDTO.getPage(), categoryPageDTO.getPageSize());
-//
-//        // 构建查询条件
-//        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(ObjectUtil.isNotNull(categoryPageDTO.getStatus()), Category::getStatus, categoryPageDTO.getStatus())
-//                .eq(ObjectUtil.isNotNull(categoryPageDTO.getParentId()), Category::getParentId, categoryPageDTO.getParentId())
-//                .ne(Category::getStatus, CategoryStatusEnum.DELETED);
-//
-//        // 模糊查询 name
-//        if (StrUtil.isNotBlank(categoryPageDTO.getKeyword())) {
-//            queryWrapper.and(wrapper ->
-//                    wrapper.like(Category::getName, categoryPageDTO.getKeyword()));
-//        }
-//
-//        // 执行分页查询
-//        Page<Category> result = baseMapper.selectPage(page, queryWrapper);
-//
-//        // 转换结果为VO对象
-//        List<CategoryVO> categoryVOList = result.getRecords().stream()
-//                .map(category -> BeanUtil.copyProperties(category, CategoryVO.class))
-//                .collect(Collectors.toList());
-//
-//        // 封装分页结果
-//        PageVO<CategoryVO> pageVO = new PageVO<>();
-//        pageVO.setPage((int) result.getCurrent());
-//        pageVO.setPageSize((int) result.getSize());
-//        pageVO.setTotal((int) result.getTotal());
-//        pageVO.setRecords(categoryVOList);
-//
-//        return Result.success(pageVO);
-//    }
+    @Override
+    public Result<PageVO<CategoryVO>> listCategories(CategoryPageDTO categoryPageDTO) {
+        // 构建分页对象
+        Page<Category> page = categoryPageDTO.<Category>toPage();
+
+        // 构建查询条件
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ObjectUtil.isNotNull(categoryPageDTO.getStatus()), Category::getStatus, categoryPageDTO.getStatus())
+                .eq(ObjectUtil.isNotNull(categoryPageDTO.getParentId()), Category::getParentId, categoryPageDTO.getParentId())
+                .ne(Category::getStatus, CategoryStatusEnum.DELETED);
+
+        // 模糊查询 name
+        if (StrUtil.isNotBlank(categoryPageDTO.getKeyword())) {
+            queryWrapper.and(wrapper ->
+                    wrapper.like(Category::getName, categoryPageDTO.getKeyword()));
+        }
+
+        // 执行分页查询
+        Page<Category> result = baseMapper.selectPage(page, queryWrapper);
+
+        // 使用 PageConvertUtil 转换分页结果
+        PageVO<CategoryVO> pageVO = PageConvertUtil.convert(result, CategoryVO.class);
+
+        return Result.success(pageVO);
+    }
 
 
     @Override

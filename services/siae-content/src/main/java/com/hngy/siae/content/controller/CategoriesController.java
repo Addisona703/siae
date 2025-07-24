@@ -3,8 +3,10 @@ package com.hngy.siae.content.controller;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.common.validation.CreateGroup;
 import com.hngy.siae.common.validation.UpdateGroup;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.dto.request.category.CategoryDTO;
 import com.hngy.siae.content.dto.request.category.CategoryEnableDTO;
+import com.hngy.siae.content.dto.request.category.CategoryPageDTO;
 import com.hngy.siae.content.dto.response.CategoryVO;
 import com.hngy.siae.content.service.CategoriesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,19 +48,9 @@ public class CategoriesController {
      * @return 创建的分类信息
      */
     @Operation(summary = "创建分类", description = "创建新的内容分类")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "创建成功",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = CategoryVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误或分类名称已存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要分类创建权限",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
-            content = @Content(mediaType = "application/json"))
-    })
+    @ApiResponse(responseCode = "200", description = "创建成功",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = CategoryVO.class)))
     @PostMapping
     @PreAuthorize("hasAuthority('" + CONTENT_CATEGORY_CREATE + "')")
     public Result<CategoryVO> createCategory(
@@ -77,15 +70,7 @@ public class CategoriesController {
         @ApiResponse(responseCode = "200", description = "更新成功",
             content = @Content(mediaType = "application/json",
                 schema = @Schema(implementation = CategoryVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误或分类ID无效",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要分类编辑权限",
-            content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "404", description = "分类不存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
             content = @Content(mediaType = "application/json"))
     })
     @PutMapping
@@ -126,10 +111,10 @@ public class CategoriesController {
     }
 
 
-//    @GetMapping
-//    public Result<PageVO<CategoryVO>> listCategories(@Valid CategoryPageDTO categoryPageDTO) {
-//        return categoriesService.listCategories(categoryPageDTO);
-//    }
+    @GetMapping
+    public Result<PageVO<CategoryVO>> listCategories(@Valid CategoryPageDTO categoryPageDTO) {
+        return categoriesService.listCategories(categoryPageDTO);
+    }
 
     /**
      * 查询分类详情

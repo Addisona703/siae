@@ -28,7 +28,7 @@ public class ServiceCallTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 只校验用户查询接口
-        if (path.startsWith("/api/v1/users")) {
+        if (path.startsWith("/api/v1/user")) {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 reject(response);

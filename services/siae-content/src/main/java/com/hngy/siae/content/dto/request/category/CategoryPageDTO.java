@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryPageDTO extends PageDTO {
+public class CategoryPageDTO extends PageDTO<Object> {
     private CategoryStatusEnum status;
     private Long parentId;
 }

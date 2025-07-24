@@ -1,8 +1,11 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.common.dto.request.PageDTO;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.dto.request.CommentDTO;
+import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.entity.Comment;
 
@@ -42,13 +45,21 @@ public interface CommentsService extends IService<Comment> {
     Result<Void> deleteComment(Long id);
 
 
-//    /**
-//     * 列出评论
-//     *
-//     * @param contentId 内容ID
-//     * @param page      页
-//     * @param size      大小
-//     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
-//     */
-//    Result<PageVO<CommentVO>> listComments(Long contentId, Integer page, Integer size);
+    /**
+     * 列出评论
+     *
+     * @param contentId 内容ID
+     * @param page      页
+     * @param size      大小
+     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
+     */
+    Result<PageVO<CommentVO>> listComments(Long contentId, Integer page, Integer size);
+
+    /**
+     * 分页查询评论（标准化分页）
+     *
+     * @param pageDTO 分页查询参数
+     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
+     */
+    Result<PageVO<CommentVO>> listComments(PageDTO<CommentQueryDTO> pageDTO);
 }

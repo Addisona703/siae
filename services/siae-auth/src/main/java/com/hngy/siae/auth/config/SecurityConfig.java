@@ -1,6 +1,6 @@
 package com.hngy.siae.auth.config;
 
-import com.hngy.siae.common.filter.JwtAuthenticationFilter;
+import com.hngy.siae.common.filter.OptimizedJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     // 这个过滤器来自common模块，但没关系，它只是一个“工具”，而不是“配置”
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OptimizedJwtAuthenticationFilter optimizedJwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +43,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(optimizedJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

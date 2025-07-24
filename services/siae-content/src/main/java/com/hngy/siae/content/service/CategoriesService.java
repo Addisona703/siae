@@ -2,7 +2,9 @@ package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.common.dto.response.PageVO;
 import com.hngy.siae.content.dto.request.category.CategoryDTO;
+import com.hngy.siae.content.dto.request.category.CategoryPageDTO;
 import com.hngy.siae.content.dto.response.CategoryVO;
 import com.hngy.siae.content.entity.Category;
 
@@ -39,13 +41,13 @@ public interface CategoriesService extends IService<Category> {
      */
     Result<Void> deleteCategory(Integer categoryId);
 
-//    /**
-//     * 查询分类列表
-//     *
-//     * @param categoryPageDTO 类别分页dto
-//     * @return {@link Result }<{@link PageVO }<{@link CategoryVO }>>
-//     */
-//    Result<PageVO<CategoryVO>> listCategories(CategoryPageDTO categoryPageDTO);
+    /**
+     * 查询分类列表
+     *
+     * @param categoryPageDTO 类别分页dto
+     * @return {@link Result }<{@link PageVO }<{@link CategoryVO }>>
+     */
+    Result<PageVO<CategoryVO>> listCategories(CategoryPageDTO categoryPageDTO);
 
     /**
      * 查询分类详情

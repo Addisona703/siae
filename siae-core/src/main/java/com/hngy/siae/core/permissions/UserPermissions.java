@@ -1,0 +1,133 @@
+package com.hngy.siae.core.permissions;
+
+/**
+ * 用户模块权限常量定义
+ *
+ * 命名规范：模块:资源:操作（如 user:profile:view）
+ * 常量命名规范：USER_资源_操作（如 USER_PROFILE_VIEW）
+ *
+ * @author KEYKB
+ * @date 2025/07/21
+ */
+public class UserPermissions {
+
+    // ==================== 用户管理权限 ====================
+    /** 创建用户 */
+    public static final String USER_CREATE = "user:create";
+
+    /** 更新用户 */
+    public static final String USER_UPDATE = "user:update";
+
+    /** 删除用户 */
+    public static final String USER_DELETE = "user:delete";
+
+    /** 查询用户 */
+    public static final String USER_VIEW = "user:view";
+
+    /** 分页查询用户列表 */
+    public static final String USER_LIST = "user:list";
+
+    // ==================== 用户详情管理权限 ====================
+    /** 创建用户详情 */
+    public static final String USER_PROFILE_CREATE = "user:profile:create";
+
+    /** 更新用户详情 */
+    public static final String USER_PROFILE_UPDATE = "user:profile:update";
+
+    /** 删除用户详情 */
+    public static final String USER_PROFILE_DELETE = "user:profile:delete";
+
+    /** 查询用户详情 */
+    public static final String USER_PROFILE_VIEW = "user:profile:view";
+
+    // ==================== 正式成员管理权限 ====================
+    /** 更新正式成员 */
+    public static final String USER_MEMBER_UPDATE = "user:member:update";
+
+    /** 查询正式成员 */
+    public static final String USER_MEMBER_VIEW = "user:member:view";
+
+    /** 分页查询正式成员列表 */
+    public static final String USER_MEMBER_LIST = "user:member:list";
+
+    // ==================== 候选成员管理权限 ====================
+    /** 添加候选成员 */
+    public static final String USER_CANDIDATE_CREATE = "user:candidate:create";
+
+    /** 更新候选成员 */
+    public static final String USER_CANDIDATE_UPDATE = "user:candidate:update";
+
+    /** 删除候选成员 */
+    public static final String USER_CANDIDATE_DELETE = "user:candidate:delete";
+
+    /** 查询候选成员 */
+    public static final String USER_CANDIDATE_VIEW = "user:candidate:view";
+
+    /** 分页查询候选成员列表 */
+    public static final String USER_CANDIDATE_LIST = "user:candidate:list";
+
+    // ==================== 班级管理权限 ====================
+    /** 创建班级 */
+    public static final String USER_CLASS_CREATE = "user:class:create";
+
+    /** 更新班级 */
+    public static final String USER_CLASS_UPDATE = "user:class:update";
+
+    /** 删除班级 */
+    public static final String USER_CLASS_DELETE = "user:class:delete";
+
+    /** 查询班级 */
+    public static final String USER_CLASS_VIEW = "user:class:view";
+
+    /** 分页查询班级列表 */
+    public static final String USER_CLASS_LIST = "user:class:list";
+
+    // ==================== 奖项类型管理权限 ====================
+    /** 创建奖项类型 */
+    public static final String USER_AWARD_TYPE_CREATE = "user:award-type:create";
+
+    /** 更新奖项类型 */
+    public static final String USER_AWARD_TYPE_UPDATE = "user:award-type:update";
+
+    /** 删除奖项类型 */
+    public static final String USER_AWARD_TYPE_DELETE = "user:award-type:delete";
+
+    /** 查询奖项类型 */
+    public static final String USER_AWARD_TYPE_VIEW = "user:award-type:view";
+
+    /** 分页查询奖项类型列表 */
+    public static final String USER_AWARD_TYPE_LIST = "user:award-type:list";
+
+    // ==================== 奖项等级管理权限 ====================
+    /** 创建奖项等级 */
+    public static final String USER_AWARD_LEVEL_CREATE = "user:award-level:create";
+
+    /** 更新奖项等级 */
+    public static final String USER_AWARD_LEVEL_UPDATE = "user:award-level:update";
+
+    /** 删除奖项等级 */
+    public static final String USER_AWARD_LEVEL_DELETE = "user:award-level:delete";
+
+    /** 查询奖项等级 */
+    public static final String USER_AWARD_LEVEL_VIEW = "user:award-level:view";
+
+    /** 分页查询奖项等级列表 */
+    public static final String USER_AWARD_LEVEL_LIST = "user:award-level:list";
+
+    // ==================== 用户获奖记录管理权限 ====================
+    /** 创建用户获奖记录 */
+    public static final String USER_AWARD_CREATE = "user:award:create";
+
+    /** 更新用户获奖记录 */
+    public static final String USER_AWARD_UPDATE = "user:award:update";
+
+    /** 删除用户获奖记录 */
+    public static final String USER_AWARD_DELETE = "user:award:delete";
+
+    /** 查询用户获奖记录 */
+    public static final String USER_AWARD_VIEW = "user:award:view";
+
+    /** 分页查询用户获奖记录列表 */
+    public static final String USER_AWARD_LIST = "user:award:list";
+
+}

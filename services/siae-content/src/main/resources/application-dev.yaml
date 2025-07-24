@@ -22,6 +22,12 @@ spring:
     url: jdbc:mysql://localhost:3306/content_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456 # 生产环境请使用更强的密码
+    hikari:
+      maximum-pool-size: 10        # 最大连接数
+      minimum-idle: 2              # 最小空闲连接数
+      idle-timeout: 60000          # 连接最大空闲时间（ms）
+      max-lifetime: 1800000        # 最大连接存活时间（ms）
+      connection-timeout: 30000    # 获取连接超时（ms）
   # 5. Jackson JSON序列化配置
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -40,18 +46,9 @@ mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.hngy.siae.content.entity
 
-# 7. SpringDoc API文档配置
+# 7. SpringDoc API文档配置 (使用统一配置)
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  group-configs:
-    # 分组名修改为siae-content
-    - group: 'siae-content'
-      paths-to-match: '/api/**'
-  # 包路径修改为content模块的controller
-  packages-to-scan: com.hngy.siae.content.controller
+    enabled: true

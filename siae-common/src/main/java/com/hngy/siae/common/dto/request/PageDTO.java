@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 通用分页请求参数（可携带查询参数）
- * @param <Q> 查询条件参数的类型
+ * 通用分页请求参数基类
+ * 支持继承和泛型两种使用方式
  */
 @Data
 public class PageDTO<Q> {
@@ -22,13 +22,28 @@ public class PageDTO<Q> {
 
     /**
      * 查询条件对象，可为 null
+     * 当使用继承方式时，此字段通常为 null，查询条件直接作为子类字段
      */
     private Q params;
+
+    /**
+     * 关键字搜索（兼容旧版本）
+     */
+    private String keyword;
 
     /**
      * 转换为 MyBatis-Plus 的分页对象
      */
     public <T> Page<T> toPage() {
         return new Page<>(this.pageNum, this.pageSize);
+    }
+
+    // 兼容旧版本的字段名
+    public Integer getPage() {
+        return this.pageNum;
+    }
+
+    public void setPage(Integer page) {
+        this.pageNum = page;
     }
 }
