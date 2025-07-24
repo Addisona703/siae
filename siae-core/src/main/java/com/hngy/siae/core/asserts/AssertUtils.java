@@ -79,4 +79,22 @@ public class AssertUtils {
             throw new ServiceException(resultCode);
         }
     }
+
+    public static void notEmpty(String str, IResultCode resultCode) {
+        if (!StringUtils.hasText(str)) {
+            throw new ServiceException(resultCode);
+        }
+    }
+
+    public static void notEmpty(Collection<?> collection, IResultCode resultCode) {
+        if (collection == null || collection.isEmpty()) {
+            throw new ServiceException(resultCode);
+        }
+    }
+
+    public static void notEmpty(Map<?, ?> map, IResultCode resultCode) {
+        if (map == null || map.isEmpty()) {
+            throw new ServiceException(resultCode);
+        }
+    }
 }

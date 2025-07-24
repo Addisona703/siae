@@ -49,14 +49,14 @@ CREATE TABLE `position` (
 CREATE TABLE `award_level` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(64) NOT NULL COMMENT '奖项等级名称',
-  `order_id` INT NOT NULL COMMENT '排序ID，值越小排序越靠前',
+  `order_id` INT NOT NULL DEFAULT 0 COMMENT '排序ID，值越小排序越靠前',
   UNIQUE KEY `uk_award_level_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='奖项等级字典表';
 
 CREATE TABLE `award_type` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(64) NOT NULL COMMENT '奖项类型名称',
-  `order_id` INT NOT NULL COMMENT '排序ID，值越小排序越靠前',
+  `order_id` INT NOT NULL DEFAULT 0 COMMENT '排序ID，值越小排序越靠前',
   UNIQUE KEY `uk_award_type_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='奖项类型字典表';
 
@@ -206,32 +206,58 @@ CREATE TABLE `class_user` (
 -- =============================================================================
 
 -- 0. 填充字典表
-INSERT INTO `college` (`id`, `name`, `code`) VALUES (101, '信息工程学院', 'CIE'), (102, '外国语学院', 'FL');
+INSERT INTO `college` (`id`, `name`, `code`) VALUES
+(101, '信息工程学院', 'CIE'),
+(102, '外国语学院', 'FL');
+
 INSERT INTO `major` (`id`, `college_id`, `name`, `code`, `abbr`) VALUES
 (201, 101, '软件技术', 'SE', '软件'),
 (202, 101, '移动应用开发', 'MAD', '移动'),
 (203, 102, '商务英语', 'BE', '商英');
-INSERT INTO `department` (`id`, `name`) VALUES (300, '主席团'),(301, 'JAVA部'), (302, 'Python部'),(303, 'C部'), (304, '区块链部'), (305, 'Web部'), (306, '移动应用部');
-INSERT INTO `position` (`id`, `name`) VALUES (400, '会长'),(401, 'JAVA部部长'), (402, 'Python部部长'),(403, 'C部部长'), (404, '区块链部长'), (405, 'Web部长'), (406, '移动应用部长'),(499, '普通成员');
-INSERT INTO `award_level` (`id`, `name`) VALUES (501, '国家级'), (502, '省级'), (503, '校级');
-INSERT INTO `award_type` (`id`, `name`) VALUES (601, '学科竞赛'), (602, '创新创业'), (603, '文体艺术');
+INSERT INTO `department` (`id`, `name`) VALUES
+(300, '主席团'),
+(301, 'JAVA部'),
+(302, 'Python部'),
+(303, 'C部'),
+(304, '区块链部'),
+(305, 'Web部'),
+(306, '移动应用部');
+
+INSERT INTO `position` (`id`, `name`) VALUES
+(400, '会长'),
+(401, 'JAVA部部长'),
+(402, 'Python部部长'),
+(403, 'C部部长'),
+(404, '区块链部长'),
+(405, 'Web部长'),
+(406, '移动应用部长'),
+(499, '普通成员');
+INSERT INTO `award_level` (`id`, `name`) VALUES
+(501, '国家级'),
+(502, '省级'),
+(503, '校级');
+
+INSERT INTO `award_type` (`id`, `name`) VALUES
+(601, '学科竞赛'),
+(602, '创新创业'),
+(603, '文体艺术');
 
 -- 1. 插入用户数据
--- 密码均为 '123456' 的BCrypt哈希值: $2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2
+-- 密码均为 '123456' 的BCrypt哈希值: $2a$10$N.zmdr9k7uOCQb0bzysuAOyoyNpwSr0YHiXKuNTtDB6aANfGDx9he
 INSERT INTO `user` (`id`, `username`, `password`, `status`) VALUES
-(1, 'president', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(2, 'java_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(3, 'python_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(4, 'c_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(5, 'java_member_01', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(6, 'python_member_01', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(7, 'c_member_01', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(8, 'candidate_01', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(9, 'candidate_02', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(10, 'normal_student', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(11, 'blockchain_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(12, 'web_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1),
-(13, 'mobile_minister', '$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2', 1);
+(1, 'president', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(2, 'java_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(3, 'python_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(4, 'c_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(5, 'java_member_01', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(6, 'python_member_01', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(7, 'c_member_01', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(8, 'candidate_01', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(9, 'candidate_02', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(10, 'normal_student', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(11, 'blockchain_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(12, 'web_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
+(13, 'mobile_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1);
 
 -- 2. 插入用户详情数据
 INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `avatar`, `bio`, `email`, `phone`, `gender`, `birthday`) VALUES
@@ -251,39 +277,53 @@ INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `avatar`, `bio`,
 
 -- 3. 插入班级数据
 INSERT INTO `class` (`id`, `college_id`, `major_id`, `year`, `class_no`) VALUES
-(1, 101, 201, 2022, 1), (2, 101, 201, 2023, 1), (3, 101, 202, 2023, 1), (4, 102, 203, 2023, 1);
+(1, 101, 201, 2022, 1), -- 信息工程学院-软件技术-2022级-1班
+(2, 101, 201, 2023, 1), -- 信息工程学院-软件技术-2023级-1班
+(3, 101, 202, 2023, 1), -- 信息工程学院-移动应用开发-2023级-1班
+(4, 102, 203, 2023, 1); -- 外国语学院-商务英语-2023级-1班
 
 -- 4. 插入班级与用户关联数据
 INSERT INTO `class_user` (`class_id`, `user_id`, `status`) VALUES
-(1, 1, 1), (1, 2, 1), (1, 3, 1), (1, 4, 1), (2, 5, 1), (2, 6, 1),
-(2, 7, 1), (2, 8, 1), (3, 9, 1), (4, 10, 1), (1, 11, 1), (1, 12, 1), (1, 13, 1);
+(1, 1, 1),  -- 会长 -> 2022级软件技术1班
+(1, 2, 1),  -- Java部长 -> 2022级软件技术1班
+(1, 3, 1),  -- Python部长 -> 2022级软件技术1班
+(1, 4, 1),  -- C部长 -> 2022级软件技术1班
+(2, 5, 1),  -- Java成员 -> 2023级软件技术1班
+(2, 6, 1),  -- Python成员 -> 2023级软件技术1班
+(2, 7, 1),  -- C成员 -> 2023级软件技术1班
+(2, 8, 1),  -- 候选成员A -> 2023级软件技术1班
+(3, 9, 1),  -- 候选成员B -> 2023级移动应用开发1班
+(4, 10, 1), -- 普通学生 -> 2023级商务英语1班
+(1, 11, 1), -- 区块链部长 -> 2022级软件技术1班
+(1, 12, 1), -- Web部长 -> 2022级软件技术1班
+(1, 13, 1); -- 移动应用部长 -> 2022级软件技术1班
 
 -- 5. 插入成员数据
 INSERT INTO `member` (`user_id`, `student_id`, `department_id`, `position_id`, `join_date`, `status`) VALUES
-(1, '2022010101', 300, 400, '2022-09-01', 1), -- 会长
-(2, '2022010102', 301, 401, '2022-09-10', 1), -- JAVA部部长
-(3, '2022010103', 302, 402, '2022-09-10', 1), -- Python部部长
-(4, '2022010104', 303, 403, '2022-09-10', 1), -- C部部长
-(5, '2023010101', 301, 499, '2023-09-15', 1), -- JAVA部普通成员
-(6, '2023010102', 302, 499, '2023-09-15', 1), -- Python部普通成员
-(7, '2023010103', 303, 499, '2023-09-15', 1), -- C部普通成员
-(11, '2022010105', 304, 404, '2022-09-10', 1), -- 区块链部长
-(12, '2022010106', 305, 405, '2022-09-10', 1), -- Web部长
-(13, '2022010107', 306, 406, '2022-09-10', 1); -- 移动应用部长
+(1, '2022010101', 300, 400, '2022-09-01', 1), -- 李华 - 会长 - 主席团
+(2, '2022010102', 301, 401, '2022-09-10', 1), -- 张伟 - JAVA部部长 - JAVA部
+(3, '2022010103', 302, 402, '2022-09-10', 1), -- 王芳 - Python部部长 - Python部
+(4, '2022010104', 303, 403, '2022-09-10', 1), -- 刘强 - C部部长 - C部
+(5, '2023010101', 301, 499, '2023-09-15', 1), -- 赵敏 - 普通成员 - JAVA部
+(6, '2023010102', 302, 499, '2023-09-15', 1), -- 孙琳 - 普通成员 - Python部
+(7, '2023010103', 303, 499, '2023-09-15', 1), -- 周杰 - 普通成员 - C部
+(11, '2022010105', 304, 404, '2022-09-10', 1), -- 陈链 - 区块链部长 - 区块链部
+(12, '2022010106', 305, 405, '2022-09-10', 1), -- 朱倩 - Web部长 - Web部
+(13, '2022010107', 306, 406, '2022-09-10', 1); -- 蒋鑫 - 移动应用部长 - 移动应用部
 
 -- 6. 插入候选成员数据
 INSERT INTO `member_candidate` (`user_id`, `student_id`, `department_id`, `status`) VALUES
-(8, '2023020101', 301, 0), -- 吴迪申请加入JAVA部，待审核
-(9, '2023020202', 303, 0); -- 郑雪申请加入C部，待审核
+(8, '2023020101', 301, 0), -- 吴迪 - 申请加入JAVA部 - 待审核
+(9, '2023020202', 303, 0); -- 郑雪 - 申请加入C部 - 待审核
 
 -- 7. 插入用户获奖记录数据
-INSERT INTO `user_award` (`user_id`, `award_title`, `award_level_id`, `award_type_id`, `awarded_by`, `awarded_at`, `score`, `rank`) VALUES
-(1, '全国大学生服务外包创新创业大赛', 501, 602, '教育部', '2024-05-20', 50.00, 1),
-(2, '蓝桥杯软件类全国总决赛一等奖', 501, 601, '工业和信息化部人才交流中心', '2024-06-01', 40.00, 1);
+INSERT INTO `user_award` (`user_id`, `award_title`, `award_level_id`, `award_type_id`, `awarded_by`, `awarded_at`) VALUES
+(1, '全国大学生服务外包创新创业大赛', 501, 602, '教育部', '2024-05-20'), -- 李华 - 国家级创新创业奖项
+(2, '蓝桥杯软件类全国总决赛一等奖', 501, 601, '工业和信息化部人才交流中心', '2024-06-01'); -- 张伟 - 国家级学科竞赛奖项
 
 -- 8. 插入第三方认证数据
 INSERT INTO `user_third_party_auth` (`user_id`, `provider`, `provider_user_id`) VALUES
-(1, 'wechat', 'o6_bmjrPTlm6_2sgVt7hMZOPfL2M'), -- 示例微信OpenID
-(2, 'github', '1234567'); -- 示例GitHub ID
+(1, 'wechat', 'o6_bmjrPTlm6_2sgVt7hMZOPfL2M'), -- 李华的微信OpenID
+(2, 'github', '1234567'); -- 张伟的GitHub ID
 
 COMMIT;

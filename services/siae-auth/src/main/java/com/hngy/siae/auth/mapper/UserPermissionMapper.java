@@ -14,15 +14,7 @@ import java.util.List;
  */
 @Mapper
 public interface UserPermissionMapper extends BaseMapper<UserPermission> {
-    
-    /**
-     * 通过用户ID查询用户权限关联列表
-     *
-     * @param userId 用户ID
-     * @return 用户权限关联列表
-     */
-    List<UserPermission> selectListByUserId(@Param("userId") Long userId);
-    
+
     /**
      * 通过用户ID查询权限ID列表
      *
@@ -31,34 +23,7 @@ public interface UserPermissionMapper extends BaseMapper<UserPermission> {
      */
     @Select("SELECT permission_id FROM user_permission WHERE user_id = #{userId}")
     List<Long> selectPermissionIdsByUserId(@Param("userId") Long userId);
-    
-    /**
-     * 批量新增用户权限关联
-     *
-     * @param userId 用户ID
-     * @param permissionIds 权限ID列表
-     * @return 影响行数
-     */
-    int batchInsert(@Param("userId") Long userId, @Param("permissionIds") List<Long> permissionIds);
-    
-    /**
-     * 通过用户ID删除用户权限关联
-     *
-     * @param userId 用户ID
-     * @return 影响行数
-     */
-    int deleteByUserId(@Param("userId") Long userId);
-    
-    /**
-     * 通过用户ID和权限ID列表删除用户权限关联
-     *
-     * @param userId 用户ID
-     * @param permissionIds 权限ID列表
-     * @return 影响行数
-     */
-    @Delete("<script>DELETE FROM user_permission WHERE user_id = #{userId} AND permission_id IN <foreach collection='permissionIds' item='permissionId' open='(' separator=',' close=')'>#{permissionId}</foreach></script>")
-    int deleteByUserIdAndPermissionIds(@Param("userId") Long userId, @Param("permissionIds") List<Long> permissionIds);
-    
+
     /**
      * 检查用户是否拥有指定权限
      *
@@ -68,4 +33,15 @@ public interface UserPermissionMapper extends BaseMapper<UserPermission> {
      */
     @Select("SELECT COUNT(1) > 0 FROM user_permission WHERE user_id = #{userId} AND permission_id = #{permissionId}")
     boolean hasPermission(@Param("userId") Long userId, @Param("permissionId") Long permissionId);
-} 
+
+    /**
+     * 通过用户ID查询用户权限代码列表（使用JOIN查询）
+     *
+     * @param userId 用户ID
+     * @return 权限代码列表
+     */
+    @Select("SELECT p.code FROM user_permission up " +
+            "JOIN permission p ON up.permission_id = p.id " +
+            "WHERE up.user_id = #{userId} AND p.status = 1")
+    List<String> selectPermissionCodesByUserId(@Param("userId") Long userId);
+}

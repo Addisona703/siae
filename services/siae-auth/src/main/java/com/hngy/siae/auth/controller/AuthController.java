@@ -42,10 +42,7 @@ public class AuthController {
      * @param loginDTO 登录请求DTO
      * @return 登录结果
      */
-    @Operation(summary = "用户登录", description = "使用用户名和密码进行登录")
-    @ApiResponse(responseCode = "200", description = "登录成功",
-        content = @Content(mediaType = "application/json",
-            schema = @Schema(implementation = LoginVO.class)))
+    @Operation(summary = "用户登录")
     @PostMapping("/login")
     public Result<LoginVO> login(HttpServletRequest request, @Valid @RequestBody LoginDTO loginDTO) {
         String clientIp = WebUtils.getClientIp(request);
@@ -63,10 +60,7 @@ public class AuthController {
      * @param registerDTO 注册请求DTO
      * @return 注册结果
      */
-    @Operation(summary = "用户注册", description = "填写相关信息进行注册")
-    @ApiResponse(responseCode = "200", description = "注册成功",
-        content = @Content(mediaType = "application/json",
-            schema = @Schema(implementation = RegisterVO.class)))
+    @Operation(summary = "用户注册")
     @PostMapping("/register")
     public Result<RegisterVO> register(HttpServletRequest request, @Valid @RequestBody RegisterDTO registerDTO) {
         String clientIp = WebUtils.getClientIp(request);

@@ -50,10 +50,24 @@ public interface RedisPermissionCacheService {
     
     /**
      * 清除用户的所有权限缓存
-     * 
+     *
      * @param userId 用户ID
      */
     void clearUserCache(Long userId);
+
+    /**
+     * 清除用户权限缓存
+     *
+     * @param userId 用户ID
+     */
+    void clearUserPermissions(Long userId);
+
+    /**
+     * 清除用户角色缓存
+     *
+     * @param userId 用户ID
+     */
+    void clearUserRoles(Long userId);
     
     /**
      * 检查用户权限缓存是否存在

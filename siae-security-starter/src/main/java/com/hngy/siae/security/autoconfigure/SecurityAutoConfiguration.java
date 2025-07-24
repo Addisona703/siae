@@ -4,6 +4,7 @@ import com.hngy.siae.security.filter.JwtAuthenticationFilter;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
 import com.hngy.siae.security.service.impl.RedisPermissionServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,12 +71,23 @@ public class SecurityAutoConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("配置安全过滤器链，应用: {}", applicationName);
 
-        // 基础安全配置
         http.csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .headers(headers -> headers.frameOptions().deny());
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers.frameOptions().deny());
 
-        // 根据应用类型配置授权规则
+        // 关闭默认的formLogin，避免未登录自动跳转登录页
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.logout(AbstractHttpConfigurer::disable);
+
+        // 自定义未认证处理，返回401 JSON，不跳转
+        http.exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"message\":\"未认证，请先登录\"}");
+                })
+        );
+
         if (securityProperties.isAuthRequired(applicationName)) {
             log.info("应用 {} 需要权限验证，配置认证规则", applicationName);
             configureAuthRequiredSecurity(http);
@@ -86,6 +98,7 @@ public class SecurityAutoConfiguration {
 
         return http.build();
     }
+
 
     /**
      * 配置需要认证的安全规则

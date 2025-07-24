@@ -123,13 +123,37 @@ public class RedisPermissionCacheServiceImpl implements RedisPermissionCacheServ
         try {
             String permissionKey = PERMISSION_KEY_PREFIX + userId;
             String roleKey = ROLE_KEY_PREFIX + userId;
-            
+
             redisTemplate.delete(permissionKey);
             redisTemplate.delete(roleKey);
-            
+
             log.debug("清除用户缓存成功，用户ID: {}", userId);
         } catch (Exception e) {
             log.error("清除用户缓存失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响主业务流程
+        }
+    }
+
+    @Override
+    public void clearUserPermissions(Long userId) {
+        try {
+            String permissionKey = PERMISSION_KEY_PREFIX + userId;
+            redisTemplate.delete(permissionKey);
+            log.debug("清除用户权限缓存成功，用户ID: {}", userId);
+        } catch (Exception e) {
+            log.error("清除用户权限缓存失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响主业务流程
+        }
+    }
+
+    @Override
+    public void clearUserRoles(Long userId) {
+        try {
+            String roleKey = ROLE_KEY_PREFIX + userId;
+            redisTemplate.delete(roleKey);
+            log.debug("清除用户角色缓存成功，用户ID: {}", userId);
+        } catch (Exception e) {
+            log.error("清除用户角色缓存失败，用户ID: {}", userId, e);
             // 不抛出异常，避免影响主业务流程
         }
     }
