@@ -34,20 +34,4 @@ public interface PermissionService {
      * @return 权限响应
      */
     PermissionVO getPermission(Long permissionId);
-    
-//    /**
-//     * 根据角色ID获取权限列表
-//     *
-//     * @param roleId 角色ID
-//     * @return 权限列表
-//     */
-//    List<PermissionVO> getPermissionsByRoleId(Long roleId);
-//
-//    /**
-//     * 根据用户ID获取权限列表
-//     *
-//     * @param userId 用户ID
-//     * @return 权限列表
-//     */
-//    List<PermissionVO> getPermissionsByUserId(Long userId);
-} 
+}

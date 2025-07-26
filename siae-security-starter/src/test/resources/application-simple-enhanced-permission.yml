@@ -1,0 +1,90 @@
+# SIAE简化增强权限控制系统配置示例
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: siae-simple-enhanced-permission-example
+
+# SIAE安全配置
+siae:
+  security:
+    # 基础安全配置
+    enabled: true
+    
+    # JWT配置
+    jwt:
+      enabled: true
+      secret: "siae-simple-enhanced-permission-secret-key-2024"
+      access-token-expiration: 7200    # 2小时
+      refresh-token-expiration: 604800 # 7天
+    
+    # 权限缓存配置
+    permission:
+      cache-enabled: true              # 启用权限缓存
+      cache-expiration: 1800           # 权限缓存过期时间(秒) - 30分钟
+      redis-enabled: true              # 启用Redis权限服务
+      fallback-enabled: true           # Redis不可用时使用降级服务
+    
+    # 简化增强权限控制配置
+    enhanced-permission:
+      enabled: true                    # 启用简化增强权限控制，默认为true
+    
+    # 需要权限验证的服务列表
+    auth-required-services:
+      - "siae-auth"
+      - "siae-user"
+      - "siae-content"
+      - "siae-simple-enhanced-permission-example"
+    
+    # 白名单路径（不需要认证）
+    whitelist-paths:
+      - "/login"
+      - "/register"
+      - "/logout"
+      - "/actuator/**"
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+      - "/api/v1/simple-enhanced-permission/current-user-info"
+
+# SpringDoc API文档配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.hngy.siae.security: DEBUG
+    org.springframework.security: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 开发环境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    com.hngy.siae.security: DEBUG
+
+---
+# 生产环境配置
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.hngy.siae.security: WARN
+    root: WARN

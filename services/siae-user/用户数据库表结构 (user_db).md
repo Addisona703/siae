@@ -12,8 +12,7 @@
 | username | VARCHAR(64) | NOT NULL, **UNIQUE** | 登录名/用户名 |
 | password | VARCHAR(255) | NOT NULL | 加密密码 (请使用BCrypt) |
 | status | TINYINT | DEFAULT 1 | 状态：0禁用，1启用 |
-| last\_login\_time | DATETIME | NULLABLE | 最后登录时间 |
-| last\_login\_ip | VARCHAR(45) | NULLABLE | 最后登录IP |
+| avatar | VARCHAR(512) | NULLABLE | 头像URL |
 | is\_deleted | TINYINT | DEFAULT 0 | 是否逻辑删除：0否，1是 |
 | created\_at | DATETIME | DEFAULT CURRENT\_TIMESTAMP | 创建时间 |
 | updated\_at | DATETIME | ON UPDATE CURRENT\_TIMESTAMP | 更新时间 |
@@ -27,8 +26,8 @@
 | user\_id | BIGINT UNSIGNED | **PK**, **FK** \-\> user(id) | 外键，关联user表 |
 | nickname | VARCHAR(64) | NULLABLE | 昵称 |
 | real\_name | VARCHAR(64) | NULLABLE | 真实姓名 |
-| avatar | VARCHAR(512) | NULLABLE | 头像URL |
 | bio | TEXT | NULLABLE | 个人简介 |
+| bg\_url | VARCHAR(512) | NULLABLE | 主页背景图片URL |
 | email | VARCHAR(128) | NULLABLE, INDEX | 邮箱 |
 | phone | VARCHAR(20) | NULLABLE, INDEX | 手机 |
 | qq | VARCHAR(20) | NULLABLE | QQ号 (用于联系) |

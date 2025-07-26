@@ -10,7 +10,6 @@ package com.hngy.siae.core.permissions;
  * @date 2025/01/01
  */
 public class AuthPermissions {
-
     // ==================== 用户管理权限 ====================
     /** 查询用户 */
     public static final String AUTH_USER_QUERY = "auth:user:query";

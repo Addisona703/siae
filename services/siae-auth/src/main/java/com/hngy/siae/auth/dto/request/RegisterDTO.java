@@ -1,4 +1,4 @@
-package com.hngy.siae.auth.feign.dto.request;
+package com.hngy.siae.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

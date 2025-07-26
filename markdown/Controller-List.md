@@ -25,6 +25,13 @@
 | POST | `/refresh-token` | 刷新访问令牌 | 无 (公开接口) |
 | POST | `/logout` | 用户登出 | 需要认证 |
 
+### 日志管理 (LogController)
+
+| HTTP方法 | API路径 | 接口描述 | 权限要求 |
+|----------|---------|----------|----------|
+| GET | `/logs/login` | 获取登录日志 | `auth:log:query` |
+| GET | `/logs/login/fail` | 获取登录失败日志 | `auth:log:query` |
+
 ### 权限管理 (PermissionController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
@@ -60,13 +67,6 @@
 | DELETE | `/user-permission/remove/all/{userId}` | 移除用户所有权限 | `auth:user:permission:remove` |
 | DELETE | `/user-permission/remove` | 移除用户指定权限 | `auth:user:permission:remove` |
 | GET | `/user-permission/check` | 检查用户是否拥有指定权限 | `auth:user:permission:query` |
-
-### 日志管理 (LogController)
-
-| HTTP方法 | API路径 | 接口描述 | 权限要求 |
-|----------|---------|----------|----------|
-| GET | `/logs/login` | 获取登录日志 | `auth:log:query` |
-| GET | `/logs/login/fail` | 获取登录失败日志 | `auth:log:query` |
 
 ---
 

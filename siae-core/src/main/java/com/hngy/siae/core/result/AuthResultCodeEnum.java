@@ -22,6 +22,8 @@ public enum AuthResultCodeEnum implements IResultCode {
     PHONE_ALREADY_EXISTS(2103, "手机号已被使用"),
     VERIFICATION_CODE_ERROR(2104, "验证码错误"),
     VERIFICATION_CODE_EXPIRED(2105, "验证码已过期"),
+    PASSWORD_MISMATCH(2106, "两次输入的密码不一致"),
+    USER_CREATION_FAILED(2107, "用户创建失败"),
 
     // 权限相关错误码 (2200-2299)
     PERMISSION_DENIED(2200, "权限不足"),

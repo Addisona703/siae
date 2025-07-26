@@ -69,8 +69,7 @@ CREATE TABLE `user` (
   `username` VARCHAR(64) NOT NULL COMMENT '登录名/用户名',
   `password` VARCHAR(255) NOT NULL COMMENT '加密密码 (请使用BCrypt)',
   `status` TINYINT DEFAULT 1 COMMENT '状态：0禁用，1启用',
-  `last_login_time` DATETIME COMMENT '最后登录时间',
-  `last_login_ip` VARCHAR(45) COMMENT '最后登录IP',
+  `avatar` VARCHAR(512) COMMENT '头像URL',
   `is_deleted` TINYINT DEFAULT 0 COMMENT '是否逻辑删除：0否，1是',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -83,8 +82,8 @@ CREATE TABLE `user_profile` (
   `user_id` BIGINT UNSIGNED PRIMARY KEY COMMENT '外键，关联user表',
   `nickname` VARCHAR(64) COMMENT '昵称',
   `real_name` VARCHAR(64) COMMENT '真实姓名',
-  `avatar` VARCHAR(512) COMMENT '头像URL',
   `bio` TEXT COMMENT '个人简介',
+  `bg_url` VARCHAR(512) COMMENT '主页背景图片URL',
   `email` VARCHAR(128) COMMENT '邮箱',
   `phone` VARCHAR(20) COMMENT '手机',
   `qq` VARCHAR(20) COMMENT 'QQ号 (用于联系)',
@@ -260,7 +259,7 @@ INSERT INTO `user` (`id`, `username`, `password`, `status`) VALUES
 (13, 'mobile_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1);
 
 -- 2. 插入用户详情数据
-INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `avatar`, `bio`, `email`, `phone`, `gender`, `birthday`) VALUES
+INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `bg_url`, `bio`, `email`, `phone`, `gender`, `birthday`) VALUES
 (1, '会长大人', '李华', 'https://placehold.co/100x100/F56C6C/FFFFFF?text=会长', '协会的领航者', 'lihua@siae.com', '13800138001', 1, '2002-01-15'),
 (2, 'Java大师', '张伟', 'https://placehold.co/100x100/E6A23C/FFFFFF?text=Java', 'Everything is an object.', 'zhangwei@siae.com', '13800138002', 1, '2003-03-10'),
 (3, 'Pythonista', '王芳', 'https://placehold.co/100x100/409EFF/FFFFFF?text=Py', '人生苦短，我用Python。', 'wangfang@siae.com', '13800138003', 2, '2003-05-20'),

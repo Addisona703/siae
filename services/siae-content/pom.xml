@@ -105,6 +105,12 @@
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
         </dependency>
+
+        <!-- Redis Starter for Permission Caching -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

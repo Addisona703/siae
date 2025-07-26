@@ -2,7 +2,7 @@ package com.hngy.siae.security.filter;
 
 import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.security.properties.SecurityProperties;
-import com.hngy.siae.security.service.PermissionService;
+import com.hngy.siae.security.service.RedisPermissionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * 1. 支持配置化的JWT认证开关
  * 2. 支持白名单路径跳过认证
  * 3. 从JWT中提取用户信息
- * 4. 从权限服务中获取用户权限
+ * 4. 从Redis缓存中获取用户权限（优化性能）
  * 5. 构建Spring Security认证对象
  * 6. 优雅处理各种异常情况
  * 
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtUtils jwtUtils;
-    private final PermissionService permissionService;
+    private final RedisPermissionService redisPermissionService;
     private final SecurityProperties securityProperties;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     
@@ -70,25 +70,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 从JWT中提取基本用户信息
                 Long userId = jwtUtils.getUserId(jwt);
                 String username = jwtUtils.getUsername(jwt);
-                
+
+                log.info("JWT验证成功，提取用户信息: userId={}, username={}, 路径: {}", userId, username, requestPath);
+
                 if (userId != null && username != null) {
                     // 从权限服务中获取用户权限
                     List<String> authorities = getUserAuthorities(userId);
-                    
+
+                    log.info("获取用户权限: userId={}, 权限列表: {}", userId, authorities);
+
                     // 转换为Spring Security权限对象
                     List<SimpleGrantedAuthority> grantedAuthorities = authorities.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
-                    
+
+                    log.info("转换为Spring Security权限: userId={}, 权限对象: {}", userId, grantedAuthorities);
+
                     // 创建认证令牌并设置到上下文中
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             username, null, grantedAuthorities);
-                    
+
                     // 设置用户ID到认证对象的details中，方便后续使用
                     authentication.setDetails(userId);
-                    
+
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    
+
+                    log.info("JWT认证成功并设置安全上下文, 用户: {}, 权限数量: {}, 路径: {}", username, authorities.size(), requestPath);
+
                     if (securityProperties.getPermission().isLogEnabled()) {
                         log.debug("JWT认证成功, 用户: {}, 权限数量: {}", username, authorities.size());
                     }
@@ -97,6 +105,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } else if (jwt != null) {
                 log.warn("无效的JWT令牌，路径: {}", requestPath);
+            } else {
+                log.info("请求中没有JWT令牌，路径: {}", requestPath);
             }
         } catch (Exception ex) {
             log.error("JWT认证过程中发生异常，路径: {}", request.getRequestURI(), ex);
@@ -109,30 +119,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     
     /**
-     * 从权限服务中获取用户权限
-     * 
+     * 从Redis缓存中获取用户权限
+     *
      * @param userId 用户ID
      * @return 权限列表，如果获取失败返回空列表
      */
     private List<String> getUserAuthorities(Long userId) {
+        log.info("开始获取用户权限，用户ID: {}", userId);
+
         try {
-            // 从权限服务获取用户的所有权限（包括角色）
-            List<String> authorities = permissionService.getAllUserAuthorities(userId);
-            
-            if (authorities.isEmpty() && securityProperties.getPermission().isLogEnabled()) {
-                log.debug("用户权限为空，用户ID: {}，可能需要重新登录或分配权限", userId);
+            // 从Redis缓存获取用户的所有权限（包括角色）
+            List<String> authorities = redisPermissionService.getAllUserAuthorities(userId);
+
+            log.info("Redis权限服务返回结果，用户ID: {}, 权限列表: {}", userId, authorities);
+
+            if (authorities.isEmpty()) {
+                log.warn("用户权限为空，用户ID: {}，可能需要重新登录或分配权限", userId);
             }
-            
+
+            if (securityProperties.getPermission().isLogEnabled()) {
+                log.debug("从Redis缓存获取用户权限成功，用户ID: {}, 权限数量: {}", userId, authorities.size());
+            }
+
             return authorities;
         } catch (Exception e) {
-            log.error("获取用户权限失败，用户ID: {}，将使用空权限列表", userId, e);
-            
+            log.error("从Redis缓存获取用户权限失败，用户ID: {}，将使用空权限列表", userId, e);
+
             // 根据配置决定是否抛出异常
             if (securityProperties.getPermission().isThrowExceptionOnFailure()) {
-                throw new RuntimeException("获取用户权限失败", e);
+                throw new RuntimeException("从Redis缓存获取用户权限失败", e);
             }
-            
-            // 权限服务失败时，返回空权限列表
+
+            // Redis缓存失败时，返回空权限列表
+            // 注意：这里可以考虑添加数据库回退逻辑，但为了性能优化，暂时返回空列表
             return Collections.emptyList();
         }
     }

@@ -1,10 +1,10 @@
 package com.hngy.siae.auth.service;
 
 import com.hngy.siae.auth.dto.request.LoginDTO;
-import com.hngy.siae.auth.feign.dto.request.RegisterDTO;
+import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
-import com.hngy.siae.auth.feign.dto.response.RegisterVO;
+import com.hngy.siae.auth.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 
 /**

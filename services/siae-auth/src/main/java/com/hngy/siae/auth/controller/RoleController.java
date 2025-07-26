@@ -1,5 +1,6 @@
 package com.hngy.siae.auth.controller;
 
+import com.hngy.siae.auth.dto.response.PermissionVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.auth.dto.request.RoleCreateDTO;
 import com.hngy.siae.auth.dto.request.RolePermissionDTO;
@@ -34,14 +35,14 @@ public class RoleController {
     /**
      * 创建角色
      *
-     * @param request 角色创建请求DTO
+     * @param RoleCreateDTO 角色创建请求DTO
      * @return 创建的角色
      */
     @Operation(summary = "创建角色", description = "创建新的系统角色")
     @PostMapping
     @PreAuthorize("hasAuthority('" + AUTH_ROLE_ADD + "')")
-    public Result<RoleVO> createRole(@Valid @RequestBody RoleCreateDTO request) {
-        RoleVO roleVO = roleService.createRole(request);
+    public Result<RoleVO> createRole(@Valid @RequestBody RoleCreateDTO RoleCreateDTO) {
+        RoleVO roleVO = roleService.createRole(RoleCreateDTO);
         return Result.success(roleVO);
     }
 
@@ -120,5 +121,20 @@ public class RoleController {
             @Valid @RequestBody RolePermissionDTO request) {
         boolean result = roleService.assignPermissions(roleId, request.getPermissionIds());
         return Result.success(result);
+    }
+
+        /**
+     * 获取角色权限列表
+     *
+     * @param roleId 角色ID
+     * @return 权限列表
+     */
+    @Operation(summary = "获取角色权限列表", description = "获取指定角色的权限列表")
+    @GetMapping("/by-role/{roleId}")
+    @PreAuthorize("hasAuthority('system:permission:query')")
+    public Result<List<PermissionVO>> getPermissionsByRoleId(
+            @Parameter(description = "角色ID") @PathVariable Long roleId) {
+        List<PermissionVO> permissions = roleService.getPermissionsByRoleId(roleId);
+        return Result.success(permissions);
     }
 } 

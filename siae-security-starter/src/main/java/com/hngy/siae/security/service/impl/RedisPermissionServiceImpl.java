@@ -2,6 +2,7 @@ package com.hngy.siae.security.service.impl;
 
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.PermissionService;
+import com.hngy.siae.security.service.RedisPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -18,7 +19,6 @@ import java.util.stream.Stream;
 
 /**
  * Redis权限服务实现类
- * 
  * 从Redis缓存中获取用户权限和角色信息，支持缓存过期和刷新
  * 
  * @author SIAE开发团队
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 @ConditionalOnClass(StringRedisTemplate.class)
 @ConditionalOnProperty(prefix = "siae.security.permission", name = "redis-enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
-public class RedisPermissionServiceImpl implements PermissionService {
+public class RedisPermissionServiceImpl implements PermissionService, RedisPermissionService {
     
     private final StringRedisTemplate redisTemplate;
     private final SecurityProperties securityProperties;
@@ -96,20 +96,29 @@ public class RedisPermissionServiceImpl implements PermissionService {
     
     @Override
     public List<String> getAllUserAuthorities(Long userId) {
+        log.info("开始获取用户所有权限，用户ID: {}", userId);
+
         try {
             // 获取用户权限
             List<String> permissions = getUserPermissions(userId);
-            
+            log.info("获取用户权限完成，用户ID: {}, 权限列表: {}", userId, permissions);
+
             // 获取用户角色（添加ROLE_前缀以符合Spring Security规范）
-            List<String> roles = getUserRoles(userId).stream()
+            List<String> rawRoles = getUserRoles(userId);
+            log.info("获取用户角色完成，用户ID: {}, 原始角色列表: {}", userId, rawRoles);
+
+            List<String> roles = rawRoles.stream()
                     .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                    .collect(Collectors.toList());
-            
+                    .toList();
+            log.info("角色前缀处理完成，用户ID: {}, 处理后角色列表: {}", userId, roles);
+
             // 合并权限和角色
             List<String> allAuthorities = Stream.concat(permissions.stream(), roles.stream())
                     .distinct()
                     .collect(Collectors.toList());
-            
+
+            log.info("权限合并完成，用户ID: {}, 最终权限列表: {}", userId, allAuthorities);
+
             if (securityProperties.getPermission().isLogEnabled()) {
                 log.debug("获取用户所有权限成功，用户ID: {}, 权限总数: {}", userId, allAuthorities.size());
             }
@@ -155,14 +164,23 @@ public class RedisPermissionServiceImpl implements PermissionService {
     public void clearUserPermissions(Long userId) {
         try {
             String permissionKey = buildPermissionKey(userId);
-            String roleKey = buildRoleKey(userId);
-            
             redisTemplate.delete(permissionKey);
-            redisTemplate.delete(roleKey);
-            
+
             log.info("用户权限缓存已清除，用户ID: {}", userId);
         } catch (Exception e) {
             log.error("清除用户权限缓存失败，用户ID: {}", userId, e);
+        }
+    }
+
+    @Override
+    public void clearUserRoles(Long userId) {
+        try {
+            String roleKey = buildRoleKey(userId);
+            redisTemplate.delete(roleKey);
+
+            log.info("用户角色缓存已清除，用户ID: {}", userId);
+        } catch (Exception e) {
+            log.error("清除用户角色缓存失败，用户ID: {}", userId, e);
         }
     }
     
@@ -178,5 +196,117 @@ public class RedisPermissionServiceImpl implements PermissionService {
      */
     private String buildRoleKey(Long userId) {
         return securityProperties.getPermission().getCacheKeyPrefix() + userId + ":" + ROLE_SUFFIX;
+    }
+
+    // ==================== 新增的缓存管理方法 ====================
+
+    @Override
+    public void cacheUserPermissions(Long userId, List<String> permissions, long expireTime, TimeUnit timeUnit) {
+        try {
+            String key = buildPermissionKey(userId);
+            String value = permissions != null && !permissions.isEmpty()
+                ? String.join(DELIMITER, permissions)
+                : "";
+
+            redisTemplate.opsForValue().set(key, value, expireTime, timeUnit);
+
+            if (securityProperties.getPermission().isLogEnabled()) {
+                log.debug("缓存用户权限成功，用户ID: {}, 权限数量: {}, 过期时间: {}{}",
+                        userId, permissions != null ? permissions.size() : 0, expireTime, timeUnit);
+            }
+        } catch (Exception e) {
+            log.error("缓存用户权限失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响主业务流程
+        }
+    }
+
+    @Override
+    public void cacheUserRoles(Long userId, List<String> roles, long expireTime, TimeUnit timeUnit) {
+        try {
+            String key = buildRoleKey(userId);
+            String value = roles != null && !roles.isEmpty()
+                ? String.join(DELIMITER, roles)
+                : "";
+
+            redisTemplate.opsForValue().set(key, value, expireTime, timeUnit);
+
+            if (securityProperties.getPermission().isLogEnabled()) {
+                log.debug("缓存用户角色成功，用户ID: {}, 角色数量: {}, 过期时间: {}{}",
+                        userId, roles != null ? roles.size() : 0, expireTime, timeUnit);
+            }
+        } catch (Exception e) {
+            log.error("缓存用户角色失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响主业务流程
+        }
+    }
+
+    @Override
+    public void clearUserCache(Long userId) {
+        clearUserPermissions(userId);
+        clearUserRoles(userId);
+    }
+
+    @Override
+    public boolean hasUserPermissionsCache(Long userId) {
+        try {
+            String key = buildPermissionKey(userId);
+            return redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.error("检查用户权限缓存失败，用户ID: {}", userId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasUserRolesCache(Long userId) {
+        try {
+            String key = buildRoleKey(userId);
+            return redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.error("检查用户角色缓存失败，用户ID: {}", userId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public void refreshUserPermissionsCache(Long userId, long expireTime, TimeUnit timeUnit) {
+        try {
+            String key = buildPermissionKey(userId);
+            if (redisTemplate.hasKey(key)) {
+                redisTemplate.expire(key, expireTime, timeUnit);
+
+                if (securityProperties.getPermission().isLogEnabled()) {
+                    log.debug("刷新用户权限缓存过期时间成功，用户ID: {}, 新过期时间: {}{}",
+                            userId, expireTime, timeUnit);
+                }
+            } else {
+                if (securityProperties.getPermission().isLogEnabled()) {
+                    log.debug("用户权限缓存不存在，无法刷新，用户ID: {}", userId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("刷新用户权限缓存失败，用户ID: {}", userId, e);
+        }
+    }
+
+    @Override
+    public void refreshUserRolesCache(Long userId, long expireTime, TimeUnit timeUnit) {
+        try {
+            String key = buildRoleKey(userId);
+            if (redisTemplate.hasKey(key)) {
+                redisTemplate.expire(key, expireTime, timeUnit);
+
+                if (securityProperties.getPermission().isLogEnabled()) {
+                    log.debug("刷新用户角色缓存过期时间成功，用户ID: {}, 新过期时间: {}{}",
+                            userId, expireTime, timeUnit);
+                }
+            } else {
+                if (securityProperties.getPermission().isLogEnabled()) {
+                    log.debug("用户角色缓存不存在，无法刷新，用户ID: {}", userId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("刷新用户角色缓存失败，用户ID: {}", userId, e);
+        }
     }
 }

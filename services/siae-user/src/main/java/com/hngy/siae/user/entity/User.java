@@ -45,14 +45,9 @@ public class User implements Serializable {
     private Integer status;
 
     /**
-     * 最后登录时间
+     * 头像URL
      */
-    private LocalDateTime lastLoginTime;
-
-    /**
-     * 最后登录IP
-     */
-    private String lastLoginIp;
+    private String avatar;
 
     /**
      * 是否逻辑删除：0否，1是

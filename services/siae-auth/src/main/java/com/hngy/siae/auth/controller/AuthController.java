@@ -1,18 +1,15 @@
 package com.hngy.siae.auth.controller;
 
 import com.hngy.siae.auth.dto.request.LoginDTO;
-import com.hngy.siae.auth.feign.dto.request.RegisterDTO;
+import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
-import com.hngy.siae.auth.feign.dto.response.RegisterVO;
+import com.hngy.siae.auth.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.auth.service.AuthService;
 import com.hngy.siae.web.utils.WebUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -74,13 +71,13 @@ public class AuthController {
     /**
      * 刷新访问令牌
      *
-     * @param refreshRequest 刷新令牌请求
+     * @param TokenRefreshDTO 刷新令牌请求
      * @return 新的访问令牌
      */
     @Operation(summary = "刷新访问令牌", description = "使用刷新令牌获取新的访问令牌")
     @PostMapping("/refresh-token")
-    public Result<TokenRefreshVO> refreshToken(@Valid @RequestBody TokenRefreshDTO refreshRequest) {
-        TokenRefreshVO response = authService.refreshToken(refreshRequest);
+    public Result<TokenRefreshVO> refreshToken(@Valid @RequestBody TokenRefreshDTO TokenRefreshDTO) {
+        TokenRefreshVO response = authService.refreshToken(TokenRefreshDTO);
         return Result.success(response);
     }
 

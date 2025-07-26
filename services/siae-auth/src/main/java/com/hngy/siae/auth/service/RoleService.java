@@ -1,6 +1,7 @@
 package com.hngy.siae.auth.service;
 
 import com.hngy.siae.auth.dto.request.RoleCreateDTO;
+import com.hngy.siae.auth.dto.response.PermissionVO;
 import com.hngy.siae.auth.dto.response.RoleVO;
 import com.hngy.siae.auth.dto.request.RoleUpdateDTO;
 
@@ -70,4 +71,12 @@ public interface RoleService {
      * @return 是否成功
      */
     boolean assignUserRoles(Long userId, List<Long> roleIds);
+
+    /**
+     * 根据角色ID获取权限列表
+     *
+     * @param roleId 角色ID
+     * @return 权限列表
+     */
+    List<PermissionVO> getPermissionsByRoleId(Long roleId);
 } 

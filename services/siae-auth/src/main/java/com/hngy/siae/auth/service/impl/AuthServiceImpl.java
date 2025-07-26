@@ -3,29 +3,33 @@ package com.hngy.siae.auth.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.auth.dto.request.LoginDTO;
-import com.hngy.siae.auth.feign.dto.request.RegisterDTO;
+import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
-import com.hngy.siae.auth.feign.dto.response.RegisterVO;
+import com.hngy.siae.auth.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
-import com.hngy.siae.auth.entity.LoginLog;
+import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserAuth;
+import com.hngy.siae.auth.entity.UserRole;
 import com.hngy.siae.auth.feign.UserClient;
 import com.hngy.siae.auth.feign.dto.request.UserDTO;
 import com.hngy.siae.auth.feign.dto.response.UserVO;
-import com.hngy.siae.auth.mapper.LoginLogMapper;
+
+import com.hngy.siae.auth.mapper.RoleMapper;
 import com.hngy.siae.auth.mapper.UserAuthMapper;
 import com.hngy.siae.auth.mapper.UserPermissionMapper;
 import com.hngy.siae.auth.mapper.UserRoleMapper;
+import com.hngy.siae.auth.service.LogService;
 import com.hngy.siae.auth.service.AuthService;
-import com.hngy.siae.auth.service.RedisPermissionCacheService;
+import com.hngy.siae.security.service.RedisPermissionService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.core.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,10 +57,11 @@ public class AuthServiceImpl
     private final UserClient userClient;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
-    private final LoginLogMapper loginLogMapper;
+    private final LogService logService;
+    private final RoleMapper roleMapper;
     private final UserPermissionMapper userPermissionMapper;
     private final UserRoleMapper userRoleMapper;
-    private final RedisPermissionCacheService redisPermissionCacheService;
+    private final RedisPermissionService redisPermissionService;
     
     @Override
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
@@ -86,6 +91,8 @@ public class AuthServiceImpl
             long currentTime = System.currentTimeMillis();
             long tokenExpireSeconds = (expirationDate.getTime() - currentTime) / 1000;
 
+            // TODO:后续需要邮箱验证码确认用户身份
+
             // 7. 将用户权限和角色分别缓存到Redis，TTL与JWT过期时间一致
             cacheUserPermissionsAndRolesToRedis(user.getId(), permissions, roles, tokenExpireSeconds);
 
@@ -99,7 +106,7 @@ public class AuthServiceImpl
             save(userAuth);
 
             // 9. 记录登录成功日志
-            saveLoginLog(user.getId(), user.getUsername(), clientIp, browser, os, 1, "登录成功");
+            logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 1, "登录成功");
 
             // 10. 构建响应
             LoginVO response = new LoginVO();
@@ -121,54 +128,57 @@ public class AuthServiceImpl
     }
     
     @Override
-    public RegisterVO register(RegisterDTO request, String clientIp, String browser, String os) {
+    public RegisterVO register(RegisterDTO registerDTO, String clientIp, String browser, String os) {
         try {
-            // 验证两次密码是否一致
-            AssertUtils.isTrue(request.getPassword().equals(request.getConfirmPassword()), "两次输入的密码不一致");
-            
-            // 检查用户名是否已存在
-            UserVO existingUser = userClient.getUserByUsername(request.getUsername());
-            AssertUtils.isNull(existingUser, "用户名已被使用");
-            
-            // 构建用户DTO
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUsername(request.getUsername());
-            userDTO.setPassword(passwordEncoder.encode(request.getPassword()));
-            userDTO.setEmail(request.getEmail());
-            userDTO.setPhone(request.getPhone());
-            userDTO.setNickname(request.getNickname());
+            // 1. 验证两次密码一致
+            AssertUtils.isTrue(registerDTO.getPassword().equals(registerDTO.getConfirmPassword()),
+                    AuthResultCodeEnum.PASSWORD_MISMATCH);
+
+            // 2. 检查用户名是否已存在
+            UserVO existingUser = userClient.getUserByUsername(registerDTO.getUsername());
+            AssertUtils.isNull(existingUser, AuthResultCodeEnum.USERNAME_ALREADY_EXISTS);
+
+            // 3. 构建用户DTO，使用BeanConvertUtil转换
+            UserDTO userDTO = BeanConvertUtil.to(registerDTO, UserDTO.class);
+            userDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
             userDTO.setStatus(1); // 默认启用
             
-            // 调用用户服务创建用户
+            // 4. 调用用户服务创建用户
             UserVO createdUser = userClient.createUser(userDTO);
-            AssertUtils.notNull(createdUser, "用户创建失败");
-            
-            // 初始化默认权限和角色列表 - 新用户默认只有基本权限
+            AssertUtils.notNull(createdUser, AuthResultCodeEnum.USER_CREATION_FAILED);
+
+            // 5. 分配默认角色到数据库
+            assignDefaultRoleToUser(createdUser.getId());
+
+            // 6. 初始化默认权限和角色列表 - 新用户默认只有基本权限
             List<String> permissions = new ArrayList<>();
             permissions.add("user:basic");
-            List<String> roles = new ArrayList<>(); // 新用户默认无角色
+            List<String> roles = new ArrayList<>();
+            roles.add("ROLE_USER"); // 新用户默认角色为普通用户
 
-            // 生成优化的JWT令牌（不包含权限信息）
+            // 7. 生成优化的JWT令牌（不包含权限信息）
             String accessToken = jwtUtils.createAccessToken(createdUser.getId(), createdUser.getUsername());
             String refreshToken = jwtUtils.createRefreshToken(createdUser.getId(), createdUser.getUsername());
             Date expirationDate = jwtUtils.getExpirationDate(accessToken);
+            long currentTimeMillis  = System.currentTimeMillis();
+            // 计算剩余过期时间（向上取整，避免0秒）
+            long tokenExpireSeconds = (expirationDate.getTime() - currentTimeMillis + 999) / 1000;
 
-            // 将用户权限和角色缓存到Redis
-            long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
+            // 8. 将用户权限和角色缓存到Redis
             cacheUserPermissionsAndRolesToRedis(createdUser.getId(), permissions, roles, tokenExpireSeconds);
-            
-            // 保存认证信息到数据库
+
+            // 9. 保存认证信息到数据库
             UserAuth userAuth = new UserAuth();
             userAuth.setUserId(createdUser.getId());
             userAuth.setAccessToken(accessToken);
             userAuth.setRefreshToken(refreshToken);
             userAuth.setTokenType("Bearer");
             userAuth.setExpiresAt(LocalDateTime.ofInstant(expirationDate.toInstant(), ZoneId.systemDefault()));
-            save(userAuth); // 使用MyBatis-Plus的save方法
-            
-            // 记录登录成功日志
-            saveLoginLog(createdUser.getId(), createdUser.getUsername(), clientIp, browser, os, 1, "注册成功并登录");
-            
+            save(userAuth);
+
+            // 10. 记录注册成功日志
+            logService.saveLoginLogAsync(createdUser.getId(), createdUser.getUsername(), clientIp, browser, os, 1, "注册成功");
+
             // 构建响应
             RegisterVO response = new RegisterVO();
             response.setUserId(createdUser.getId());
@@ -176,15 +186,15 @@ public class AuthServiceImpl
             response.setAccessToken(accessToken);
             response.setRefreshToken(refreshToken);
             response.setTokenType("Bearer");
-            response.setExpiresIn((expirationDate.getTime() - System.currentTimeMillis()) / 1000);
-            
+            response.setExpiresIn(tokenExpireSeconds);
+
             return response;
         } catch (Exception e) {
             log.error("注册异常", e);
             if (e instanceof ServiceException) {
                 throw e;
             }
-            throw new ServiceException("注册失败: " + e.getMessage());
+            throw new ServiceException(AuthResultCodeEnum.REGISTER_FAILED);
         }
     }
     
@@ -273,27 +283,7 @@ public class AuthServiceImpl
 
         log.info("用户登出成功，用户ID: {}", userId);
     }
-    
-    /**
-     * 保存登录日志
-     */
-    @Async
-    protected void saveLoginLog(Long userId, String username, String loginIp, String browser, String os, Integer status, String msg) {
-        try {
-            LoginLog loginLog = new LoginLog();
-            loginLog.setUserId(userId);
-            loginLog.setUsername(username);
-            loginLog.setLoginIp(loginIp);
-            loginLog.setBrowser(browser);
-            loginLog.setOs(os);
-            loginLog.setStatus(status);
-            loginLog.setMsg(msg);
-            loginLog.setLoginTime(LocalDateTime.now());
-            loginLogMapper.insert(loginLog);
-        } catch (Exception e) {
-            log.error("保存登录日志失败", e);
-        }
-    }
+
 
     /**
      * 将用户权限和角色分别缓存到Redis
@@ -306,11 +296,11 @@ public class AuthServiceImpl
     private void cacheUserPermissionsAndRolesToRedis(Long userId, List<String> permissions, List<String> roles, long expireSeconds) {
         try {
             // 分别缓存用户权限和角色，TTL与JWT过期时间一致
-            redisPermissionCacheService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
-            redisPermissionCacheService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
+            redisPermissionService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
+            redisPermissionService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
 
             log.debug("用户权限和角色已缓存到Redis，用户ID: {}, 权限数量: {}, 角色数量: {}, 过期时间: {}秒",
-                     userId, permissions.size(), roles.size(), expireSeconds);
+                    userId, permissions.size(), roles.size(), expireSeconds);
         } catch (Exception e) {
             log.error("缓存用户权限和角色到Redis失败，用户ID: {}", userId, e);
             // 不抛出异常，避免影响登录流程
@@ -329,7 +319,7 @@ public class AuthServiceImpl
 
         // 清除用户权限缓存
         try {
-            redisPermissionCacheService.clearUserPermissions(userId);
+            redisPermissionService.clearUserPermissions(userId);
             permissionCleared = true;
             log.debug("已清除用户权限缓存，用户ID: {}", userId);
         } catch (Exception e) {
@@ -338,7 +328,7 @@ public class AuthServiceImpl
 
         // 清除用户角色缓存
         try {
-            redisPermissionCacheService.clearUserRoles(userId);
+            redisPermissionService.clearUserRoles(userId);
             roleCleared = true;
             log.debug("已清除用户角色缓存，用户ID: {}", userId);
         } catch (Exception e) {
@@ -362,7 +352,7 @@ public class AuthServiceImpl
      */
     private void assertUserExists(UserVO user, String username, String clientIp, String browser, String os) {
         if (user == null) {
-            saveLoginLog(null, username, clientIp, browser, os, 0, AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
+            logService.saveLoginLogAsync(null, username, clientIp, browser, os, 0, AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
             throw new UsernameNotFoundException(AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
         }
     }
@@ -372,7 +362,7 @@ public class AuthServiceImpl
      */
     private void assertUserEnabled(UserVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
-            saveLoginLog(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
+            logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
             throw new ServiceException(AuthResultCodeEnum.ACCOUNT_DISABLED);
         }
     }
@@ -382,8 +372,45 @@ public class AuthServiceImpl
      */
     private void assertPasswordMatches(String inputPassword, UserVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
-            saveLoginLog(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
+            logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
             throw new BadCredentialsException(AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
+        }
+    }
+
+    /**
+     * 为新用户分配默认角色
+     *
+     * @param userId 用户ID
+     */
+    private void assignDefaultRoleToUser(Long userId) {
+        try {
+            // 1. 查找ROLE_USER角色
+            Role defaultRole = roleMapper.selectOne(
+                    new LambdaQueryWrapper<Role>()
+                            .eq(Role::getCode, "ROLE_USER")
+                            .eq(Role::getStatus, 1)
+            );
+
+            // 2. 验证角色存在
+            if (defaultRole == null) {
+                log.error("默认角色ROLE_USER不存在，无法为用户分配角色，用户ID: {}", userId);
+                return;
+            }
+
+            // 3. 创建用户角色关联记录
+            UserRole userRole = new UserRole();
+            userRole.setUserId(userId);
+            userRole.setRoleId(defaultRole.getId());
+            userRole.setCreatedAt(LocalDateTime.now());
+
+            // 4. 插入到数据库
+            userRoleMapper.insert(userRole);
+
+            log.info("成功为用户分配默认角色，用户ID: {}, 角色: {}", userId, defaultRole.getCode());
+
+        } catch (Exception e) {
+            log.error("为用户分配默认角色失败，用户ID: {}", userId, e);
+            // 不抛出异常，避免影响注册流程
         }
     }
 }

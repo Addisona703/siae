@@ -33,14 +33,14 @@ public class UserProfileVO implements Serializable {
     private String realName;
 
     /**
-     * 头像URL
-     */
-    private String avatar;
-
-    /**
      * 个人简介
      */
     private String bio;
+
+    /**
+     * 主页背景图片URL
+     */
+    private String bgUrl;
 
     /**
      * 邮箱

@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "SiaeAuthorize权限测试",
+    "description": "测试@SiaeAuthorize注解和SiaeAuthorizeAspect切面的功能",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 登录获取Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.data && response.data.accessToken) {",
+              "        pm.collectionVariables.set('token', response.data.accessToken);",
+              "        console.log('Token已保存:', response.data.accessToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 获取当前用户信息",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/current-user",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "current-user"]
+        }
+      }
+    },
+    {
+      "name": "3. 公开接口测试",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/public",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "public"]
+        }
+      }
+    },
+    {
+      "name": "4. 超级管理员测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/super-admin",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "super-admin"]
+        }
+      }
+    },
+    {
+      "name": "5. 日志查询权限测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/auth-log-query",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "auth-log-query"]
+        }
+      }
+    },
+    {
+      "name": "6. 管理员角色测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/admin-role",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "admin-role"]
+        }
+      }
+    },
+    {
+      "name": "7. OR逻辑权限测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/or-expression",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "or-expression"]
+        }
+      }
+    },
+    {
+      "name": "8. AND逻辑权限测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/and-expression",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "and-expression"]
+        }
+      }
+    },
+    {
+      "name": "9. 权限不足测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/permission-denied",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "permission-denied"]
+        }
+      }
+    },
+    {
+      "name": "10. 空表达式测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/empty-expression",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "empty-expression"]
+        }
+      }
+    },
+    {
+      "name": "11. 复杂权限表达式测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/complex-expression",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "complex-expression"]
+        }
+      }
+    },
+    {
+      "name": "12. POST请求权限测试",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"test\": \"data\",\n  \"timestamp\": \"{{$timestamp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/post-test",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "post-test"]
+        }
+      }
+    },
+    {
+      "name": "13. 性能测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/performance-test",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "performance-test"]
+        }
+      }
+    },
+    {
+      "name": "14. 批量权限测试",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/batch-test",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "batch-test"]
+        }
+      }
+    },
+    {
+      "name": "15. 原始LogController - 登录日志",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"page\": 1,\n  \"size\": 10,\n  \"data\": {}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/logs/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["logs", "login"]
+        }
+      }
+    },
+    {
+      "name": "16. 原始LogController - 登录失败日志",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"page\": 1,\n  \"size\": 10,\n  \"data\": {}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/logs/login/fail",
+          "host": ["{{baseUrl}}"],
+          "path": ["logs", "login", "fail"]
+        }
+      }
+    },
+    {
+      "name": "17. 未认证访问测试",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/test/siae-authorize/auth-log-query",
+          "host": ["{{baseUrl}}"],
+          "path": ["test", "siae-authorize", "auth-log-query"]
+        }
+      }
+    }
+  ]
+}

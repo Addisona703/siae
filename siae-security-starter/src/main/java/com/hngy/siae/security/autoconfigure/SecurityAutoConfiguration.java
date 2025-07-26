@@ -1,5 +1,7 @@
 package com.hngy.siae.security.autoconfigure;
 
+import com.hngy.siae.security.aop.SiaeAuthorizeAspect;
+import com.hngy.siae.security.config.SimpleEnhancedPermissionConfig;
 import com.hngy.siae.security.filter.JwtAuthenticationFilter;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
@@ -15,7 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -37,11 +38,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @ConditionalOnProperty(prefix = "siae.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(SecurityProperties.class)
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
 @Import({
     RedisPermissionServiceImpl.class,
     FallbackPermissionServiceImpl.class,
-    JwtAuthenticationFilter.class
+    JwtAuthenticationFilter.class,
+    SimpleEnhancedPermissionConfig.class,
+    SiaeAuthorizeAspect.class
 })
 public class SecurityAutoConfiguration {
 
@@ -108,7 +110,9 @@ public class SecurityAutoConfiguration {
             // 白名单路径
             String[] whitelistPaths = securityProperties.getWhitelistPaths().toArray(new String[0]);
             authz.requestMatchers(whitelistPaths).permitAll();
-            
+
+            // 管理员接口
+//            authz.requestMatchers("/api/v1/**").hasRole("ROOT");
             // 其他路径需要认证
             authz.anyRequest().authenticated();
         });
@@ -136,5 +140,7 @@ public class SecurityAutoConfiguration {
         log.info("权限缓存: {}", securityProperties.getPermission().isCacheEnabled() ? "启用" : "禁用");
         log.info("Redis权限服务: {}", securityProperties.getPermission().isRedisEnabled() ? "启用" : "禁用");
         log.info("权限降级服务: {}", securityProperties.getPermission().isFallbackEnabled() ? "启用" : "禁用");
+        log.info("简化增强权限控制: {}", securityProperties.getEnhancedPermission().isEnabled() ? "启用" : "禁用");
+        log.info("SiaeAuthorize注解支持: 启用");
     }
 }

@@ -30,6 +30,11 @@ public class SecurityProperties {
     private Permission permission = new Permission();
 
     /**
+     * 增强权限控制配置
+     */
+    private EnhancedPermission enhancedPermission = new EnhancedPermission();
+
+    /**
      * 需要权限验证的服务列表
      */
     private List<String> authRequiredServices = List.of("siae-auth", "siae-user", "siae-content", "siae-admin");
@@ -147,7 +152,44 @@ public class SecurityProperties {
      * @return 是否在白名单中
      */
     public boolean isWhitelistPath(String path) {
-        return whitelistPaths.stream().anyMatch(pattern -> 
+        return whitelistPaths.stream().anyMatch(pattern ->
             path.matches(pattern.replace("**", ".*").replace("*", "[^/]*")));
+    }
+
+    /**
+     * 增强权限控制配置
+     */
+    @Data
+    public static class EnhancedPermission {
+
+        /**
+         * 是否启用增强权限控制
+         */
+        private boolean enabled = false;
+
+        /**
+         * 超级管理员角色名称
+         */
+        private String superAdminRole = "ROOT";
+
+        /**
+         * 是否启用全局超级管理员放行
+         */
+        private boolean globalSuperAdminEnabled = true;
+
+        /**
+         * 是否启用增强SpEL表达式
+         */
+        private boolean enhancedSpelEnabled = true;
+
+        /**
+         * 权限检查失败时是否记录详细日志
+         */
+        private boolean detailedLogging = true;
+
+        /**
+         * 是否启用权限缓存优化
+         */
+        private boolean cacheOptimizationEnabled = true;
     }
 }

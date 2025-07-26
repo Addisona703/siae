@@ -1,4 +1,4 @@
-package com.hngy.siae.auth.feign.dto.response;
+package com.hngy.siae.auth.dto.response;
 
 import lombok.Data;
 

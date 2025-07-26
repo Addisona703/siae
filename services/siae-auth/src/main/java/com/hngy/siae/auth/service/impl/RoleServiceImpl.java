@@ -1,6 +1,7 @@
 package com.hngy.siae.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hngy.siae.auth.dto.response.PermissionVO;
 import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.auth.dto.request.RoleCreateDTO;
 import com.hngy.siae.auth.dto.response.RoleVO;
@@ -203,7 +204,12 @@ public class RoleServiceImpl implements RoleService {
         
         return true;
     }
-    
+
+    @Override
+    public List<PermissionVO> getPermissionsByRoleId(Long roleId) {
+        return List.of();
+    }
+
     /**
      * 将角色实体转换为角色响应
      *

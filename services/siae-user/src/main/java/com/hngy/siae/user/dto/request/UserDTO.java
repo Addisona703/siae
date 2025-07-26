@@ -48,7 +48,7 @@ public class UserDTO implements Serializable {
      * 密码
      */
     @NotBlank(message = "密码不能为空", groups = {CreateGroup.class, LoginGroup.class})
-    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间", groups = {CreateGroup.class, UpdateGroup.class})
+//    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间", groups = {CreateGroup.class, UpdateGroup.class})
     private String password;
     
 //    /**
@@ -78,6 +78,11 @@ public class UserDTO implements Serializable {
      * 真实姓名
      */
     private String realName;
+
+    /**
+     * 头像URL
+     */
+    private String avatar;
 
     /**
      * 班级ID，关联ClassInfo实体

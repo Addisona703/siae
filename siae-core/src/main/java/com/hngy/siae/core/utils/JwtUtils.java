@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * JWT 工具类，包含生成、解析、校验方法
@@ -99,7 +100,11 @@ public class JwtUtils {
      */
     private String createToken(Long userId, String username, List<String> authorities, long expireTime) {
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + expireTime * 1000);
+        // 防止雪崩：增加 0~60 秒随机偏移
+        int jitterSeconds = ThreadLocalRandom.current().nextInt(0, 60);
+        long totalExpireMillis = (expireTime + jitterSeconds) * 1000L;
+
+        Date expiration = new Date(now.getTime() + totalExpireMillis);
 
         // 优化后的JWT只包含基本信息：userId, username, exp
         // 权限信息将从Redis缓存中获取，大大减少token大小

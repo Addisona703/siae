@@ -93,7 +93,7 @@ public class UserServiceImpl
                 .eq(User::getUsername, username)
                 .eq(User::getIsDeleted, 0)
                 .one();
-        AssertUtils.notNull(user, UserResultCodeEnum.USER_NOT_FOUND);
+//        AssertUtils.notNull(user, UserResultCodeEnum.USER_NOT_FOUND);
         return BeanConvertUtil.to(user, UserVO.class);
     }
 
