@@ -40,7 +40,6 @@ public class BeanConvertUtil {
         BeanUtil.copyProperties(source, target, ignoreProperties);
     }
 
-
     /**
      * 批量转换 Entity → VO
      * @param sourceList 原始对象列表
@@ -52,7 +51,7 @@ public class BeanConvertUtil {
             return List.of();
         }
         return sourceList.stream()
-                .map(source -> to(source, targetClass))
+                .map(source -> BeanUtil.copyProperties(source, targetClass))
                 .collect(Collectors.toList());
     }
 

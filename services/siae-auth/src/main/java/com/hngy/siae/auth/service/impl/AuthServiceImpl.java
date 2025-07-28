@@ -34,6 +34,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -64,6 +65,7 @@ public class AuthServiceImpl
     private final RedisPermissionService redisPermissionService;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
         try {
             // 1. 远程调用userClient接口获取用户信息
@@ -128,6 +130,7 @@ public class AuthServiceImpl
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public RegisterVO register(RegisterDTO registerDTO, String clientIp, String browser, String os) {
         try {
             // 1. 验证两次密码一致

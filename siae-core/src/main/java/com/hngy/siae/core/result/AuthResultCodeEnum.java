@@ -29,7 +29,7 @@ public enum AuthResultCodeEnum implements IResultCode {
     PERMISSION_DENIED(2200, "权限不足"),
     ROLE_NOT_FOUND(2201, "角色不存在"),
     PERMISSION_NOT_FOUND(2202, "权限不存在"),
-    ;
+    PERMISSION_CODE_EXISTS(2023, "权限已存在");
 
     private final int code;
     private final String message;

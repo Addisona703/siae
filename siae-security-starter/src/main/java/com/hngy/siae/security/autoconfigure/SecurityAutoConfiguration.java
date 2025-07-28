@@ -42,7 +42,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
     RedisPermissionServiceImpl.class,
     FallbackPermissionServiceImpl.class,
     JwtAuthenticationFilter.class,
-    SimpleEnhancedPermissionConfig.class,
+//    SimpleEnhancedPermissionConfig.class,
     SiaeAuthorizeAspect.class
 })
 public class SecurityAutoConfiguration {

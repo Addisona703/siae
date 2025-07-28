@@ -1,5 +1,7 @@
 package com.hngy.siae.auth.dto.request;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -26,7 +28,7 @@ public class PermissionCreateDTO {
     /**
      * 权限类型：menu菜单、button按钮
      */
-    @NotBlank(message = "权限类型不能为空")
+//    @NotBlank(message = "权限类型不能为空")
     private String type;
     
     /**
@@ -52,5 +54,12 @@ public class PermissionCreateDTO {
     /**
      * 排序值
      */
-    private Integer sortOrder;
+    private Integer sortOrder = 0;
+
+    /**
+     * 状态：0禁用，1启用
+     */
+    @Min(value = 0, message = "是否启用该权限只能为0或1")
+    @Max(value = 1, message = "是否启用该权限只能为0或1")
+    private Integer status = 1;
 } 

@@ -3,6 +3,8 @@ package com.hngy.siae.auth.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -65,8 +67,8 @@ public class Permission {
     /**
      * 状态：0禁用，1启用
      */
-    private Integer status;
-    
+    private Integer status = 1;
+
     /**
      * 创建时间
      */
