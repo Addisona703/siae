@@ -140,6 +140,9 @@ public class PermissionServiceImpl
                 .update();
     }
 
+    /**
+     * 批量删除权限
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean batchDeletePermissions(List<Long> permissionIds) {
@@ -201,8 +204,8 @@ public class PermissionServiceImpl
                 .eq(StrUtil.isNotBlank(queryDTO.getType()), Permission::getType, queryDTO.getType())
                 .eq(queryDTO.getParentId() != null, Permission::getParentId, queryDTO.getParentId())
                 .eq(queryDTO.getStatus() != null, Permission::getStatus, queryDTO.getStatus())
-                .ge(StrUtil.isNotBlank(queryDTO.getCreateAtStart()), Permission::getCreatedAt, queryDTO.getCreateAtStart())
-                .le(StrUtil.isNotBlank(queryDTO.getCreateAtEnd()), Permission::getCreatedAt, queryDTO.getCreateAtEnd())
+                .ge(StrUtil.isNotBlank(queryDTO.getCreatedAtStart()), Permission::getCreatedAt, queryDTO.getCreatedAtStart())
+                .le(StrUtil.isNotBlank(queryDTO.getCreatedAtEnd()), Permission::getCreatedAt, queryDTO.getCreatedAtEnd())
                 .orderByAsc(Permission::getSortOrder)
                 .orderByDesc(Permission::getCreatedAt);
 
@@ -407,4 +410,30 @@ public class PermissionServiceImpl
         }
         return calculateLevel(parentId, parentMap) + 1;
     }
-} 
+
+    /**
+     * 验证权限是否都存在
+     * <p>
+     * 验证给定的权限ID列表中的所有权限都存在于数据库中。
+     * 如果权限ID列表为空，则直接返回不进行验证。
+     * 如果存在不存在的权限ID，则抛出异常。
+     *
+     * @param permissionIds 权限ID列表
+     * @throws com.hngy.siae.core.exception.ServiceException 当存在不存在的权限ID时抛出异常
+     * @author KEYKB
+     */
+    @Override
+    public void validatePermissionsExist(List<Long> permissionIds) {
+        // 如果权限ID列表为空，直接返回
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            return;
+        }
+
+        // 查询权限列表
+        List<Permission> permissions = listByIds(permissionIds);
+
+        // 验证查询结果数量与输入ID数量是否一致
+        AssertUtils.isTrue(permissions.size() == permissionIds.size(),
+            AuthResultCodeEnum.PERMISSION_NOT_EXISTS);
+    }
+}

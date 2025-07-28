@@ -54,7 +54,8 @@ import java.util.concurrent.TimeUnit;
 public class AuthServiceImpl
         extends ServiceImpl<UserAuthMapper, UserAuth>
         implements AuthService {
-    
+
+    // TODO: 后面抽成外观模式
     private final UserClient userClient;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;

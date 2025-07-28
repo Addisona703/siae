@@ -1,17 +1,19 @@
 package com.hngy.siae.auth.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.auth.dto.request.LoginQueryDTO;
 import com.hngy.siae.auth.dto.response.LoginFailVO;
 import com.hngy.siae.auth.dto.response.LoginLogVO;
+import com.hngy.siae.auth.entity.LoginLog;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 
 /**
  * 日志服务接口
- * 
+ *
  * @author KEYKB
  */
-public interface LogService {
+public interface LogService extends IService<LoginLog> {
     
     /**
      * 获取登录日志

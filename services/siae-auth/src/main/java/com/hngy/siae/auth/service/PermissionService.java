@@ -1,11 +1,13 @@
 package com.hngy.siae.auth.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.auth.dto.request.PermissionCreateDTO;
 import com.hngy.siae.auth.dto.request.PermissionQueryDTO;
 import com.hngy.siae.auth.dto.request.PermissionTreeUpdateDTO;
 import com.hngy.siae.auth.dto.request.PermissionUpdateDTO;
 import com.hngy.siae.auth.dto.response.PermissionTreeVO;
 import com.hngy.siae.auth.dto.response.PermissionVO;
+import com.hngy.siae.auth.entity.Permission;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 
@@ -13,10 +15,10 @@ import java.util.List;
 
 /**
  * 权限服务接口
- * 
+ *
  * @author KEYKB
  */
-public interface PermissionService {
+public interface PermissionService extends IService<Permission> {
     
     /**
      * 创建权限
@@ -91,4 +93,17 @@ public interface PermissionService {
      * @return 删除结果
      */
     Boolean batchDeletePermissions(List<Long> permissionIds);
+
+    /**
+     * 验证权限是否都存在
+     * <p>
+     * 验证给定的权限ID列表中的所有权限都存在于数据库中。
+     * 如果权限ID列表为空，则直接返回不进行验证。
+     * 如果存在不存在的权限ID，则抛出异常。
+     *
+     * @param permissionIds 权限ID列表
+     * @throws com.hngy.siae.core.exception.ServiceException 当存在不存在的权限ID时抛出异常
+     * @author KEYKB
+     */
+    void validatePermissionsExist(List<Long> permissionIds);
 }

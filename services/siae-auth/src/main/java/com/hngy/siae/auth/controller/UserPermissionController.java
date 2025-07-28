@@ -20,7 +20,6 @@ import static com.hngy.siae.core.permissions.AuthPermissions.*;
 /**
  * 用户权限关联控制器
  */
-@Slf4j
 @RestController
 @RequestMapping("/user-permission")
 @RequiredArgsConstructor

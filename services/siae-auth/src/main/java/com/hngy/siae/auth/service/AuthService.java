@@ -1,18 +1,20 @@
 package com.hngy.siae.auth.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
 import com.hngy.siae.auth.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
+import com.hngy.siae.auth.entity.UserAuth;
 
 /**
  * 认证服务接口
- * 
+ *
  * @author KEYKB
  */
-public interface AuthService {
+public interface AuthService extends IService<UserAuth> {
     
     /**
      * 登录

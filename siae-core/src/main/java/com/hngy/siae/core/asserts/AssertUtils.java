@@ -13,6 +13,14 @@ import java.util.Map;
  */
 public class AssertUtils {
 
+    public static void fail(IResultCode resultCode) {
+        throw new ServiceException(resultCode);
+    }
+
+    public static void fail(String message) {
+        throw new ServiceException(message);
+    }
+
     public static void isTrue(boolean expression, String message) {
         if (!expression) {
             throw new ServiceException(message);

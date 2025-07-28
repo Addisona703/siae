@@ -46,11 +46,11 @@ public class PermissionQueryDTO {
      * 创建时间范围 - 开始时间
      */
     @Schema(description = "创建时间范围查询 - 开始时间", example = "2024-01-01 00:00:00")
-    private String createAtStart;
-    
+    private String createdAtStart;
+
     /**
      * 创建时间范围 - 结束时间
      */
     @Schema(description = "创建时间范围查询 - 结束时间", example = "2024-12-31 23:59:59")
-    private String createAtEnd;
+    private String createdAtEnd;
 }

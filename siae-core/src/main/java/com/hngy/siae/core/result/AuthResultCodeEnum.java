@@ -29,7 +29,14 @@ public enum AuthResultCodeEnum implements IResultCode {
     PERMISSION_DENIED(2200, "权限不足"),
     ROLE_NOT_FOUND(2201, "角色不存在"),
     PERMISSION_NOT_FOUND(2202, "权限不存在"),
-    PERMISSION_CODE_EXISTS(2023, "权限已存在");
+    PERMISSION_CODE_EXISTS(2203, "权限已存在"),
+    ROLE_CODE_EXISTS(2204, "角色编码已存在"),
+    SYSTEM_ROLE_CANNOT_DELETE(2205, "系统内置角色不可删除"),
+    SYSTEM_ROLE_CANNOT_UPDATE(2206, "系统内置角色不可修改"),
+    ROLE_HAS_USERS(2207, "角色已分配给用户，无法删除"),
+    ROLE_CREATE_FAILED(2208, "角色创建失败"),
+    PERMISSION_NOT_EXISTS(2209, "权限不存在"),
+    ROLE_NOT_EXISTS(2210, "角色不存在");
 
     private final int code;
     private final String message;

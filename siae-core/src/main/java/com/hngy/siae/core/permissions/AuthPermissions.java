@@ -63,6 +63,9 @@ public class AuthPermissions {
     /** 查询用户角色 */
     public static final String AUTH_USER_ROLE_QUERY = "auth:user:role:query";
 
+    /** 更新用户角色 */
+    public static final String AUTH_USER_ROLE_UPDATE = "auth:user:role:update";
+
     /** 移除用户角色 */
     public static final String AUTH_USER_ROLE_REMOVE = "auth:user:role:remove";
 

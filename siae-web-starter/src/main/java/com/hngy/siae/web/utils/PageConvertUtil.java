@@ -28,6 +28,24 @@ public class PageConvertUtil {
         return new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
     }
 
+    
+    /**
+     * 将 MyBatis-Plus 的分页对象和记录列表构建为 PageVO
+     *
+     * @param page    MyBatis-Plus 分页对象
+     * @param records 记录列表
+     * @param <T>     数据类型
+     * @return PageVO<T>
+     */
+    public static <T> PageVO<T> build(IPage<?> page, List<T> records) {
+        PageVO<T> result = new PageVO<>();
+        result.setTotal(page.getTotal());
+        result.setPageNum((int) page.getCurrent());
+        result.setPageSize((int) page.getSize());
+        result.setRecords(records != null ? records : List.of());
+        return result;
+    }
+
     /**
      * 将 MyBatis-Plus 的 IPage<T> 转换为通用的 PageVO<T>
      *

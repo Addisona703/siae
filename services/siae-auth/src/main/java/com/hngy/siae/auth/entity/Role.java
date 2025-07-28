@@ -40,7 +40,7 @@ public class Role {
     /**
      * 状态：0禁用，1启用
      */
-    private Integer status;
+    private Integer status = 1;
     
     /**
      * 创建时间
