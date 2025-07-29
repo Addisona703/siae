@@ -130,11 +130,11 @@ public class PageConvertUtil {
      * @param <T>      数据类型
      * @return 空的 PageVO
      */
-    public static <T> PageVO<T> empty(int pageNum, int pageSize) {
+    public static <T> PageVO<T> empty(long pageNum, long pageSize) {
         PageVO<T> result = new PageVO<>();
         result.setTotal(0L);
-        result.setPageNum(pageNum);
-        result.setPageSize(pageSize);
+        result.setPageNum((int)pageNum);
+        result.setPageSize((int)pageSize);
         result.setRecords(List.of());
         return result;
     }

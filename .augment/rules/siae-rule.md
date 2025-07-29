@@ -275,7 +275,7 @@ public Result<UserVO> getUser(
 ```
 
 ### 7.2 Swagger文档注解
-- **规则**: 为所有Controller方法添加Swagger注解
+- **规则**: 为所有Controller方法添加Swagger注解，只允许添加以下三个
 - **必需注解**: `@Operation`, `@Parameter`, `@Tag`
 
 ```java

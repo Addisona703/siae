@@ -121,19 +121,27 @@ siae-parent (父项目)
 **职责**: 用户认证、权限管理、RBAC系统
 
 **核心控制器**:
-- `AuthController`: 登录、注册、刷新令牌、登出
-- `PermissionController`: 权限管理 (CRUD)
-- `RoleController`: 角色管理 (CRUD)
-- `UserRoleController`: 用户角色关联管理
-- `UserPermissionController`: 用户权限管理
+- `AuthController`: 登录、注册、刷新令牌、登出 (4个接口)
+- `PermissionController`: 权限管理 (CRUD + 树形结构) (7个接口)
+- `RoleController`: 角色管理 (CRUD + 权限分配) (9个接口)
+- `UserRoleController`: 用户角色关联管理 (4个接口)
+- `UserPermissionController`: 用户权限管理 (5个接口)
+- `LogController`: 登录日志查询 (2个接口)
 
 **数据表结构**:
-- `role`: 角色表
 - `permission`: 权限表 (支持层级结构)
+- `role`: 角色表
 - `user_role`: 用户角色关联表
 - `role_permission`: 角色权限关联表
 - `user_permission`: 用户权限关联表
 - `user_auth`: 用户认证令牌表
+- `login_log`: 登录日志表
+
+**权限模型**:
+- 基于RBAC的权限控制
+- 支持角色权限和直接权限
+- Redis缓存权限信息
+- 使用@SiaeAuthorize注解进行权限验证
 
 ### 3. siae-user (用户服务)
 **端口**: 8020
@@ -267,7 +275,7 @@ src/main/java/com/hngy/siae/{service}/
 - 控制器方法必须添加 `@Operation` 注解
 - 参数必须添加 `@Parameter` 注解
 - 响应必须添加 `@ApiResponses` 注解
-- 权限控制必须添加 `@PreAuthorize` 注解
+- 权限控制必须添加 `@SiaeAuthorize` 注解
 
 ---
 
@@ -278,7 +286,7 @@ src/main/java/com/hngy/siae/{service}/
 1. 用户登录 → siae-auth服务验证 → 生成JWT Token
 2. 客户端携带Token访问API → siae-gateway验证Token
 3. Token有效 → 转发请求到对应微服务
-4. 微服务通过@PreAuthorize验证具体权限
+4. 微服务通过@SiaeAuthorize验证具体权限
 ```
 
 ### 2. RBAC权限模型
@@ -298,7 +306,7 @@ src/main/java/com/hngy/siae/{service}/
 
 ### 4. 权限注解使用
 ```java
-@PreAuthorize("hasAuthority('" + USER_USER_CREATE + "')")
+@SiaeAuthorize("hasAuthority('" + AUTH_USER_CREATE + "')")
 public Result<UserVO> createUser(@RequestBody UserDTO userDTO) {
     // 业务逻辑
 }
@@ -393,11 +401,11 @@ chore: 构建过程或辅助工具的变动
 - hotfix/*: 热修复分支
 
 ### 4. 权限开发流程
-1. **定义权限常量**: 在对应的Permissions类中定义
+1. **定义权限常量**: 在AuthPermissions类中定义权限常量
 2. **更新数据库**: 在auth_db.sql中添加权限记录
-3. **添加注解**: 在Controller方法上添加@PreAuthorize
-4. **角色分配**: 为不同角色分配相应权限
-5. **测试验证**: 验证权限控制是否生效
+3. **添加注解**: 在Controller方法上添加@SiaeAuthorize注解
+4. **角色分配**: 通过角色管理接口为不同角色分配相应权限
+5. **测试验证**: 验证权限控制是否生效，检查Redis缓存
 
 ---
 

@@ -59,9 +59,9 @@ SIAE认证服务是软件协会官网系统的核心认证授权中心，负责�
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Gateway       │    │   Auth Service   │    │   Other Services│
 │                 │    │                  │    │                 │
-│ JWT验证         │───▶│ 用户认证         │───▶│ 业务服务        │
-│ 路由转发        │    │ 权限管理         │    │                 │
-│                 │    │ Redis缓存        │    │                 │
+│ JWT验证          │───▶│ 用户认证          │───▶│ 业务服务        │
+│ 路由转发         │    │ 权限管理           │    │                 │
+│                 │    │ Redis缓存         │    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -117,7 +117,6 @@ services/siae-auth/
 │   │   ├── UserPermissionService.java    # 用户权限服务接口
 │   │   ├── UserRoleService.java          # 用户角色服务接口
 │   │   ├── LogService.java               # 日志服务接口
-│   │   ├── RedisPermissionCacheService.java # Redis权限缓存服务
 │   │   └── impl/                         # 服务实现类
 │   ├── mapper/                           # 数据访问层
 │   │   ├── PermissionMapper.java         # 权限数据访问
@@ -364,13 +363,12 @@ services/siae-auth/
 
 ## 📚 API接口文档
 
-### 认证相关接口
+### 认证管理接口 (AuthController)
 
 #### 1. 用户登录
-
-**接口地址**: `POST /api/v1/auth/login`
-
-**请求参数**:
+- **接口地址**: `POST /login`
+- **权限要求**: 无 (公开接口)
+- **请求参数**:
 ```json
 {
   "username": "admin",
@@ -378,216 +376,135 @@ services/siae-auth/
 }
 ```
 
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "操作成功",
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
-    "tokenType": "Bearer",
-    "expiresAt": "2024-01-01T12:00:00",
-    "userInfo": {
-      "userId": 1,
-      "username": "admin",
-      "nickname": "管理员"
-    }
-  }
-}
-```
-
 #### 2. 用户注册
-
-**接口地址**: `POST /api/v1/auth/register`
-
-**请求参数**:
-```json
-{
-  "username": "newuser",
-  "password": "password123",
-  "email": "user@example.com",
-  "nickname": "新用户"
-}
-```
+- **接口地址**: `POST /register`
+- **权限要求**: 无 (公开接口)
 
 #### 3. 刷新令牌
-
-**接口地址**: `POST /api/v1/auth/refresh-token`
-
-**请求参数**:
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiJ9..."
-}
-```
+- **接口地址**: `POST /refresh-token`
+- **权限要求**: 无 (公开接口)
 
 #### 4. 用户登出
+- **接口地址**: `POST /logout`
+- **权限要求**: 需要认证
 
-**接口地址**: `POST /api/v1/auth/logout`
-
-**请求头**:
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-```
-
-### 权限管理接口
+### 权限管理接口 (PermissionController)
 
 #### 1. 创建权限
+- **接口地址**: `POST /permissions`
+- **权限要求**: `auth:permission:add`
 
-**接口地址**: `POST /api/v1/auth/permissions`
+#### 2. 分页查询权限列表
+- **接口地址**: `POST /permissions/page`
+- **权限要求**: `auth:permission:query`
 
-**权限要求**: `system:permission:add`
+#### 3. 查询权限树结构
+- **接口地址**: `GET /permissions/tree`
+- **权限要求**: `auth:permission:query`
 
-**请求参数**:
-```json
-{
-  "name": "用户查询",
-  "code": "system:user:query",
-  "type": "button",
-  "parentId": 2,
-  "path": "",
-  "component": "",
-  "icon": "",
-  "sortOrder": 1
-}
-```
+#### 4. 批量更新权限树结构
+- **接口地址**: `PUT /permissions/tree/batch`
+- **权限要求**: `auth:permission:edit`
 
-#### 2. 获取权限列表
+#### 5. 获取权限详情
+- **接口地址**: `GET /permissions/{permissionId}`
+- **权限要求**: `auth:permission:query`
 
-**接口地址**: `GET /api/v1/auth/permissions`
+#### 6. 更新权限
+- **接口地址**: `PUT /permissions/{permissionId}`
+- **权限要求**: `auth:permission:edit`
 
-**权限要求**: `system:permission:query`
+#### 7. 删除权限
+- **接口地址**: `DELETE /permissions/{permissionId}`
+- **权限要求**: `auth:permission:delete`
 
-#### 3. 获取权限详情
-
-**接口地址**: `GET /api/v1/auth/permissions/{permissionId}`
-
-**权限要求**: `system:permission:query`
-
-#### 4. 更新权限
-
-**接口地址**: `PUT /api/v1/auth/permissions/{permissionId}`
-
-**权限要求**: `system:permission:edit`
-
-#### 5. 删除权限
-
-**接口地址**: `DELETE /api/v1/auth/permissions/{permissionId}`
-
-**权限要求**: `system:permission:delete`
-
-### 角色管理接口
+### 角色管理接口 (RoleController)
 
 #### 1. 创建角色
+- **接口地址**: `POST /roles`
+- **权限要求**: `auth:role:add`
 
-**接口地址**: `POST /api/v1/auth/api/roles`
+#### 2. 分页查询角色列表
+- **接口地址**: `POST /roles/page`
+- **权限要求**: `auth:role:query`
 
-**权限要求**: `system:role:add`
+#### 3. 获取所有角色
+- **接口地址**: `GET /roles`
+- **权限要求**: `auth:role:query`
 
-**请求参数**:
-```json
-{
-  "name": "内容编辑",
-  "code": "ROLE_CONTENT_EDITOR",
-  "description": "内容编辑角色"
-}
-```
+#### 4. 获取角色详情
+- **接口地址**: `GET /roles/{roleId}`
+- **权限要求**: `auth:role:query`
 
-#### 2. 获取角色列表
+#### 5. 更新角色
+- **接口地址**: `PUT /roles/{roleId}`
+- **权限要求**: `auth:role:edit`
 
-**接口地址**: `GET /api/v1/auth/api/roles`
+#### 6. 删除角色
+- **接口地址**: `DELETE /roles/{roleId}`
+- **权限要求**: `auth:role:delete`
 
-**权限要求**: `system:role:query`
+#### 7. 分配角色权限
+- **接口地址**: `POST /roles/{roleId}/permissions`
+- **权限要求**: `auth:role:edit`
 
-#### 3. 获取角色详情
+#### 8. 获取角色权限
+- **接口地址**: `GET /roles/{roleId}/permissions`
+- **权限要求**: `auth:role:query`
 
-**接口地址**: `GET /api/v1/auth/api/roles/{roleId}`
+#### 9. 移除角色权限
+- **接口地址**: `DELETE /roles/{roleId}/permissions`
+- **权限要求**: `auth:role:edit`
 
-**权限要求**: `system:role:query`
+### 用户角色管理接口 (UserRoleController)
 
-#### 4. 更新角色
+#### 1. 为用户分配单个角色
+- **接口地址**: `POST /users/{userId}/role`
+- **权限要求**: `auth:user:role:assign`
 
-**接口地址**: `PUT /api/v1/auth/api/roles/{roleId}`
+#### 2. 批量分配用户角色
+- **接口地址**: `POST /users/roles/batch`
+- **权限要求**: `auth:user:role:assign`
 
-**权限要求**: `system:role:edit`
+#### 3. 分页查询用户角色
+- **接口地址**: `POST /users/roles/page`
+- **权限要求**: `auth:user:role:query`
 
-#### 5. 删除角色
+#### 4. 更新用户角色关联
+- **接口地址**: `PUT /users/roles/{userRoleId}`
+- **权限要求**: `auth:user:role:update`
 
-**接口地址**: `DELETE /api/v1/auth/api/roles/{roleId}`
+### 用户权限管理接口 (UserPermissionController)
 
-**权限要求**: `system:role:delete`
+#### 1. 分页查询用户权限
+- **接口地址**: `GET /user-permission/list/{userId}`
+- **权限要求**: `auth:user:permission:query`
 
-#### 6. 分配权限
+#### 2. 分配用户权限（覆盖模式）
+- **接口地址**: `POST /user-permission/assign`
+- **权限要求**: `auth:user:permission:assign`
 
-**接口地址**: `POST /api/v1/auth/api/roles/{roleId}/permissions`
+#### 3. 追加用户权限（增量模式）
+- **接口地址**: `POST /user-permission/append`
+- **权限要求**: `auth:user:permission:assign`
 
-**权限要求**: `system:role:edit`
+#### 4. 移除用户所有权限
+- **接口地址**: `DELETE /user-permission/remove/all/{userId}`
+- **权限要求**: `auth:user:permission:remove`
 
-**请求参数**:
-```json
-{
-  "permissionIds": [1, 2, 3, 4, 5]
-}
-```
+#### 5. 移除用户指定权限
+- **接口地址**: `DELETE /user-permission/remove`
+- **权限要求**: `auth:user:permission:remove`
 
-### 用户角色管理接口
-
-#### 1. 分配用户角色
-
-**接口地址**: `POST /api/v1/auth/user-role/assign`
-
-**请求参数**:
-```json
-{
-  "userId": 1,
-  "roleIds": [1, 2]
-}
-```
-
-#### 2. 获取用户角色
-
-**接口地址**: `GET /api/v1/auth/user-role/list/{userId}`
-
-#### 3. 移除用户角色
-
-**接口地址**: `DELETE /api/v1/auth/user-role/remove`
-
-### 用户权限管理接口
-
-#### 1. 分配用户权限
-
-**接口地址**: `POST /api/v1/auth/user-permission/assign`
-
-**请求参数**:
-```json
-{
-  "userId": 1,
-  "permissionIds": [1, 2, 3]
-}
-```
-
-#### 2. 获取用户权限
-
-**接口地址**: `GET /api/v1/auth/user-permission/list/{userId}`
-
-#### 3. 移除用户权限
-
-**接口地址**: `DELETE /api/v1/auth/user-permission/remove`
-
-### 日志查询接口
+### 日志查询接口 (LogController)
 
 #### 1. 获取登录日志
+- **接口地址**: `POST /logs/login`
+- **权限要求**: `auth:log:query`
 
-**接口地址**: `GET /api/v1/auth/logs/login`
-
-**查询参数**:
-- `username`: 用户名(可选)
-- `status`: 登录状态(可选)
-- `startTime`: 开始时间(可选)
-- `endTime`: 结束时间(可选)
-- `page`: 页码(默认1)
-- `size`: 页大小(默认10)
+#### 2. 获取登录失败日志
+- **接口地址**: `POST /logs/login/fail`
+- **权限要求**: `auth:log:query`
 
 ### 通用响应格式
 
@@ -772,6 +689,76 @@ private static final String ROLE_KEY_PREFIX = "auth:roles:";
 // 缓存TTL与JWT过期时间一致
 long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
 ```
+
+## 🗄️ 数据库设计
+
+### 核心表结构
+
+#### 1. 权限表 (permission)
+- **功能**: 存储系统权限信息，支持层级结构
+- **特点**: 支持菜单和按钮两种权限类型
+
+| 字段名 | 数据类型 | 主键/索引 | 是否可空 | 默认值 | 说明 |
+|--------|----------|-----------|----------|--------|------|
+| id | BIGINT | PK | 非空 | 自增 | 权限ID |
+| parent_id | BIGINT | IDX | 可空 | NULL | 父权限ID |
+| name | VARCHAR(64) | | 非空 | | 权限名称 |
+| code | VARCHAR(100) | UK | 非空 | | 权限编码 |
+| type | VARCHAR(32) | | 非空 | | 权限类型 |
+| status | TINYINT | IDX | 可空 | 1 | 状态 |
+| created_at | DATETIME | | 可空 | CURRENT_TIMESTAMP | 创建时间 |
+
+#### 2. 角色表 (role)
+- **功能**: 存储系统角色信息
+
+| 字段名 | 数据类型 | 主键/索引 | 是否可空 | 默认值 | 说明 |
+|--------|----------|-----------|----------|--------|------|
+| id | BIGINT | PK | 非空 | 自增 | 角色ID |
+| name | VARCHAR(64) | | 非空 | | 角色名称 |
+| code | VARCHAR(100) | UK | 非空 | | 角色编码 |
+| status | TINYINT | IDX | 可空 | 1 | 状态 |
+| created_at | DATETIME | | 可空 | CURRENT_TIMESTAMP | 创建时间 |
+
+#### 3. 用户认证表 (user_auth)
+- **功能**: 存储用户JWT令牌和认证信息
+
+| 字段名 | 数据类型 | 主键/索引 | 是否可空 | 默认值 | 说明 |
+|--------|----------|-----------|----------|--------|------|
+| id | BIGINT | PK | 非空 | 自增 | 认证ID |
+| user_id | BIGINT | UK | 非空 | | 用户ID |
+| username | VARCHAR(64) | IDX | 非空 | | 用户名 |
+| access_token | TEXT | | 可空 | NULL | 访问令牌 |
+| refresh_token | TEXT | | 可空 | NULL | 刷新令牌 |
+| expires_at | DATETIME | IDX | 可空 | NULL | 令牌过期时间 |
+| created_at | DATETIME | | 可空 | CURRENT_TIMESTAMP | 创建时间 |
+
+#### 4. 关联表结构
+
+**用户角色关联表 (user_role)**:
+- user_id + role_id (联合唯一键)
+- 支持一个用户拥有多个角色
+
+**角色权限关联表 (role_permission)**:
+- role_id + permission_id (联合唯一键)
+- 支持一个角色拥有多个权限
+
+**用户权限关联表 (user_permission)**:
+- user_id + permission_id (联合唯一键)
+- 支持为用户直接分配权限
+
+**登录日志表 (login_log)**:
+- 记录用户登录日志，支持安全审计
+- 包含客户端信息和登录状态
+
+### RBAC权限模型
+
+系统采用基于角色的访问控制（RBAC）模型：
+
+1. **角色权限**: 用户通过角色获得权限（间接权限）
+2. **直接权限**: 直接为用户分配权限（直接权限，优先级更高）
+3. **权限继承**: 支持权限的层级结构
+
+**权限计算规则**: `用户最终权限 = 角色权限 ∪ 直接权限`
 
 ## 🚀 部署指南
 

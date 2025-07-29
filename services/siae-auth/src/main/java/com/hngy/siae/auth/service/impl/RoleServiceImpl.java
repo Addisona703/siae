@@ -22,6 +22,7 @@ import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 
+import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
 import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
@@ -39,6 +40,9 @@ import java.util.stream.Collectors;
 
 /**
  * 角色服务实现类
+ * <p>
+ * 提供角色的创建、查询、更新、删除和权限管理功能，
+ * 支持RBAC权限模型和系统角色保护机制。
  *
  * @author KEYKB
  */
@@ -56,9 +60,21 @@ public class RoleServiceImpl
     /**
      * 创建角色
      *
-     * @param request 创建角色请求
-     * @return 角色响应
-     * @author KEYKB
+     * <p>创建新的系统角色，包括角色名称、编码、描述等基本信息。
+     * 创建前会验证角色编码和名称的唯一性，确保系统中不存在重复的角色。</p>
+     *
+     * <p>创建流程：</p>
+     * <ol>
+     *   <li>验证请求参数的有效性</li>
+     *   <li>检查角色编码和名称是否已存在</li>
+     *   <li>创建角色实体并设置创建时间</li>
+     *   <li>保存角色到数据库</li>
+     *   <li>返回创建成功的角色信息</li>
+     * </ol>
+     *
+     * @param request 创建角色请求参数，包含角色名称、编码、描述等信息
+     * @return RoleVO 创建成功的角色信息
+     * @throws ServiceException 当角色编码已存在或创建失败时抛出
      */
     @Override
     public RoleVO createRole(RoleCreateDTO request) {
@@ -84,9 +100,19 @@ public class RoleServiceImpl
     /**
      * 分页查询角色列表
      *
-     * @param pageDTO 分页查询参数
-     * @return 分页角色列表
-     * @author KEYKB
+     * <p>根据查询条件分页获取系统角色列表，支持按角色名称、编码、状态、创建时间等条件进行筛选。
+     * 查询结果按创建时间倒序排列，最新创建的角色排在前面。</p>
+     *
+     * <p>支持的查询条件：</p>
+     * <ul>
+     *   <li>角色名称：支持模糊匹配查询</li>
+     *   <li>角色编码：支持模糊匹配查询</li>
+     *   <li>角色状态：可筛选启用或禁用的角色</li>
+     *   <li>创建时间：支持时间范围筛选</li>
+     * </ul>
+     *
+     * @param pageDTO 分页查询参数，包含分页信息和查询条件
+     * @return PageVO&lt;RoleVO&gt; 分页的角色列表
      */
     @Override
     public PageVO<RoleVO> getRolesPage(PageDTO<RoleQueryDTO> pageDTO) {
@@ -382,8 +408,6 @@ public class RoleServiceImpl
             return false;
         }
     }
-
-
 
     /**
      * 根据角色ID获取权限列表

@@ -38,7 +38,10 @@ import cn.hutool.core.util.StrUtil;
 
 /**
  * 权限服务实现类
- * 
+ * <p>
+ * 提供系统权限的创建、查询、更新和删除功能，
+ * 支持权限验证和分页查询。
+ *
  * @author KEYKB
  */
 @Service

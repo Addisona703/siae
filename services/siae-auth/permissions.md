@@ -1,401 +1,245 @@
-# SIAE 系统权限定义文档
+# SIAE 认证服务权限定义
 
-## 📋 目录
+## 📋 权限概述
 
-- [权限命名规范](#权限命名规范)
-- [认证模块权限](#认证模块权限)
-- [内容模块权限](#内容模块权限)
-- [用户模块权限](#用户模块权限)
-- [权限使用示例](#权限使用示例)
+SIAE认证服务采用基于角色的访问控制（RBAC）模型，通过权限编码进行细粒度的权限控制。本文档基于 `AuthPermissions` 类中的实际权限常量，详细说明了系统中所有权限的定义、分组和使用场景。
 
-## 🔧 权限命名规范
+## 🔐 权限编码规范
 
-### 权限编码规范
-- **格式**: `模块:资源:操作`
-- **示例**: `user:profile:view`、`content:article:create`
-
-### 常量命名规范
-- **格式**: `模块_资源_操作`（全大写，下划线分隔）
-- **示例**: `USER_PROFILE_VIEW`、`CONTENT_ARTICLE_CREATE`
-
-### 操作类型说明
-| 操作 | 说明 | 示例 |
-|------|------|------|
-| create | 创建/新增 | `user:profile:create` |
-| update | 更新/修改 | `user:profile:update` |
-| delete | 删除 | `user:profile:delete` |
-| view | 查看详情 | `user:profile:view` |
-| list | 列表查询 | `user:profile:list` |
-| query | 通用查询 | `content:article:query` |
-| publish | 发布 | `content:article:publish` |
-| edit | 编辑 | `content:article:edit` |
-| handle | 处理 | `content:audit:handle` |
-| approve | 审核通过 | `content:audit:approve` |
-| reject | 审核拒绝 | `content:audit:reject` |
-| toggle | 状态切换 | `content:category:toggle` |
-
----
-
-## 🔐 认证模块权限 (AuthPermissions)
-
-> **文件位置**: `siae-core/src/main/java/com/hngy/siae/core/permissions/AuthPermissions.java`
-
-### 系统管理权限
-
-#### 用户管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_USER_QUERY` | `auth:user:query` | 查询用户 |
-| `AUTH_USER_ADD` | `auth:user:add` | 新增用户 |
-| `AUTH_USER_EDIT` | `auth:user:edit` | 修改用户 |
-| `AUTH_USER_DELETE` | `auth:user:delete` | 删除用户 |
-
-#### 角色管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_ROLE_QUERY` | `auth:role:query` | 查询角色 |
-| `AUTH_ROLE_ADD` | `auth:role:add` | 新增角色 |
-| `AUTH_ROLE_EDIT` | `auth:role:edit` | 修改角色 |
-| `AUTH_ROLE_DELETE` | `auth:role:delete` | 删除角色 |
-
-#### 权限管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_PERMISSION_QUERY` | `auth:permission:query` | 查询权限 |
-| `AUTH_PERMISSION_ADD` | `auth:permission:add` | 新增权限 |
-| `AUTH_PERMISSION_EDIT` | `auth:permission:edit` | 修改权限 |
-| `AUTH_PERMISSION_DELETE` | `auth:permission:delete` | 删除权限 |
-
-#### 日志管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_LOG_QUERY` | `auth:log:query` | 查询登录日志 |
-| `AUTH_LOG_EXPORT` | `auth:log:export` | 导出登录日志 |
-
-#### 用户角色关联管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_USER_ROLE_ASSIGN` | `auth:user:role:assign` | 分配用户角色 |
-| `AUTH_USER_ROLE_QUERY` | `auth:user:role:query` | 查询用户角色 |
-| `AUTH_USER_ROLE_REMOVE` | `auth:user:role:remove` | 移除用户角色 |
-
-#### 用户权限关联管理
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `AUTH_USER_PERMISSION_ASSIGN` | `auth:user:permission:assign` | 分配用户权限 |
-| `AUTH_USER_PERMISSION_QUERY` | `auth:user:permission:query` | 查询用户权限 |
-| `AUTH_USER_PERMISSION_REMOVE` | `auth:user:permission:remove` | 移除用户权限 |
-
----
-
-## 📝 内容模块权限 (ContentPermissions)
-
-> **文件位置**: `siae-core/src/main/java/com/hngy/siae/core/permissions/ContentPermissions.java`
-
-### 内容管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_PUBLISH` | `content:publish` | 发布内容 |
-| `CONTENT_EDIT` | `content:edit` | 编辑内容 |
-| `CONTENT_DELETE` | `content:delete` | 删除内容 |
-| `CONTENT_QUERY` | `content:query` | 查询内容 |
-| `CONTENT_LIST_VIEW` | `content:list:view` | 查询内容列表 |
-| `CONTENT_HOT_VIEW` | `content:hot:view` | 查询热门内容 |
-
-### 分类管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_CATEGORY_CREATE` | `content:category:create` | 创建分类 |
-| `CONTENT_CATEGORY_EDIT` | `content:category:edit` | 编辑分类 |
-| `CONTENT_CATEGORY_DELETE` | `content:category:delete` | 删除分类 |
-| `CONTENT_CATEGORY_VIEW` | `content:category:view` | 查询分类 |
-| `CONTENT_CATEGORY_TOGGLE` | `content:category:toggle` | 启用/禁用分类 |
-
-### 标签管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_TAG_CREATE` | `content:tag:create` | 创建标签 |
-| `CONTENT_TAG_EDIT` | `content:tag:edit` | 编辑标签 |
-| `CONTENT_TAG_DELETE` | `content:tag:delete` | 删除标签 |
-| `CONTENT_TAG_VIEW` | `content:tag:view` | 查询标签 |
-
-### 用户交互权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_INTERACTION_RECORD` | `content:interaction:record` | 记录用户行为（点赞、收藏、浏览等） |
-| `CONTENT_INTERACTION_CANCEL` | `content:interaction:cancel` | 取消用户行为 |
-
-### 统计查询权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_STATISTICS_VIEW` | `content:statistics:view` | 查看内容统计 |
-| `CONTENT_STATISTICS_UPDATE` | `content:statistics:update` | 更新内容统计 |
-
-### 审核管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_AUDIT_HANDLE` | `content:audit:handle` | 处理内容审核 |
-| `CONTENT_AUDIT_VIEW` | `content:audit:view` | 查看审核列表 |
-| `CONTENT_AUDIT_APPROVE` | `content:audit:approve` | 审核通过 |
-| `CONTENT_AUDIT_REJECT` | `content:audit:reject` | 审核拒绝 |
-
-### 评论管理权限（预留）
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `CONTENT_COMMENT_CREATE` | `content:comment:create` | 创建评论 |
-| `CONTENT_COMMENT_EDIT` | `content:comment:edit` | 编辑评论 |
-| `CONTENT_COMMENT_DELETE` | `content:comment:delete` | 删除评论 |
-| `CONTENT_COMMENT_VIEW` | `content:comment:view` | 查询评论 |
-
----
-
-## 👥 用户模块权限 (UserPermissions)
-
-> **文件位置**: `siae-core/src/main/java/com/hngy/siae/core/permissions/UserPermissions.java`
-
-### 用户管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_CREATE` | `user:create` | 创建用户 |
-| `USER_UPDATE` | `user:update` | 更新用户 |
-| `USER_DELETE` | `user:delete` | 删除用户 |
-| `USER_VIEW` | `user:view` | 查询用户 |
-| `USER_LIST` | `user:list` | 分页查询用户列表 |
-
-### 用户详情管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_PROFILE_CREATE` | `user:profile:create` | 创建用户详情 |
-| `USER_PROFILE_UPDATE` | `user:profile:update` | 更新用户详情 |
-| `USER_PROFILE_DELETE` | `user:profile:delete` | 删除用户详情 |
-| `USER_PROFILE_VIEW` | `user:profile:view` | 查询用户详情 |
-
-### 正式成员管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_MEMBER_UPDATE` | `user:member:update` | 更新正式成员 |
-| `USER_MEMBER_VIEW` | `user:member:view` | 查询正式成员 |
-| `USER_MEMBER_LIST` | `user:member:list` | 分页查询正式成员列表 |
-
-### 候选成员管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_CANDIDATE_CREATE` | `user:candidate:create` | 添加候选成员 |
-| `USER_CANDIDATE_UPDATE` | `user:candidate:update` | 更新候选成员 |
-| `USER_CANDIDATE_DELETE` | `user:candidate:delete` | 删除候选成员 |
-| `USER_CANDIDATE_VIEW` | `user:candidate:view` | 查询候选成员 |
-| `USER_CANDIDATE_LIST` | `user:candidate:list` | 分页查询候选成员列表 |
-
-### 班级管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_CLASS_CREATE` | `user:class:create` | 创建班级 |
-| `USER_CLASS_UPDATE` | `user:class:update` | 更新班级 |
-| `USER_CLASS_DELETE` | `user:class:delete` | 删除班级 |
-| `USER_CLASS_VIEW` | `user:class:view` | 查询班级 |
-| `USER_CLASS_LIST` | `user:class:list` | 分页查询班级列表 |
-
-### 获奖记录管理权限
-
-| 权限常量 | 权限编码 | 权限描述 |
-|----------|----------|----------|
-| `USER_AWARD_CREATE` | `user:award:create` | 创建获奖记录 |
-| `USER_AWARD_UPDATE` | `user:award:update` | 更新获奖记录 |
-| `USER_AWARD_DELETE` | `user:award:delete` | 删除获奖记录 |
-| `USER_AWARD_VIEW` | `user:award:view` | 查询获奖记录 |
-| `USER_AWARD_LIST` | `user:award:list` | 分页查询获奖记录列表 |
-
----
-
-sql中插入数据：
-```sql
+### 编码格式
+```
+auth:{模块名}:{操作名}
 ```
 
+### 示例
+- `auth:permission:query` - 权限查询
+- `auth:role:add` - 角色添加
+- `auth:user:role:assign` - 用户角色分配
 
-## 💡 权限使用示例
+## 📚 权限分类
 
-### 1. 在控制器中使用权限注解
+### 1. 权限管理权限 (auth:permission:*)
+
+| 权限编码 | 权限名称 | 权限描述 | 使用场景 |
+|----------|----------|----------|----------|
+| `auth:permission:query` | 权限查询 | 查看权限信息和列表 | 权限列表页面、权限详情页面 |
+| `auth:permission:add` | 权限添加 | 创建新权限 | 权限创建表单 |
+| `auth:permission:edit` | 权限编辑 | 修改权限信息 | 权限编辑表单 |
+| `auth:permission:delete` | 权限删除 | 删除权限 | 权限删除按钮 |
+
+### 2. 角色管理权限 (auth:role:*)
+
+| 权限编码 | 权限名称 | 权限描述 | 使用场景 |
+|----------|----------|----------|----------|
+| `auth:role:query` | 角色查询 | 查看角色信息和列表 | 角色列表页面、角色详情页面 |
+| `auth:role:add` | 角色添加 | 创建新角色 | 角色创建表单 |
+| `auth:role:edit` | 角色编辑 | 修改角色信息 | 角色编辑表单 |
+| `auth:role:delete` | 角色删除 | 删除角色 | 角色删除按钮 |
+
+### 3. 用户角色管理权限 (auth:user:role:*)
+
+| 权限编码 | 权限名称 | 权限描述 | 使用场景 |
+|----------|----------|----------|----------|
+| `auth:user:role:query` | 用户角色查询 | 查看用户角色关联信息 | 用户角色列表页面 |
+| `auth:user:role:assign` | 分配用户角色 | 为用户分配角色 | 用户角色分配页面 |
+| `auth:user:role:update` | 更新用户角色 | 更新用户角色关联 | 用户角色编辑页面 |
+| `auth:user:role:remove` | 移除用户角色 | 移除用户的角色 | 用户角色管理页面 |
+
+### 4. 用户权限管理权限 (auth:user:permission:*)
+
+| 权限编码 | 权限名称 | 权限描述 | 使用场景 |
+|----------|----------|----------|----------|
+| `auth:user:permission:query` | 用户权限查询 | 查看用户权限关联信息 | 用户权限列表页面 |
+| `auth:user:permission:assign` | 分配用户权限 | 为用户直接分配权限 | 用户权限分配页面 |
+| `auth:user:permission:remove` | 移除用户权限 | 移除用户的直接权限 | 用户权限管理页面 |
+
+### 5. 日志管理权限 (auth:log:*)
+
+| 权限编码 | 权限名称 | 权限描述 | 使用场景 |
+|----------|----------|----------|----------|
+| `auth:log:query` | 日志查询 | 查看系统日志信息 | 日志查询页面、登录日志查看 |
+| `auth:log:export` | 日志导出 | 导出日志数据 | 日志导出功能 |
+
+## 🎯 权限层级关系
+
+### 菜单权限层级
+
+```
+认证管理
+├── 权限管理
+│   ├── 权限查询 (auth:permission:query)
+│   ├── 权限添加 (auth:permission:add)
+│   ├── 权限编辑 (auth:permission:edit)
+│   └── 权限删除 (auth:permission:delete)
+├── 角色管理
+│   ├── 角色查询 (auth:role:query)
+│   ├── 角色添加 (auth:role:add)
+│   ├── 角色编辑 (auth:role:edit)
+│   └── 角色删除 (auth:role:delete)
+├── 用户角色管理
+│   ├── 用户角色查询 (auth:user:role:query)
+│   ├── 用户角色分配 (auth:user:role:assign)
+│   ├── 用户角色更新 (auth:user:role:update)
+│   └── 用户角色移除 (auth:user:role:remove)
+├── 用户权限管理
+│   ├── 用户权限查询 (auth:user:permission:query)
+│   ├── 用户权限分配 (auth:user:permission:assign)
+│   └── 用户权限移除 (auth:user:permission:remove)
+└── 日志管理
+    ├── 日志查询 (auth:log:query)
+    └── 日志导出 (auth:log:export)
+```
+
+## 👥 预定义角色
+
+### 1. 超级管理员 (ROLE_SUPER_ADMIN)
+- **描述**: 系统超级管理员，拥有所有权限
+- **权限**: 所有 `auth:*` 权限
+- **使用场景**: 系统初始化、紧急维护
+
+### 2. 系统管理员 (ROLE_ADMIN)
+- **描述**: 系统管理员，负责权限和角色管理
+- **权限**: 
+  - `auth:permission:*` (权限管理)
+  - `auth:role:*` (角色管理)
+  - `auth:user:role:*` (用户角色管理)
+  - `auth:log:query` (日志查询)
+- **使用场景**: 日常权限管理、角色分配
+
+### 3. 权限管理员 (ROLE_PERMISSION_ADMIN)
+- **描述**: 权限管理员，负责权限配置
+- **权限**:
+  - `auth:permission:*` (权限管理)
+  - `auth:user:permission:*` (用户权限管理)
+- **使用场景**: 权限配置、权限分配
+
+### 4. 审计员 (ROLE_AUDITOR)
+- **描述**: 系统审计员，只能查看日志和权限信息
+- **权限**:
+  - `auth:permission:query` (权限查询)
+  - `auth:role:query` (角色查询)
+  - `auth:user:role:query` (用户角色查询)
+  - `auth:user:permission:query` (用户权限查询)
+  - `auth:log:*` (日志管理)
+- **使用场景**: 安全审计、合规检查
+
+### 5. 普通用户 (ROLE_USER)
+- **描述**: 系统普通用户，基础权限
+- **权限**: 无特殊权限，仅能访问公开接口
+- **使用场景**: 普通用户基础功能
+
+## 🔧 权限配置
+
+### 1. 权限注解使用
+
+在Controller方法上使用 `@SiaeAuthorize` 注解：
 
 ```java
-@RestController
-@RequestMapping("/api/v1/content")
-public class ContentController {
+@SiaeAuthorize("hasAuthority('" + AUTH_PERMISSION_QUERY + "')")
+@GetMapping("/permissions")
+public Result<List<PermissionVO>> getPermissions() {
+    // 方法实现
+}
 
-    // 使用权限常量进行权限控制
-    @PostMapping("/publish")
-    @PreAuthorize("hasAuthority('" + ContentPermissions.SYSTEM_CONTENT_PUBLISH + "')")
-    public Result<ContentVO> publishContent(@RequestBody ContentDTO contentDTO) {
-        // 发布内容的业务逻辑
-        return Result.success();
-    }
-
-    // 使用权限编码进行权限控制
-    @GetMapping("/list")
-    @PreAuthorize("hasAuthority('content:list:view')")
-    public Result<PageVO<ContentVO>> getContentList(@RequestParam int page, @RequestParam int size) {
-        // 查询内容列表的业务逻辑
-        return Result.success();
-    }
-
-    // 复合权限控制
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('content:edit') or hasRole('ADMIN')")
-    public Result<ContentVO> updateContent(@PathVariable Long id, @RequestBody ContentDTO contentDTO) {
-        // 更新内容的业务逻辑
-        return Result.success();
-    }
+@SiaeAuthorize("hasAuthority('" + AUTH_ROLE_ADD + "')")
+@PostMapping("/roles")
+public Result<RoleVO> createRole(@RequestBody RoleCreateDTO dto) {
+    // 方法实现
 }
 ```
 
-### 2. 在服务层中进行权限检查
+### 2. 权限常量引用
 
 ```java
-@Service
-public class ContentService {
+// 在AuthPermissions类中定义的权限常量
+public static final String AUTH_PERMISSION_QUERY = "auth:permission:query";
+public static final String AUTH_PERMISSION_ADD = "auth:permission:add";
+public static final String AUTH_PERMISSION_EDIT = "auth:permission:edit";
+public static final String AUTH_PERMISSION_DELETE = "auth:permission:delete";
 
-    @Autowired
-    private RedisPermissionService redisPermissionService;
+public static final String AUTH_ROLE_QUERY = "auth:role:query";
+public static final String AUTH_ROLE_ADD = "auth:role:add";
+public static final String AUTH_ROLE_EDIT = "auth:role:edit";
+public static final String AUTH_ROLE_DELETE = "auth:role:delete";
 
-    public void deleteContent(Long contentId, Long userId) {
-        // 检查用户是否有删除权限
-        List<String> userPermissions = redisPermissionService.getAllUserAuthorities(userId);
+public static final String AUTH_USER_ROLE_QUERY = "auth:user:role:query";
+public static final String AUTH_USER_ROLE_ASSIGN = "auth:user:role:assign";
+public static final String AUTH_USER_ROLE_UPDATE = "auth:user:role:update";
+public static final String AUTH_USER_ROLE_REMOVE = "auth:user:role:remove";
 
-        if (!userPermissions.contains(ContentPermissions.SYSTEM_CONTENT_DELETE)) {
-            throw new ServiceException("权限不足，无法删除内容");
-        }
+public static final String AUTH_USER_PERMISSION_QUERY = "auth:user:permission:query";
+public static final String AUTH_USER_PERMISSION_ASSIGN = "auth:user:permission:assign";
+public static final String AUTH_USER_PERMISSION_REMOVE = "auth:user:permission:remove";
 
-        // 执行删除逻辑
-        // ...
-    }
-}
+public static final String AUTH_LOG_QUERY = "auth:log:query";
+public static final String AUTH_LOG_EXPORT = "auth:log:export";
 ```
 
-### 3. 前端权限控制示例
+### 3. 复合权限控制
 
-```javascript
-// 权限常量定义（与后端保持一致）
-const PERMISSIONS = {
-    // 内容管理权限
-    CONTENT_PUBLISH: 'content:publish',
-    CONTENT_EDIT: 'content:edit',
-    CONTENT_DELETE: 'content:delete',
-    CONTENT_QUERY: 'content:query',
+```java
+// 需要多个权限之一
+@SiaeAuthorize("hasAuthority('" + AUTH_PERMISSION_QUERY + "') or hasAuthority('" + AUTH_ROLE_QUERY + "')")
 
-    // 用户管理权限
-    USER_CREATE: 'user:user:create',
-    USER_UPDATE: 'user:user:update',
-    USER_DELETE: 'user:user:delete',
-    USER_VIEW: 'user:user:view'
-};
+// 需要同时拥有多个权限
+@SiaeAuthorize("hasAuthority('" + AUTH_PERMISSION_EDIT + "') and hasAuthority('" + AUTH_PERMISSION_QUERY + "')")
 
-// 权限检查函数
-function hasPermission(permission) {
-    const userPermissions = getUserPermissions(); // 从本地存储或API获取用户权限
-    return userPermissions.includes(permission);
-}
-
-// 在Vue组件中使用
-export default {
-    computed: {
-        canPublishContent() {
-            return hasPermission(PERMISSIONS.CONTENT_PUBLISH);
-        },
-        canEditContent() {
-            return hasPermission(PERMISSIONS.CONTENT_EDIT);
-        }
-    },
-
-    template: `
-        <div>
-            <button v-if="canPublishContent" @click="publishContent">发布内容</button>
-            <button v-if="canEditContent" @click="editContent">编辑内容</button>
-        </div>
-    `
-};
+// 角色和权限组合
+@SiaeAuthorize("hasRole('ADMIN') or hasAuthority('" + AUTH_PERMISSION_QUERY + "')")
 ```
 
-### 4. 权限初始化脚本示例
+## 📝 RBAC权限模型实现
 
-```sql
--- 插入内容管理权限
-INSERT INTO permission (name, code, type, parent_id, sort_order) VALUES
-('内容管理', 'content', 'menu', NULL, 1),
-('发布内容', 'content:publish', 'button', 1, 1),
-('编辑内容', 'content:edit', 'button', 1, 2),
-('删除内容', 'content:delete', 'button', 1, 3),
-('查询内容', 'content:query', 'button', 1, 4);
+### 1. 权限计算规则
 
--- 插入用户管理权限
-INSERT INTO permission (name, code, type, parent_id, sort_order) VALUES
-('用户管理', 'user', 'menu', NULL, 2),
-('创建用户', 'user:user:create', 'button', 2, 1),
-('更新用户', 'user:user:update', 'button', 2, 2),
-('删除用户', 'user:user:delete', 'button', 2, 3),
-('查询用户', 'user:user:view', 'button', 2, 4);
-
--- 为管理员角色分配权限
-INSERT INTO role_permission (role_id, permission_id)
-SELECT 1, id FROM permission WHERE code IN (
-    'content:publish',
-    'content:edit',
-    'content:delete',
-    'content:query',
-    'user:user:create',
-    'user:user:update',
-    'user:user:delete',
-    'user:user:view'
-);
+系统采用以下权限计算规则：
 ```
+用户最终权限 = 角色权限 ∪ 直接权限
+```
+
+- **角色权限**: 用户通过角色获得的权限（间接权限）
+- **直接权限**: 直接为用户分配的权限（直接权限，优先级更高）
+
+### 2. 权限缓存机制
+
+- **Redis缓存**: 用户权限信息缓存到Redis，提高查询性能
+- **缓存键格式**: 
+  - 权限缓存: `auth:perms:{userId}`
+  - 角色缓存: `auth:roles:{userId}`
+- **缓存过期**: 与JWT令牌过期时间保持一致
+
+### 3. 权限验证流程
+
+1. **JWT解析**: 从请求头中解析JWT令牌获取用户ID
+2. **权限查询**: 从Redis缓存中查询用户权限列表
+3. **权限验证**: 验证用户是否拥有所需权限
+4. **访问控制**: 根据验证结果允许或拒绝访问
+
+## 📋 权限管理最佳实践
+
+### 1. 权限设计原则
+
+- **最小权限原则**: 用户只获得完成工作所需的最小权限
+- **职责分离**: 不同角色承担不同职责，避免权限过度集中
+- **权限继承**: 合理利用角色权限和直接权限的组合
+- **定期审查**: 定期审查和清理不必要的权限
+
+### 2. 安全注意事项
+
+- **权限验证**: 在每个需要权限控制的接口上添加权限验证
+- **参数校验**: 对权限相关的参数进行严格校验
+- **日志记录**: 记录权限相关的操作日志，便于审计
+- **异常处理**: 权限不足时返回明确的错误信息
+
+### 3. 性能优化
+
+- **缓存策略**: 合理使用Redis缓存，减少数据库查询
+- **批量操作**: 支持批量权限分配，提高操作效率
+- **索引优化**: 在权限相关表上建立合适的索引
+- **异步处理**: 权限变更后异步更新缓存
 
 ---
 
-## 📊 权限统计
-
-### 权限数量统计
-
-| 模块 | 权限数量 | 状态 |
-|------|----------|------|
-| 认证模块 (AuthPermissions) | 20 | ✅ 已实现 |
-| 内容模块 (ContentPermissions) | 18 | ✅ 已实现 |
-| 用户模块 (UserPermissions) | 20 | ✅ 已实现 |
-| **总计** | **58** | **全部完成** |
-
-### 权限分类统计
-
-| 分类 | 数量 | 说明 |
-|------|------|------|
-| 系统管理权限 | 20 | 用户、角色、权限、日志、用户角色关联、用户权限关联管理 |
-| 内容管理权限 | 18 | 内容发布、分类、标签、审核等 |
-| 用户管理权限 | 20 | 用户信息、成员、班级、获奖记录等 |
-
----
-
-## 🔄 权限更新日志
-
-| 日期 | 版本 | 更新内容 |
-|------|------|----------|
-| 2024-01-01 | v1.0.0 | 初始版本，定义基础权限结构 |
-| 2024-01-01 | v1.1.0 | 完善内容模块权限定义 |
-| 2024-01-01 | v1.2.0 | 完善用户模块权限定义 |
-| 2024-01-01 | v1.3.0 | 添加权限使用示例和统计信息 |
-| 2024-01-01 | v1.4.0 | 完成认证模块权限定义和控制器权限注解重构 |
-
----
-
-**注意事项**:
-1. 权限常量定义在 `siae-core` 模块中，确保各服务间的一致性
-2. 权限编码采用 `模块:资源:操作` 的格式，便于理解和维护
-3. 新增权限时需要同时更新常量定义和数据库初始化脚本
-4. 建议定期审查权限设计，确保符合业务需求和安全要求
+**最后更新**: 2024-01-01  
+**文档版本**: v1.0.0  
+**维护人员**: SIAE开发团队

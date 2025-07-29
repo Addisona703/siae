@@ -35,7 +35,10 @@ import java.util.stream.Collectors;
 
 /**
  * 用户角色关联服务实现类
- * 
+ * <p>
+ * 提供用户角色的分配、查询和管理功能，
+ * 支持分页查询和批量操作。
+ *
  * @author KEYKB
  */
 @Slf4j

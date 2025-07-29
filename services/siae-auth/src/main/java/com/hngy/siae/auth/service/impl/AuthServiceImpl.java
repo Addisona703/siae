@@ -45,7 +45,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 认证服务实现类
- * 
+ * <p>
+ * 提供用户登录、注册、令牌刷新和登出等认证功能，
+ * 负责JWT令牌管理和权限缓存处理。
+ *
  * @author KEYKB
  */
 @Slf4j
@@ -65,6 +68,17 @@ public class AuthServiceImpl
     private final UserRoleMapper userRoleMapper;
     private final RedisPermissionService redisPermissionService;
     
+    /**
+     * 用户登录认证
+     * <p>
+     * 验证用户身份并生成JWT令牌，同时缓存权限信息到Redis。
+     *
+     * @param loginDTO 登录请求参数
+     * @param clientIp 客户端IP地址
+     * @param browser 浏览器信息
+     * @param os 操作系统信息
+     * @return 登录响应信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
@@ -130,6 +144,17 @@ public class AuthServiceImpl
         }
     }
     
+    /**
+     * 用户注册
+     * <p>
+     * 创建新用户账户并分配默认角色，生成JWT令牌。
+     *
+     * @param registerDTO 注册请求参数
+     * @param clientIp 客户端IP地址
+     * @param browser 浏览器信息
+     * @param os 操作系统信息
+     * @return 注册响应信息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public RegisterVO register(RegisterDTO registerDTO, String clientIp, String browser, String os) {
@@ -202,6 +227,14 @@ public class AuthServiceImpl
         }
     }
     
+    /**
+     * 刷新JWT令牌
+     * <p>
+     * 使用刷新令牌获取新的访问令牌，同时更新权限缓存。
+     *
+     * @param request 令牌刷新请求
+     * @return 新的令牌信息
+     */
     @Override
     public TokenRefreshVO refreshToken(TokenRefreshDTO request) {
         String refreshToken = request.getRefreshToken();
@@ -256,6 +289,13 @@ public class AuthServiceImpl
         return response;
     }
     
+    /**
+     * 用户登出
+     * <p>
+     * 清理用户认证信息和权限缓存，使令牌失效。
+     *
+     * @param token JWT访问令牌
+     */
     @Override
     public void logout(String token) {
         // 1. 验证token参数不为空
@@ -292,10 +332,21 @@ public class AuthServiceImpl
     /**
      * 将用户权限和角色分别缓存到Redis
      *
-     * @param userId 用户ID
-     * @param permissions 权限列表
-     * @param roles 角色列表
-     * @param expireSeconds 过期时间（秒）
+     * <p>将用户的权限列表和角色列表分别缓存到Redis中，设置与JWT令牌相同的过期时间。
+     * 这样可以确保缓存与令牌的生命周期保持一致，避免权限信息过期问题。</p>
+     *
+     * <p>缓存策略：</p>
+     * <ul>
+     *   <li>权限和角色分别存储，便于独立管理</li>
+     *   <li>过期时间与JWT令牌保持一致</li>
+     *   <li>缓存失败不影响主业务流程</li>
+     *   <li>提供详细的调试日志记录</li>
+     * </ul>
+     *
+     * @param userId 用户ID，作为缓存的键值标识
+     * @param permissions 用户权限列表，包含所有权限编码
+     * @param roles 用户角色列表，包含所有角色编码
+     * @param expireSeconds 缓存过期时间（秒），与JWT令牌过期时间一致
      */
     private void cacheUserPermissionsAndRolesToRedis(Long userId, List<String> permissions, List<String> roles, long expireSeconds) {
         try {
@@ -314,7 +365,18 @@ public class AuthServiceImpl
     /**
      * 清除Redis中的用户权限和角色缓存
      *
-     * @param userId 用户ID
+     * <p>在用户登出时清除Redis中存储的权限和角色缓存信息。
+     * 该方法会分别尝试清除权限缓存和角色缓存，即使其中一个操作失败也不会影响另一个。</p>
+     *
+     * <p>清除策略：</p>
+     * <ul>
+     *   <li>分别清除权限和角色缓存，提高容错性</li>
+     *   <li>记录每个操作的成功或失败状态</li>
+     *   <li>提供详细的日志记录便于问题排查</li>
+     *   <li>异常不会向上传播，避免影响登出流程</li>
+     * </ul>
+     *
+     * @param userId 用户ID，用于定位需要清除的缓存
      */
     private void clearUserCacheFromRedis(Long userId) {
         // 分别清除权限和角色缓存，确保即使一个失败也不影响另一个
@@ -353,6 +415,16 @@ public class AuthServiceImpl
 
     /**
      * 断言用户存在，如果不存在则记录日志并抛出异常
+     *
+     * <p>验证用户是否存在，如果用户不存在则记录登录失败日志并抛出用户名未找到异常。
+     * 这是登录流程中的第一个验证步骤。</p>
+     *
+     * @param user 用户信息对象，可能为null
+     * @param username 用户名，用于日志记录
+     * @param clientIp 客户端IP地址，用于审计日志
+     * @param browser 浏览器信息，用于审计日志
+     * @param os 操作系统信息，用于审计日志
+     * @throws UsernameNotFoundException 当用户不存在时抛出
      */
     private void assertUserExists(UserVO user, String username, String clientIp, String browser, String os) {
         if (user == null) {
@@ -363,6 +435,15 @@ public class AuthServiceImpl
 
     /**
      * 断言用户已启用，如果被禁用则记录日志并抛出异常
+     *
+     * <p>验证用户账户状态是否为启用状态，如果账户被禁用则记录登录失败日志并抛出业务异常。
+     * 这是登录流程中的第二个验证步骤。</p>
+     *
+     * @param user 用户信息对象，包含用户状态
+     * @param clientIp 客户端IP地址，用于审计日志
+     * @param browser 浏览器信息，用于审计日志
+     * @param os 操作系统信息，用于审计日志
+     * @throws ServiceException 当用户账户被禁用时抛出
      */
     private void assertUserEnabled(UserVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
@@ -373,6 +454,16 @@ public class AuthServiceImpl
 
     /**
      * 断言密码匹配，如果不匹配则记录日志并抛出异常
+     *
+     * <p>验证用户输入的密码是否与数据库中存储的加密密码匹配，如果密码错误则记录登录失败日志
+     * 并抛出凭据错误异常。这是登录流程中的第三个验证步骤。</p>
+     *
+     * @param inputPassword 用户输入的原始密码
+     * @param user 用户信息对象，包含加密后的密码
+     * @param clientIp 客户端IP地址，用于审计日志
+     * @param browser 浏览器信息，用于审计日志
+     * @param os 操作系统信息，用于审计日志
+     * @throws BadCredentialsException 当密码不匹配时抛出
      */
     private void assertPasswordMatches(String inputPassword, UserVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
@@ -384,7 +475,20 @@ public class AuthServiceImpl
     /**
      * 为新用户分配默认角色
      *
-     * @param userId 用户ID
+     * <p>在用户注册成功后，自动为新用户分配默认的ROLE_USER角色。
+     * 该操作确保新用户具有基本的系统访问权限。</p>
+     *
+     * <p>分配流程：</p>
+     * <ol>
+     *   <li>查找系统中的ROLE_USER默认角色</li>
+     *   <li>验证默认角色是否存在且处于启用状态</li>
+     *   <li>创建用户与角色的关联记录</li>
+     *   <li>将关联记录保存到数据库</li>
+     * </ol>
+     *
+     * <p>注意：该方法的异常不会影响注册流程，只会记录错误日志。</p>
+     *
+     * @param userId 新注册用户的ID
      */
     private void assignDefaultRoleToUser(Long userId) {
         try {

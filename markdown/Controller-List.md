@@ -25,48 +25,57 @@
 | POST | `/refresh-token` | 刷新访问令牌 | 无 (公开接口) |
 | POST | `/logout` | 用户登出 | 需要认证 |
 
-### 日志管理 (LogController)
-
-| HTTP方法 | API路径 | 接口描述 | 权限要求 |
-|----------|---------|----------|----------|
-| GET | `/logs/login` | 获取登录日志 | `auth:log:query` |
-| GET | `/logs/login/fail` | 获取登录失败日志 | `auth:log:query` |
-
 ### 权限管理 (PermissionController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
 | POST | `/permissions` | 创建权限 | `auth:permission:add` |
-| GET | `/permissions` | 获取权限列表 | `auth:permission:query` |
+| POST | `/permissions/page` | 分页查询权限列表 | `auth:permission:query` |
+| GET | `/permissions/tree` | 查询权限树结构 | `auth:permission:query` |
+| PUT | `/permissions/tree/batch` | 批量更新权限树结构 | `auth:permission:edit` |
 | GET | `/permissions/{permissionId}` | 获取权限详情 | `auth:permission:query` |
+| PUT | `/permissions/{permissionId}` | 更新权限 | `auth:permission:edit` |
+| DELETE | `/permissions/{permissionId}` | 删除权限 | `auth:permission:delete` |
 
 ### 角色管理 (RoleController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
 | POST | `/roles` | 创建角色 | `auth:role:add` |
+| POST | `/roles/page` | 分页查询角色列表 | `auth:role:query` |
+| GET | `/roles` | 获取所有角色 | `auth:role:query` |
+| GET | `/roles/{roleId}` | 获取角色详情 | `auth:role:query` |
 | PUT | `/roles/{roleId}` | 更新角色 | `auth:role:edit` |
 | DELETE | `/roles/{roleId}` | 删除角色 | `auth:role:delete` |
-| GET | `/roles` | 获取所有角色 | `auth:role:query` |
-| GET | `/roles/{roleId}` | 获取指定角色 | `auth:role:query` |
-| POST | `/roles/{roleId}/permissions` | 分配权限 | `auth:role:edit` |
+| POST | `/roles/{roleId}/permissions` | 分配角色权限 | `auth:role:edit` |
+| GET | `/roles/{roleId}/permissions` | 获取角色权限 | `auth:role:query` |
+| DELETE | `/roles/{roleId}/permissions` | 移除角色权限 | `auth:role:edit` |
 
 ### 用户角色管理 (UserRoleController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
-| POST | `/user-role/{userId}/roles` | 为用户分配角色 | `auth:user:role:assign` |
+| POST | `/users/{userId}/role` | 为用户分配单个角色 | `auth:user:role:assign` |
+| POST | `/users/roles/batch` | 批量分配用户角色 | `auth:user:role:assign` |
+| POST | `/users/roles/page` | 分页查询用户角色 | `auth:user:role:query` |
+| PUT | `/users/roles/{userRoleId}` | 更新用户角色关联 | `auth:user:role:update` |
 
 ### 用户权限管理 (UserPermissionController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
-| GET | `/user-permission/list/{userId}` | 查询用户权限 | `auth:user:permission:query` |
-| GET | `/user-permission/ids/{userId}` | 查询用户权限ID列表 | `auth:user:permission:query` |
-| POST | `/user-permission/assign` | 分配用户权限 | `auth:user:permission:assign` |
+| GET | `/user-permission/list/{userId}` | 分页查询用户权限 | `auth:user:permission:query` |
+| POST | `/user-permission/assign` | 分配用户权限（覆盖模式） | `auth:user:permission:assign` |
+| POST | `/user-permission/append` | 追加用户权限（增量模式） | `auth:user:permission:assign` |
 | DELETE | `/user-permission/remove/all/{userId}` | 移除用户所有权限 | `auth:user:permission:remove` |
 | DELETE | `/user-permission/remove` | 移除用户指定权限 | `auth:user:permission:remove` |
-| GET | `/user-permission/check` | 检查用户是否拥有指定权限 | `auth:user:permission:query` |
+
+### 日志管理 (LogController)
+
+| HTTP方法 | API路径 | 接口描述 | 权限要求 |
+|----------|---------|----------|----------|
+| POST | `/logs/login` | 获取登录日志 | `auth:log:query` |
+| POST | `/logs/login/fail` | 获取登录失败日志 | `auth:log:query` |
 
 ---
 
@@ -256,11 +265,11 @@
 
 | 服务名称 | 控制器数量 | 接口数量 | 权限保护接口 | 公开接口 |
 |----------|------------|----------|--------------|----------|
-| **认证服务 (siae-auth)** | 6 | 18 | 14 | 4 |
+| **认证服务 (siae-auth)** | 6 | 23 | 19 | 4 |
 | **用户服务 (siae-user)** | 8 | 40 | 40 | 0 |
 | **内容服务 (siae-content)** | 7 | 25 | 19 | 6 |
 | **消息服务 (siae-message)** | 1 | 2 | 0 | 2 |
-| **总计** | **22** | **85** | **73** | **12** |
+| **总计** | **22** | **90** | **78** | **12** |
 
 ### 按HTTP方法统计
 

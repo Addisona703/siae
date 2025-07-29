@@ -10,9 +10,7 @@ public enum CommonResultCodeEnum implements IResultCode {
     UNAUTHORIZED(401, "未授权或登录过期"),
     FORBIDDEN(403, "无访问权限"),
     NOT_FOUND(404, "资源未找到"),
-    // 自定义更多状态码
-
-    ;
+    DB_SAVE_FAILED(405, "数据保存失败");
 
     private final int code;
     private final String message;
