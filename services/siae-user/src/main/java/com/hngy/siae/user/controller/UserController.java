@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author KEYKB
  */
+@Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
@@ -61,6 +63,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "查询成功", content = @Content(schema = @Schema(implementation = UserVO.class)))
     public Result<UserVO> getUserByUsername(
         @Parameter(description = "用户名", in = ParameterIn.PATH) @PathVariable("username") String username) {
+        log.info("成功到达getUserByUsername");
         return Result.success(userService.getUserByUsername(username));
     }
 

@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -113,7 +114,11 @@ public class AuthServiceImpl
             // 7. 将用户权限和角色分别缓存到Redis，TTL与JWT过期时间一致
             cacheUserPermissionsAndRolesToRedis(user.getId(), permissions, roles, tokenExpireSeconds);
 
-            // 8. 保存认证信息到数据库
+            // 8. 将token存储到Redis，实现统一的token验证机制
+            storeTokenToRedis(accessToken, user, tokenExpireSeconds);
+            storeTokenToRedis(refreshToken, user, tokenExpireSeconds);
+
+            // 9. 保存认证信息到数据库（保持兼容性）
             UserAuth userAuth = new UserAuth();
             userAuth.setUserId(user.getId());
             userAuth.setAccessToken(accessToken);
@@ -122,10 +127,10 @@ public class AuthServiceImpl
             userAuth.setExpiresAt(LocalDateTime.ofInstant(expirationDate.toInstant(), ZoneId.systemDefault()));
             save(userAuth);
 
-            // 9. 记录登录成功日志
+            // 10. 记录登录成功日志
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 1, "登录成功");
 
-            // 10. 构建响应
+            // 11. 构建响应
             LoginVO response = new LoginVO();
             response.setUserId(user.getId());
             response.setUsername(user.getUsername());
@@ -316,18 +321,20 @@ public class AuthServiceImpl
         // 5. 获取用户ID用于清除Redis缓存
         Long userId = jwtUtils.getUserId(actualToken);
         AssertUtils.notNull(userId, AuthResultCodeEnum.TOKEN_INVALID);
-        // 6. 从数据库中删除认证信息
+        // 6. 从Redis中删除token
+        removeTokenFromRedis(actualToken);
+
+        // 7. 从数据库中删除认证信息
         remove(
                 new LambdaQueryWrapper<UserAuth>()
                         .eq(UserAuth::getAccessToken, actualToken)
         );
 
-        // 7. 清除Redis中的用户权限和角色缓存
+        // 8. 清除Redis中的用户权限和角色缓存
         clearUserCacheFromRedis(userId);
 
         log.info("用户登出成功，用户ID: {}", userId);
     }
-
 
     /**
      * 将用户权限和角色分别缓存到Redis
@@ -519,6 +526,43 @@ public class AuthServiceImpl
         } catch (Exception e) {
             log.error("为用户分配默认角色失败，用户ID: {}", userId, e);
             // 不抛出异常，避免影响注册流程
+        }
+    }
+
+    /**
+     * 将token存储到Redis
+     *
+     * @param token JWT token
+     * @param user 用户信息
+     * @param expireSeconds 过期时间（秒）
+     */
+    private void storeTokenToRedis(String token, UserVO user, long expireSeconds) {
+        try {
+            // 存储用户基本信息到Redis
+            String userInfo = String.format("{\"userId\":%d,\"username\":\"%s\",\"status\":%d}",
+                                          user.getId(), user.getUsername(), user.getStatus());
+
+            redisPermissionService.storeToken(token, userInfo, expireSeconds);
+
+            log.debug("Token已通过RedisPermissionService存储到Redis: expireSeconds={}", expireSeconds);
+
+        } catch (Exception e) {
+            log.error("存储token到Redis失败: {}", e.getMessage(), e);
+            // 不抛出异常，避免影响登录流程
+        }
+    }
+
+    /**
+     * 从Redis中删除token
+     *
+     * @param token JWT token
+     */
+    private void removeTokenFromRedis(String token) {
+        try {
+            redisPermissionService.removeToken(token);
+            log.debug("Token已通过RedisPermissionService从Redis中删除");
+        } catch (Exception e) {
+            log.error("从Redis删除token失败: {}", e.getMessage(), e);
         }
     }
 }

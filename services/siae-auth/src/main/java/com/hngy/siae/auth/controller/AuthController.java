@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,8 +91,10 @@ public class AuthController {
     @Operation(summary = "用户登出", description = "使当前令牌失效")
     @PostMapping("/logout")
     public Result<Boolean> logout(HttpServletRequest request) {
+        // 清理 Spring Security 上下文
+        SecurityContextHolder.clearContext();
         String token = request.getHeader("Authorization");
         authService.logout(token);
         return Result.success(true);
     }
-} 
+}

@@ -41,13 +41,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 引入公共模块 -->
-        <dependency>
-            <groupId>com.hngy</groupId>
-            <artifactId>siae-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Redis Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

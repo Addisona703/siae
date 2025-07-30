@@ -1,8 +1,11 @@
 package com.hngy.siae.security.autoconfigure;
 
+import com.hngy.siae.core.result.CommonResultCodeEnum;
+import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.aop.SiaeAuthorizeAspect;
 import com.hngy.siae.security.config.SimpleEnhancedPermissionConfig;
 import com.hngy.siae.security.filter.JwtAuthenticationFilter;
+import com.hngy.siae.security.filter.ServiceInterCallFilter;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
 import com.hngy.siae.security.service.impl.RedisPermissionServiceImpl;
@@ -21,10 +24,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.context.annotation.Lazy;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.context.ApplicationContext;
 
 /**
  * 安全功能自动配置类
@@ -49,6 +59,8 @@ public class SecurityAutoConfiguration {
 
     private final SecurityProperties securityProperties;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ServiceInterCallFilter serviceInterCallFilter;
+    private final ApplicationContext applicationContext;
 
     @Value("${spring.application.name:unknown}")
     private String applicationName;
@@ -81,14 +93,28 @@ public class SecurityAutoConfiguration {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.logout(AbstractHttpConfigurer::disable);
 
-        // 自定义未认证处理，返回401 JSON，不跳转
+        // 自定义未认证处理，返回标准JSON响应，不跳转
         http.exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
+                    // 设置响应状态为 401
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"message\":\"未认证，请先登录\"}");
+
+                    // 创建错误返回对象
+                    Result<Object> result = Result.error(CommonResultCodeEnum.UNAUTHORIZED);
+
+                    // 将响应转换为 JSON 格式并返回
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    response.getWriter().write(objectMapper.writeValueAsString(result));
+
+                    // 确保响应流被正确刷新到客户端
+                    response.getWriter().flush();
+
+                    // 记录详细的日志，包括堆栈信息
+                    log.error("未认证访问被拒绝: {}, 异常: {}, 详细信息: {}", request.getRequestURI(), authException);
                 })
         );
+
 
         if (securityProperties.isAuthRequired(applicationName)) {
             log.info("应用 {} 需要权限验证，配置认证规则", applicationName);
@@ -121,7 +147,15 @@ public class SecurityAutoConfiguration {
         if (securityProperties.getJwt().isEnabled()) {
             http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
             log.info("JWT认证过滤器已启用");
+
+            // 添加通用服务间调用过滤器（在JWT过滤器之后）
+            http.addFilterAfter(serviceInterCallFilter, jwtAuthenticationFilter.getClass());
+            log.info("服务间调用过滤器已启用，执行顺序：JwtAuthenticationFilter -> ServiceInterCallFilter");
         }
+
+        // 添加特定服务的Token过滤器（如果存在）
+        // 注意：大部分服务应该使用通用的ServiceInterCallFilter，只有特殊需求的服务才需要自定义过滤器
+//        configureServiceCallTokenFilter(http);
     }
 
     /**
@@ -131,9 +165,64 @@ public class SecurityAutoConfiguration {
         http.authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
     }
 
-    public SecurityAutoConfiguration(SecurityProperties securityProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    /**
+     * 配置特定服务的Token过滤器
+     *
+     * 如果应用上下文中存在ServiceCallTokenFilter Bean（特定服务自定义的过滤器），
+     * 则将其添加到过滤器链中，确保它在ServiceInterCallFilter之后执行。
+     *
+     * 执行顺序：JwtAuthenticationFilter -> ServiceInterCallFilter -> ServiceCallTokenFilter
+     */
+    private void configureServiceCallTokenFilter(HttpSecurity http) throws Exception {
+        try {
+            // 尝试从应用上下文中获取ServiceCallTokenFilter Bean
+            OncePerRequestFilter serviceCallTokenFilter = applicationContext.getBean("serviceCallTokenFilter", OncePerRequestFilter.class);
+
+            // 将ServiceCallTokenFilter添加到ServiceInterCallFilter之后
+            http.addFilterAfter(serviceCallTokenFilter, serviceInterCallFilter.getClass());
+
+            log.info("特定服务Token过滤器已配置，执行顺序：JwtAuthenticationFilter -> ServiceInterCallFilter -> ServiceCallTokenFilter");
+
+        } catch (Exception e) {
+            // 如果没有找到ServiceCallTokenFilter Bean，则跳过配置
+            log.debug("未找到特定服务Token过滤器Bean，跳过配置: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * RestTemplate配置（用于调用认证服务）
+     * 使用@Lazy注解打破循环依赖
+     */
+    @Bean("authServiceRestTemplate")
+    @Lazy  // 延迟初始化，打破循环依赖
+    @ConditionalOnProperty(prefix = "siae.security.auth-service", name = "token-validation-enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean(name = "authServiceRestTemplate")
+    public RestTemplate authServiceRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+
+        // 设置连接超时时间
+        factory.setConnectTimeout(securityProperties.getAuthService().getConnectTimeout());
+
+        // 设置读取超时时间
+        factory.setReadTimeout(securityProperties.getAuthService().getReadTimeout());
+
+        RestTemplate restTemplate = new RestTemplate(factory);
+
+        log.info("认证服务RestTemplate配置完成: connectTimeout={}ms, readTimeout={}ms",
+                securityProperties.getAuthService().getConnectTimeout(),
+                securityProperties.getAuthService().getReadTimeout());
+
+        return restTemplate;
+    }
+
+    public SecurityAutoConfiguration(SecurityProperties securityProperties,
+                                   @Lazy JwtAuthenticationFilter jwtAuthenticationFilter,
+                                   ServiceInterCallFilter serviceInterCallFilter,
+                                   ApplicationContext applicationContext) {
         this.securityProperties = securityProperties;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.serviceInterCallFilter = serviceInterCallFilter;
+        this.applicationContext = applicationContext;
         
         log.info("SIAE Security Starter 自动配置已启用");
         log.info("JWT认证: {}", securityProperties.getJwt().isEnabled() ? "启用" : "禁用");

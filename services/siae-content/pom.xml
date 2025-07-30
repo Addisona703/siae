@@ -55,10 +55,14 @@
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
-        <!-- OpenFeign for calling user com.hngy.siae.content.service -->
+        <!-- OpenFeign (由siae-web-starter提供，但需要显式声明以确保可用) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
         <!-- MyBatis Plus -->

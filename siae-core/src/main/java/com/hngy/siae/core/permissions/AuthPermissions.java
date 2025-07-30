@@ -10,19 +10,6 @@ package com.hngy.siae.core.permissions;
  * @date 2025/01/01
  */
 public class AuthPermissions {
-    // ==================== 用户管理权限 ====================
-    /** 查询用户 */
-    public static final String AUTH_USER_QUERY = "auth:user:query";
-
-    /** 新增用户 */
-    public static final String AUTH_USER_ADD = "auth:user:add";
-
-    /** 修改用户 */
-    public static final String AUTH_USER_EDIT = "auth:user:edit";
-
-    /** 删除用户 */
-    public static final String AUTH_USER_DELETE = "auth:user:delete";
-
     // ==================== 角色管理权限 ====================
     /** 查询角色 */
     public static final String AUTH_ROLE_QUERY = "auth:role:query";

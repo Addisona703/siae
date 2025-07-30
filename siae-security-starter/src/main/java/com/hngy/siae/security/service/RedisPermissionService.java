@@ -115,4 +115,30 @@ public interface RedisPermissionService {
      * @param timeUnit 时间单位
      */
     void refreshUserRolesCache(Long userId, long expireTime, TimeUnit timeUnit);
+
+    // ==================== Token验证方法 ====================
+
+    /**
+     * 验证token是否有效
+     *
+     * @param token JWT token
+     * @return true表示token有效，false表示token无效或已过期
+     */
+    boolean validateToken(String token);
+
+    /**
+     * 存储token到Redis
+     *
+     * @param token JWT token
+     * @param userInfo 用户信息
+     * @param expireSeconds 过期时间（秒）
+     */
+    void storeToken(String token, Object userInfo, long expireSeconds);
+
+    /**
+     * 从Redis中删除token
+     *
+     * @param token JWT token
+     */
+    void removeToken(String token);
 }

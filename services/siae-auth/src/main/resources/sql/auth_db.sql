@@ -136,169 +136,164 @@ INSERT INTO `role` (`name`, `code`, `description`) VALUES
 INSERT INTO `permission` (`id`, `name`, `code`, `type`, `parent_id`, `path`, `component`, `icon`, `sort_order`) VALUES
 
 -- =================================================================
--- 系统管理服务模块 (auth-service)
+-- 认证服务模块 (siae-auth)
 -- 提供系统基础的用户认证、权限管理等功能
+-- 基于 AuthPermissions.java 中定义的权限常量
 -- =================================================================
-(1, '系统管理', 'system:auth:manage', 'menu', NULL, '/system', 'Layout', 'system', 1),
-
--- 用户管理
-(2, '用户管理', 'auth:user:manage', 'menu', 1, 'user', 'system/user/index', 'user', 1),
-(3, '用户查询', 'auth:user:query', 'button', 2, NULL, NULL, NULL, 1),
-(4, '用户新增', 'auth:user:add', 'button', 2, NULL, NULL, NULL, 2),
-(5, '用户修改', 'auth:user:edit', 'button', 2, NULL, NULL, NULL, 3),
-(6, '用户删除', 'auth:user:delete', 'button', 2, NULL, NULL, NULL, 4),
+(1, '认证管理', 'auth:manage', 'menu', NULL, '/auth', 'Layout', 'system', 1),
 
 -- 角色管理
-(7, '角色管理', 'auth:role:manage', 'menu', 1, 'role', 'system/role/index', 'peoples', 2),
-(8, '角色查询', 'auth:role:query', 'button', 7, NULL, NULL, NULL, 1),
-(9, '角色新增', 'auth:role:add', 'button', 7, NULL, NULL, NULL, 2),
-(10, '角色修改', 'auth:role:edit', 'button', 7, NULL, NULL, NULL, 3),
-(11, '角色删除', 'auth:role:delete', 'button', 7, NULL, NULL, NULL, 4),
+(2, '角色管理', 'auth:role:manage', 'menu', 1, 'role', 'auth/role/index', 'peoples', 1),
+(3, '角色查询', 'auth:role:query', 'button', 2, NULL, NULL, NULL, 1),
+(4, '角色新增', 'auth:role:add', 'button', 2, NULL, NULL, NULL, 2),
+(5, '角色修改', 'auth:role:edit', 'button', 2, NULL, NULL, NULL, 3),
+(6, '角色删除', 'auth:role:delete', 'button', 2, NULL, NULL, NULL, 4),
 
 -- 权限管理
-(12, '权限管理', 'auth:permission:manage', 'menu', 1, 'permission', 'system/permission/index', 'tree-table', 3),
-(13, '权限查询', 'auth:permission:query', 'button', 12, NULL, NULL, NULL, 1),
-(14, '权限新增', 'auth:permission:add', 'button', 12, NULL, NULL, NULL, 2),
-(15, '权限修改', 'auth:permission:edit', 'button', 12, NULL, NULL, NULL, 3),
-(16, '权限删除', 'auth:permission:delete', 'button', 12, NULL, NULL, NULL, 4),
+(7, '权限管理', 'auth:permission:manage', 'menu', 1, 'permission', 'auth/permission/index', 'tree-table', 2),
+(8, '权限查询', 'auth:permission:query', 'button', 7, NULL, NULL, NULL, 1),
+(9, '权限新增', 'auth:permission:add', 'button', 7, NULL, NULL, NULL, 2),
+(10, '权限修改', 'auth:permission:edit', 'button', 7, NULL, NULL, NULL, 3),
+(11, '权限删除', 'auth:permission:delete', 'button', 7, NULL, NULL, NULL, 4),
 
 -- 日志管理
-(98, '日志管理', 'auth:log:manage', 'menu', 1, 'log', 'system/log/index', 'log', 4),
-(99, '日志查询', 'auth:log:query', 'button', 98, NULL, NULL, NULL, 1),
-(100, '日志导出', 'auth:log:export', 'button', 98, NULL, NULL, NULL, 2),
+(12, '日志管理', 'auth:log:manage', 'menu', 1, 'log', 'auth/log/index', 'log', 3),
+(13, '日志查询', 'auth:log:query', 'button', 12, NULL, NULL, NULL, 1),
+(14, '日志导出', 'auth:log:export', 'button', 12, NULL, NULL, NULL, 2),
 
 -- 用户角色关联管理
-(101, '用户角色关联', 'auth:user:role:manage', 'menu', 1, 'user-role', 'system/user-role/index', 'link', 5),
-(102, '分配用户角色', 'auth:user:role:assign', 'button', 101, NULL, NULL, NULL, 1),
-(103, '查询用户角色', 'auth:user:role:query', 'button', 101, NULL, NULL, NULL, 2),
-(104, '移除用户角色', 'auth:user:role:remove', 'button', 101, NULL, NULL, NULL, 3),
+(15, '用户角色管理', 'auth:user:role:manage', 'menu', 1, 'user-role', 'auth/user-role/index', 'link', 4),
+(16, '分配用户角色', 'auth:user:role:assign', 'button', 15, NULL, NULL, NULL, 1),
+(17, '查询用户角色', 'auth:user:role:query', 'button', 15, NULL, NULL, NULL, 2),
+(18, '更新用户角色', 'auth:user:role:update', 'button', 15, NULL, NULL, NULL, 3),
+(19, '移除用户角色', 'auth:user:role:remove', 'button', 15, NULL, NULL, NULL, 4),
 
 -- 用户权限关联管理
-(105, '用户权限关联', 'auth:user:permission:manage', 'menu', 1, 'user-permission', 'system/user-permission/index', 'permission', 6),
-(106, '分配用户权限', 'auth:user:permission:assign', 'button', 105, NULL, NULL, NULL, 1),
-(107, '查询用户权限', 'auth:user:permission:query', 'button', 105, NULL, NULL, NULL, 2),
-(108, '移除用户权限', 'auth:user:permission:remove', 'button', 105, NULL, NULL, NULL, 3),
+(20, '用户权限管理', 'auth:user:permission:manage', 'menu', 1, 'user-permission', 'auth/user-permission/index', 'permission', 5),
+(21, '分配用户权限', 'auth:user:permission:assign', 'button', 20, NULL, NULL, NULL, 1),
+(22, '查询用户权限', 'auth:user:permission:query', 'button', 20, NULL, NULL, NULL, 2),
+(23, '移除用户权限', 'auth:user:permission:remove', 'button', 20, NULL, NULL, NULL, 3),
 
 -- =================================================================
 -- 内容管理服务模块 (content-service)
 -- 提供内容发布、分类管理、标签管理等功能
 -- =================================================================
-(17, '内容管理', 'system:content:manage', 'menu', NULL, '/content', 'Layout', 'documentation', 2),
+(50, '内容管理', 'system:content:manage', 'menu', NULL, '/content', 'Layout', 'documentation', 2),
 
 -- 内容管理子菜单
-(18, '内容管理', 'content:manage', 'menu', 17, 'content', 'content/content/index', 'edit', 1),
-(19, '内容发布', 'content:publish', 'button', 18, NULL, NULL, NULL, 1),
-(20, '内容编辑', 'content:edit', 'button', 18, NULL, NULL, NULL, 2),
-(21, '内容删除', 'content:delete', 'button', 18, NULL, NULL, NULL, 3),
-(22, '内容查询', 'content:query', 'button', 18, NULL, NULL, NULL, 4),
-(23, '内容列表查看', 'content:list:view', 'button', 18, NULL, NULL, NULL, 5),
-(24, '热门内容查看', 'content:hot:view', 'button', 18, NULL, NULL, NULL, 6),
+(51, '内容管理', 'content:manage', 'menu', 50, 'content', 'content/content/index', 'edit', 1),
+(52, '内容发布', 'content:publish', 'button', 51, NULL, NULL, NULL, 1),
+(53, '内容编辑', 'content:edit', 'button', 51, NULL, NULL, NULL, 2),
+(54, '内容删除', 'content:delete', 'button', 51, NULL, NULL, NULL, 3),
+(55, '内容查询', 'content:query', 'button', 51, NULL, NULL, NULL, 4),
+(56, '内容列表查看', 'content:list:view', 'button', 51, NULL, NULL, NULL, 5),
+(57, '热门内容查看', 'content:hot:view', 'button', 51, NULL, NULL, NULL, 6),
 
 -- 分类管理子菜单
-(25, '分类管理', 'content:category:manage', 'menu', 17, 'category', 'content/category/index', 'tree', 2),
-(26, '分类创建', 'content:category:create', 'button', 25, NULL, NULL, NULL, 1),
-(27, '分类编辑', 'content:category:edit', 'button', 25, NULL, NULL, NULL, 2),
-(28, '分类删除', 'content:category:delete', 'button', 25, NULL, NULL, NULL, 3),
-(29, '分类查看', 'content:category:view', 'button', 25, NULL, NULL, NULL, 4),
-(30, '分类状态切换', 'content:category:toggle', 'button', 25, NULL, NULL, NULL, 5),
+(58, '分类管理', 'content:category:manage', 'menu', 50, 'category', 'content/category/index', 'tree', 2),
+(59, '分类创建', 'content:category:create', 'button', 58, NULL, NULL, NULL, 1),
+(60, '分类编辑', 'content:category:edit', 'button', 58, NULL, NULL, NULL, 2),
+(61, '分类删除', 'content:category:delete', 'button', 58, NULL, NULL, NULL, 3),
+(62, '分类查看', 'content:category:view', 'button', 58, NULL, NULL, NULL, 4),
+(63, '分类状态切换', 'content:category:toggle', 'button', 58, NULL, NULL, NULL, 5),
 
 -- 标签管理子菜单
-(31, '标签管理', 'content:tag:manage', 'menu', 17, 'tag', 'content/tag/index', 'tag', 3),
-(32, '标签创建', 'content:tag:create', 'button', 31, NULL, NULL, NULL, 1),
-(33, '标签编辑', 'content:tag:edit', 'button', 31, NULL, NULL, NULL, 2),
-(34, '标签删除', 'content:tag:delete', 'button', 31, NULL, NULL, NULL, 3),
-(35, '标签查看', 'content:tag:view', 'button', 31, NULL, NULL, NULL, 4),
+(64, '标签管理', 'content:tag:manage', 'menu', 50, 'tag', 'content/tag/index', 'tag', 3),
+(65, '标签创建', 'content:tag:create', 'button', 64, NULL, NULL, NULL, 1),
+(66, '标签编辑', 'content:tag:edit', 'button', 64, NULL, NULL, NULL, 2),
+(67, '标签删除', 'content:tag:delete', 'button', 64, NULL, NULL, NULL, 3),
+(68, '标签查看', 'content:tag:view', 'button', 64, NULL, NULL, NULL, 4),
 
 -- 用户交互管理子菜单
-(36, '用户交互', 'content:interaction:manage', 'menu', 17, 'interaction', 'content/interaction/index', 'user', 4),
-(37, '交互记录', 'content:interaction:record', 'button', 36, NULL, NULL, NULL, 1),
-(38, '交互取消', 'content:interaction:cancel', 'button', 36, NULL, NULL, NULL, 2),
+(69, '用户交互', 'content:interaction:manage', 'menu', 50, 'interaction', 'content/interaction/index', 'user', 4),
+(70, '交互记录', 'content:interaction:record', 'button', 69, NULL, NULL, NULL, 1),
+(71, '交互取消', 'content:interaction:cancel', 'button', 69, NULL, NULL, NULL, 2),
 
 -- 统计管理子菜单
-(39, '统计管理', 'content:statistics:manage', 'menu', 17, 'statistics', 'content/statistics/index', 'chart', 5),
-(40, '统计查看', 'content:statistics:view', 'button', 39, NULL, NULL, NULL, 1),
-(41, '统计更新', 'content:statistics:update', 'button', 39, NULL, NULL, NULL, 2),
+(72, '统计管理', 'content:statistics:manage', 'menu', 50, 'statistics', 'content/statistics/index', 'chart', 5),
+(73, '统计查看', 'content:statistics:view', 'button', 72, NULL, NULL, NULL, 1),
+(74, '统计更新', 'content:statistics:update', 'button', 72, NULL, NULL, NULL, 2),
 
 -- 审核管理子菜单
-(42, '审核管理', 'content:audit:manage', 'menu', 17, 'audit', 'content/audit/index', 'audit', 6),
-(43, '审核处理', 'content:audit:handle', 'button', 42, NULL, NULL, NULL, 1),
-(44, '审核查看', 'content:audit:view', 'button', 42, NULL, NULL, NULL, 2),
-(45, '审核通过', 'content:audit:approve', 'button', 42, NULL, NULL, NULL, 3),
-(46, '审核拒绝', 'content:audit:reject', 'button', 42, NULL, NULL, NULL, 4),
+(75, '审核管理', 'content:audit:manage', 'menu', 50, 'audit', 'content/audit/index', 'audit', 6),
+(76, '审核处理', 'content:audit:handle', 'button', 75, NULL, NULL, NULL, 1),
+(77, '审核查看', 'content:audit:view', 'button', 75, NULL, NULL, NULL, 2),
+(78, '审核通过', 'content:audit:approve', 'button', 75, NULL, NULL, NULL, 3),
+(79, '审核拒绝', 'content:audit:reject', 'button', 75, NULL, NULL, NULL, 4),
 
 -- 评论管理子菜单
-(47, '评论管理', 'content:comment:manage', 'menu', 17, 'comment', 'content/comment/index', 'message', 7),
-(48, '评论创建', 'content:comment:create', 'button', 47, NULL, NULL, NULL, 1),
-(49, '评论编辑', 'content:comment:edit', 'button', 47, NULL, NULL, NULL, 2),
-(50, '评论删除', 'content:comment:delete', 'button', 47, NULL, NULL, NULL, 3),
-(51, '评论查看', 'content:comment:view', 'button', 47, NULL, NULL, NULL, 4),
+(80, '评论管理', 'content:comment:manage', 'menu', 50, 'comment', 'content/comment/index', 'message', 7),
+(81, '评论创建', 'content:comment:create', 'button', 80, NULL, NULL, NULL, 1),
+(82, '评论编辑', 'content:comment:edit', 'button', 80, NULL, NULL, NULL, 2),
+(83, '评论删除', 'content:comment:delete', 'button', 80, NULL, NULL, NULL, 3),
+(84, '评论查看', 'content:comment:view', 'button', 80, NULL, NULL, NULL, 4),
 
 -- =================================================================
 -- 用户管理服务模块 (user-service)
 -- 提供用户信息管理、成员管理、班级奖项管理等功能
 -- =================================================================
-(52, '用户管理', 'system:user:manage', 'menu', NULL, '/user', 'Layout', 'peoples', 3),
+(100, '用户管理', 'system:user:manage', 'menu', NULL, '/user', 'Layout', 'peoples', 3),
 
 -- 用户信息管理子菜单
-(53, '用户信息', 'user:manage', 'menu', 52, 'user', 'user/user/index', 'user', 1),
-(54, '用户创建', 'user:create', 'button', 53, NULL, NULL, NULL, 1),
-(55, '用户更新', 'user:update', 'button', 53, NULL, NULL, NULL, 2),
-(56, '用户删除', 'user:delete', 'button', 53, NULL, NULL, NULL, 3),
-(57, '用户查看', 'user:view', 'button', 53, NULL, NULL, NULL, 4),
-(58, '用户列表', 'user:list', 'button', 53, NULL, NULL, NULL, 5),
+(101, '用户信息', 'user:manage', 'menu', 100, 'user', 'user/user/index', 'user', 1),
+(102, '用户创建', 'user:create', 'button', 101, NULL, NULL, NULL, 1),
+(103, '用户更新', 'user:update', 'button', 101, NULL, NULL, NULL, 2),
+(104, '用户删除', 'user:delete', 'button', 101, NULL, NULL, NULL, 3),
+(105, '用户查看', 'user:view', 'button', 101, NULL, NULL, NULL, 4),
+(106, '用户列表', 'user:list', 'button', 101, NULL, NULL, NULL, 5),
 
 -- 用户详情管理子菜单
-(59, '用户详情', 'user:profile:manage', 'menu', 52, 'profile', 'user/profile/index', 'profile', 2),
-(60, '详情创建', 'user:profile:create', 'button', 59, NULL, NULL, NULL, 1),
-(61, '详情更新', 'user:profile:update', 'button', 59, NULL, NULL, NULL, 2),
-(62, '详情删除', 'user:profile:delete', 'button', 59, NULL, NULL, NULL, 3),
-(63, '详情查看', 'user:profile:view', 'button', 59, NULL, NULL, NULL, 4),
+(107, '用户详情', 'user:profile:manage', 'menu', 100, 'profile', 'user/profile/index', 'profile', 2),
+(108, '详情创建', 'user:profile:create', 'button', 107, NULL, NULL, NULL, 1),
+(109, '详情更新', 'user:profile:update', 'button', 107, NULL, NULL, NULL, 2),
+(110, '详情删除', 'user:profile:delete', 'button', 107, NULL, NULL, NULL, 3),
+(111, '详情查看', 'user:profile:view', 'button', 107, NULL, NULL, NULL, 4),
 
 -- 正式成员管理子菜单
-(64, '正式成员', 'user:member:manage', 'menu', 52, 'member', 'user/member/index', 'team', 3),
-(65, '成员更新', 'user:member:update', 'button', 64, NULL, NULL, NULL, 1),
-(66, '成员查看', 'user:member:view', 'button', 64, NULL, NULL, NULL, 2),
-(67, '成员列表', 'user:member:list', 'button', 64, NULL, NULL, NULL, 3),
+(112, '正式成员', 'user:member:manage', 'menu', 100, 'member', 'user/member/index', 'team', 3),
+(113, '成员更新', 'user:member:update', 'button', 112, NULL, NULL, NULL, 1),
+(114, '成员查看', 'user:member:view', 'button', 112, NULL, NULL, NULL, 2),
+(115, '成员列表', 'user:member:list', 'button', 112, NULL, NULL, NULL, 3),
 
 -- 候选成员管理子菜单
-(68, '候选成员', 'user:candidate:manage', 'menu', 52, 'candidate', 'user/candidate/index', 'user-plus', 4),
-(69, '候选成员创建', 'user:candidate:create', 'button', 68, NULL, NULL, NULL, 1),
-(70, '候选成员更新', 'user:candidate:update', 'button', 68, NULL, NULL, NULL, 2),
-(71, '候选成员删除', 'user:candidate:delete', 'button', 68, NULL, NULL, NULL, 3),
-(72, '候选成员查看', 'user:candidate:view', 'button', 68, NULL, NULL, NULL, 4),
-(73, '候选成员列表', 'user:candidate:list', 'button', 68, NULL, NULL, NULL, 5),
+(116, '候选成员', 'user:candidate:manage', 'menu', 100, 'candidate', 'user/candidate/index', 'user-plus', 4),
+(117, '候选成员创建', 'user:candidate:create', 'button', 116, NULL, NULL, NULL, 1),
+(118, '候选成员更新', 'user:candidate:update', 'button', 116, NULL, NULL, NULL, 2),
+(119, '候选成员删除', 'user:candidate:delete', 'button', 116, NULL, NULL, NULL, 3),
+(120, '候选成员查看', 'user:candidate:view', 'button', 116, NULL, NULL, NULL, 4),
+(121, '候选成员列表', 'user:candidate:list', 'button', 116, NULL, NULL, NULL, 5),
 
 -- 班级管理子菜单
-(74, '班级管理', 'user:class:manage', 'menu', 52, 'class', 'user/class/index', 'school', 5),
-(75, '班级创建', 'user:class:create', 'button', 74, NULL, NULL, NULL, 1),
-(76, '班级更新', 'user:class:update', 'button', 74, NULL, NULL, NULL, 2),
-(77, '班级删除', 'user:class:delete', 'button', 74, NULL, NULL, NULL, 3),
-(78, '班级查看', 'user:class:view', 'button', 74, NULL, NULL, NULL, 4),
-(79, '班级列表', 'user:class:list', 'button', 74, NULL, NULL, NULL, 5),
+(122, '班级管理', 'user:class:manage', 'menu', 100, 'class', 'user/class/index', 'school', 5),
+(123, '班级创建', 'user:class:create', 'button', 122, NULL, NULL, NULL, 1),
+(124, '班级更新', 'user:class:update', 'button', 122, NULL, NULL, NULL, 2),
+(125, '班级删除', 'user:class:delete', 'button', 122, NULL, NULL, NULL, 3),
+(126, '班级查看', 'user:class:view', 'button', 122, NULL, NULL, NULL, 4),
+(127, '班级列表', 'user:class:list', 'button', 122, NULL, NULL, NULL, 5),
 
 -- 奖项类型管理子菜单
-(80, '奖项类型', 'user:award-type:manage', 'menu', 52, 'award-type', 'user/award-type/index', 'trophy', 6),
-(81, '奖项类型创建', 'user:award-type:create', 'button', 80, NULL, NULL, NULL, 1),
-(82, '奖项类型更新', 'user:award-type:update', 'button', 80, NULL, NULL, NULL, 2),
-(83, '奖项类型删除', 'user:award-type:delete', 'button', 80, NULL, NULL, NULL, 3),
-(84, '奖项类型查看', 'user:award-type:view', 'button', 80, NULL, NULL, NULL, 4),
-(85, '奖项类型列表', 'user:award-type:list', 'button', 80, NULL, NULL, NULL, 5),
+(128, '奖项类型', 'user:award-type:manage', 'menu', 100, 'award-type', 'user/award-type/index', 'trophy', 6),
+(129, '奖项类型创建', 'user:award-type:create', 'button', 128, NULL, NULL, NULL, 1),
+(130, '奖项类型更新', 'user:award-type:update', 'button', 128, NULL, NULL, NULL, 2),
+(131, '奖项类型删除', 'user:award-type:delete', 'button', 128, NULL, NULL, NULL, 3),
+(132, '奖项类型查看', 'user:award-type:view', 'button', 128, NULL, NULL, NULL, 4),
+(133, '奖项类型列表', 'user:award-type:list', 'button', 128, NULL, NULL, NULL, 5),
 
 -- 奖项等级管理子菜单
-(86, '奖项等级', 'user:award-level:manage', 'menu', 52, 'award-level', 'user/award-level/index', 'star', 7),
-(87, '奖项等级创建', 'user:award-level:create', 'button', 86, NULL, NULL, NULL, 1),
-(88, '奖项等级更新', 'user:award-level:update', 'button', 86, NULL, NULL, NULL, 2),
-(89, '奖项等级删除', 'user:award-level:delete', 'button', 86, NULL, NULL, NULL, 3),
-(90, '奖项等级查看', 'user:award-level:view', 'button', 86, NULL, NULL, NULL, 4),
-(91, '奖项等级列表', 'user:award-level:list', 'button', 86, NULL, NULL, NULL, 5),
+(134, '奖项等级', 'user:award-level:manage', 'menu', 100, 'award-level', 'user/award-level/index', 'star', 7),
+(135, '奖项等级创建', 'user:award-level:create', 'button', 134, NULL, NULL, NULL, 1),
+(136, '奖项等级更新', 'user:award-level:update', 'button', 134, NULL, NULL, NULL, 2),
+(137, '奖项等级删除', 'user:award-level:delete', 'button', 134, NULL, NULL, NULL, 3),
+(138, '奖项等级查看', 'user:award-level:view', 'button', 134, NULL, NULL, NULL, 4),
+(139, '奖项等级列表', 'user:award-level:list', 'button', 134, NULL, NULL, NULL, 5),
 
 -- 用户获奖记录管理子菜单
-(109, '获奖记录', 'user:award:manage', 'menu', 52, 'award', 'user/award/index', 'medal', 8),
-(110, '获奖记录创建', 'user:award:create', 'button', 109, NULL, NULL, NULL, 1),
-(111, '获奖记录更新', 'user:award:update', 'button', 109, NULL, NULL, NULL, 2),
-(112, '获奖记录删除', 'user:award:delete', 'button', 109, NULL, NULL, NULL, 3),
-(113, '获奖记录查看', 'user:award:view', 'button', 109, NULL, NULL, NULL, 4),
-(114, '获奖记录列表', 'user:award:list', 'button', 109, NULL, NULL, NULL, 5);
+(140, '获奖记录', 'user:award:manage', 'menu', 100, 'award', 'user/award/index', 'medal', 8),
+(141, '获奖记录创建', 'user:award:create', 'button', 140, NULL, NULL, NULL, 1),
+(142, '获奖记录更新', 'user:award:update', 'button', 140, NULL, NULL, NULL, 2),
+(143, '获奖记录删除', 'user:award:delete', 'button', 140, NULL, NULL, NULL, 3),
+(144, '获奖记录查看', 'user:award:view', 'button', 140, NULL, NULL, NULL, 4),
+(145, '获奖记录列表', 'user:award:list', 'button', 140, NULL, NULL, NULL, 5);
 
 -- 初始化角色-权限关联关系
 -- 超级管理员(ROLE_ROOT)拥有所有权限
@@ -311,7 +306,6 @@ SELECT (SELECT id FROM `role` WHERE code = 'ROLE_ADMIN'), id FROM `permission`
 WHERE code NOT IN (
     'auth:permission:delete',
     'auth:role:delete',
-    'auth:user:delete',
     'content:delete',
     'content:category:delete',
     'content:tag:delete',

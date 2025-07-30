@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * @author KEYKB
  */
 @RestController
-@RequestMapping("/api/user-profiles")
+@RequestMapping("/profile")
 @RequiredArgsConstructor
 @Tag(name = "用户详情管理", description = "用户个人资料相关接口")
 @Validated

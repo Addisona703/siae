@@ -21,7 +21,7 @@ import java.util.Set;
  * 
  * @author KEYKB
  */
-@FeignClient(name = "siae-user", path = "/api/v1/user")
+@FeignClient(name = "siae-user")
 public interface UserClient {
     
     /**
@@ -31,7 +31,7 @@ public interface UserClient {
      * @return 用户信息
      */
     @Operation(summary = "根据用户名获取用户信息", description = "通过用户名查询用户详细信息")
-    @GetMapping("/username/{username}")
+    @GetMapping("/api/v1/user/username/{username}")
     UserVO getUserByUsername(
             @Parameter(description = "用户名") @PathVariable("username") @NotNull String username);
 

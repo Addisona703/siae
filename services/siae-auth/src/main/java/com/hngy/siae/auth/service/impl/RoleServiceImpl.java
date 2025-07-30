@@ -2,6 +2,7 @@ package com.hngy.siae.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.auth.dto.request.RoleCreateDTO;
 import com.hngy.siae.auth.dto.request.RoleQueryDTO;
@@ -13,11 +14,11 @@ import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.RolePermission;
 import com.hngy.siae.auth.entity.UserRole;
 import com.hngy.siae.auth.mapper.RoleMapper;
+import com.hngy.siae.auth.mapper.UserRoleMapper;
 
 import com.hngy.siae.auth.service.PermissionService;
 import com.hngy.siae.auth.service.RolePermissionService;
 import com.hngy.siae.auth.service.RoleService;
-import com.hngy.siae.auth.service.UserRoleService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
@@ -54,7 +55,7 @@ public class RoleServiceImpl
         implements RoleService {
 
     private final RolePermissionService rolePermissionService;
-    private final UserRoleService userRoleService;
+    private final UserRoleMapper userRoleMapper;
     private final PermissionService permissionService;
     
     /**
@@ -182,11 +183,11 @@ public class RoleServiceImpl
         checkSystemRoleProtection(role, AuthResultCodeEnum.SYSTEM_ROLE_CANNOT_DELETE);
 
         // 检查是否有用户关联此角色，TODO: 后续可以实现角色降级
-        boolean hasUsers = userRoleService.count(
+        Long userCount = userRoleMapper.selectCount(
                 new LambdaQueryWrapper<UserRole>()
                         .eq(UserRole::getRoleId, roleId)
-        ) > 0;
-        AssertUtils.isFalse(hasUsers, AuthResultCodeEnum.ROLE_HAS_USERS);
+        );
+        AssertUtils.isFalse(userCount > 0, AuthResultCodeEnum.ROLE_HAS_USERS);
 
         // 删除角色关联的权限
         rolePermissionService.remove(
@@ -220,7 +221,7 @@ public class RoleServiceImpl
         }
 
         // 校验角色是否被用户使用
-        long count = userRoleService.count(
+        Long count = userRoleMapper.selectCount(
                 new LambdaQueryWrapper<UserRole>()
                         .in(UserRole::getRoleId, roleIds)
         );
@@ -274,7 +275,9 @@ public class RoleServiceImpl
      */
     @Override
     public List<RoleVO> getRoles() {
-        List<Role> roles = list();
+        LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery();
+        wrapper.isNotNull(Role::getId);
+        List<Role> roles = list(wrapper);
         return BeanConvertUtil.toList(roles, RoleVO.class);
     }
 

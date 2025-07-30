@@ -1,5 +1,6 @@
 package com.hngy.siae.security.service.impl;
 
+import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.PermissionService;
 import com.hngy.siae.security.service.RedisPermissionService;
@@ -7,11 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -27,17 +30,30 @@ import java.util.stream.Stream;
 @Service
 @ConditionalOnClass(StringRedisTemplate.class)
 @ConditionalOnProperty(prefix = "siae.security.permission", name = "redis-enabled", havingValue = "true", matchIfMissing = true)
-@RequiredArgsConstructor
 public class RedisPermissionServiceImpl implements PermissionService, RedisPermissionService {
+
+    public RedisPermissionServiceImpl(StringRedisTemplate redisTemplate,
+                                     RedisTemplate<String, Object> objectRedisTemplate,
+                                     SecurityProperties securityProperties,
+                                     JwtUtils jwtUtils) {
+        this.redisTemplate = redisTemplate;
+        this.objectRedisTemplate = objectRedisTemplate;
+        this.securityProperties = securityProperties;
+        this.jwtUtils = jwtUtils;
+        log.info("RedisPermissionService已初始化，支持权限和token验证，集成JWT工具类");
+    }
     
     private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> objectRedisTemplate;
     private final SecurityProperties securityProperties;
-    
+    private final JwtUtils jwtUtils;
+
     /**
      * Redis键前缀常量
      */
     private static final String PERMISSION_SUFFIX = "permissions";
     private static final String ROLE_SUFFIX = "roles";
+    private static final String TOKEN_KEY_PREFIX = "auth:token:";
     private static final String DELIMITER = ",";
     
     @Override
@@ -308,5 +324,184 @@ public class RedisPermissionServiceImpl implements PermissionService, RedisPermi
         } catch (Exception e) {
             log.error("刷新用户角色缓存失败，用户ID: {}", userId, e);
         }
+    }
+
+    // ==================== Token验证方法实现 ====================
+
+    @Override
+    public boolean validateToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            log.debug("Token为空，验证失败");
+            return false;
+        }
+
+        try {
+            // 第一步：验证JWT格式和有效性
+            boolean jwtValid = jwtUtils.validateToken(token);
+            if (!jwtValid) {
+                log.debug("JWT格式验证失败或token已过期");
+                return false;
+            }
+
+            // 第二步：检查token在Redis中是否存在
+            String tokenKey = TOKEN_KEY_PREFIX + token;
+            Boolean exists = objectRedisTemplate.hasKey(tokenKey);
+            boolean redisValid = Boolean.TRUE.equals(exists);
+
+            if (!redisValid) {
+                log.debug("Token在Redis中不存在，用户可能已登出");
+                return false;
+            }
+
+            log.debug("Token验证通过: JWT格式有效且在Redis中存在");
+            return true;
+
+        } catch (Exception e) {
+            log.warn("验证token时发生异常: {}, 验证失败", e.getMessage());
+            // JWT验证异常时返回false，不采用宽松模式
+            return false;
+        }
+    }
+
+    @Override
+    public void storeToken(String token, Object userInfo, long expireSeconds) {
+        if (token == null || token.trim().isEmpty()) {
+            log.warn("Token为空，无法存储");
+            return;
+        }
+
+        try {
+            // 验证JWT格式是否正确
+            if (!jwtUtils.validateToken(token)) {
+                log.warn("JWT格式无效，拒绝存储token");
+                return;
+            }
+
+            // 尝试从JWT中获取过期时间，确保一致性
+            try {
+                Date jwtExpiration = jwtUtils.getExpirationDate(token);
+                long jwtExpireSeconds = (jwtExpiration.getTime() - System.currentTimeMillis()) / 1000;
+
+                // 使用JWT中的过期时间，但不超过传入的过期时间
+                long actualExpireSeconds = Math.min(expireSeconds, Math.max(jwtExpireSeconds, 0));
+
+                String tokenKey = TOKEN_KEY_PREFIX + token;
+                objectRedisTemplate.opsForValue().set(tokenKey, userInfo, actualExpireSeconds, TimeUnit.SECONDS);
+
+                log.debug("Token已存储到Redis: key={}, expireSeconds={} (JWT过期时间: {}秒)",
+                         tokenKey, actualExpireSeconds, jwtExpireSeconds);
+
+            } catch (Exception jwtException) {
+                // JWT解析失败时使用传入的过期时间
+                log.debug("无法解析JWT过期时间，使用默认过期时间: {}", jwtException.getMessage());
+
+                String tokenKey = TOKEN_KEY_PREFIX + token;
+                objectRedisTemplate.opsForValue().set(tokenKey, userInfo, expireSeconds, TimeUnit.SECONDS);
+
+                log.debug("Token已存储到Redis: key={}, expireSeconds={}", tokenKey, expireSeconds);
+            }
+
+        } catch (Exception e) {
+            log.error("存储token到Redis失败: {}", e.getMessage(), e);
+            // 不抛出异常，避免影响业务流程
+        }
+    }
+
+    @Override
+    public void removeToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            log.warn("Token为空，无法删除");
+            return;
+        }
+
+        try {
+            String tokenKey = TOKEN_KEY_PREFIX + token;
+            objectRedisTemplate.delete(tokenKey);
+
+            log.debug("Token已从Redis中删除: key={}", tokenKey);
+
+        } catch (Exception e) {
+            log.error("从Redis删除token失败: {}", e.getMessage(), e);
+        }
+    }
+
+    // ==================== Token解析功能 ====================
+
+    /**
+     * 从token中提取用户ID
+     *
+     * @param token JWT token
+     * @return 用户ID，解析失败时返回null
+     */
+    public Long getUserIdFromToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return jwtUtils.getUserId(token);
+        } catch (Exception e) {
+            log.debug("从token中提取用户ID失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 从token中提取用户名
+     *
+     * @param token JWT token
+     * @return 用户名，解析失败时返回null
+     */
+    public String getUsernameFromToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return jwtUtils.getUsername(token);
+        } catch (Exception e) {
+            log.debug("从token中提取用户名失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 从token中提取过期时间
+     *
+     * @param token JWT token
+     * @return 过期时间，解析失败时返回null
+     */
+    public Date getExpirationFromToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return jwtUtils.getExpirationDate(token);
+        } catch (Exception e) {
+            log.debug("从token中提取过期时间失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 检查token是否即将过期（在指定分钟内过期）
+     *
+     * @param token JWT token
+     * @param minutesBeforeExpiry 过期前的分钟数
+     * @return true表示即将过期，false表示还有足够时间
+     */
+    public boolean isTokenExpiringSoon(String token, int minutesBeforeExpiry) {
+        Date expiration = getExpirationFromToken(token);
+        if (expiration == null) {
+            return false;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long expirationTime = expiration.getTime();
+        long timeUntilExpiry = expirationTime - currentTime;
+        long minutesUntilExpiry = timeUntilExpiry / (60 * 1000);
+
+        return minutesUntilExpiry <= minutesBeforeExpiry;
     }
 }

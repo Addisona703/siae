@@ -35,6 +35,11 @@ public class SecurityProperties {
     private EnhancedPermission enhancedPermission = new EnhancedPermission();
 
     /**
+     * 认证服务配置
+     */
+    private AuthService authService = new AuthService();
+
+    /**
      * 需要权限验证的服务列表
      */
     private List<String> authRequiredServices = List.of("siae-auth", "siae-user", "siae-content", "siae-admin");
@@ -43,6 +48,7 @@ public class SecurityProperties {
      * 白名单路径（不需要认证）
      */
     private List<String> whitelistPaths = List.of(
+            "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh-token", "/api/v1/auth/validate-token",
         "/login", "/register", "/logout", "/refresh-token",
         "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**",
         "/favicon.ico", "/error"
@@ -191,5 +197,42 @@ public class SecurityProperties {
          * 是否启用权限缓存优化
          */
         private boolean cacheOptimizationEnabled = true;
+    }
+
+    /**
+     * 认证服务配置
+     */
+    @Data
+    public static class AuthService {
+
+        /**
+         * 认证服务基础URL
+         */
+        private String baseUrl = "http://siae-auth:8000";
+
+        /**
+         * 连接超时时间（毫秒）
+         */
+        private int connectTimeout = 3000;
+
+        /**
+         * 读取超时时间（毫秒）
+         */
+        private int readTimeout = 5000;
+
+        /**
+         * 是否启用token数据库验证
+         */
+        private boolean tokenValidationEnabled = true;
+
+        /**
+         * 验证失败时的重试次数
+         */
+        private int retryCount = 1;
+
+        /**
+         * 重试间隔时间（毫秒）
+         */
+        private int retryInterval = 1000;
     }
 }
