@@ -2,7 +2,7 @@ package com.hngy.siae.core.asserts;
 
 import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.core.result.IResultCode;
-import org.springframework.util.StringUtils;
+import cn.hutool.core.util.StrUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class AssertUtils {
     }
 
     public static void notEmpty(String str, String message) {
-        if (!StringUtils.hasText(str)) {
+        if (StrUtil.isBlank(str)) {
             throw new ServiceException(message);
         }
     }
@@ -89,7 +89,7 @@ public class AssertUtils {
     }
 
     public static void notEmpty(String str, IResultCode resultCode) {
-        if (!StringUtils.hasText(str)) {
+        if (StrUtil.isBlank(str)) {
             throw new ServiceException(resultCode);
         }
     }

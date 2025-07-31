@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
  * 自动拆包 Result<T> 并处理业务异常
  */
 @Slf4j
-@Component
+//@Component
 //@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class FeignResultDecoder implements Decoder {
 

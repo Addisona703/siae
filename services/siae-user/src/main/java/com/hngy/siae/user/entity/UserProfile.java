@@ -39,6 +39,11 @@ public class UserProfile implements Serializable {
     private String realName;
 
     /**
+     * 用户头像URL
+     */
+    private String avatar;
+
+    /**
      * 个人简介
      */
     private String bio;

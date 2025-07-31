@@ -12,7 +12,8 @@ import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserAuth;
 import com.hngy.siae.auth.entity.UserRole;
 import com.hngy.siae.auth.feign.UserClient;
-import com.hngy.siae.auth.feign.dto.request.UserDTO;
+import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
+import com.hngy.siae.auth.feign.dto.response.UserBasicVO;
 import com.hngy.siae.auth.feign.dto.response.UserVO;
 
 import com.hngy.siae.auth.mapper.RoleMapper;
@@ -42,7 +43,6 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 认证服务实现类
@@ -85,7 +85,7 @@ public class AuthServiceImpl
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
         try {
             // 1. 远程调用userClient接口获取用户信息
-            UserVO user = userClient.getUserByUsername(loginDTO.getUsername());
+            UserBasicVO user = userClient.getUserByUsername(loginDTO.getUsername());
 
             // 验证用户存在性并记录失败日志
             assertUserExists(user, loginDTO.getUsername(), clientIp, browser, os);
@@ -168,17 +168,14 @@ public class AuthServiceImpl
             AssertUtils.isTrue(registerDTO.getPassword().equals(registerDTO.getConfirmPassword()),
                     AuthResultCodeEnum.PASSWORD_MISMATCH);
 
-            // 2. 检查用户名是否已存在
-            UserVO existingUser = userClient.getUserByUsername(registerDTO.getUsername());
-            AssertUtils.isNull(existingUser, AuthResultCodeEnum.USERNAME_ALREADY_EXISTS);
-
+            // 2. 检查用户名是否已存在，user服务插入时已经验证
             // 3. 构建用户DTO，使用BeanConvertUtil转换
-            UserDTO userDTO = BeanConvertUtil.to(registerDTO, UserDTO.class);
+            UserCreateDTO userDTO = BeanConvertUtil.to(registerDTO, UserCreateDTO.class);
             userDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
             userDTO.setStatus(1); // 默认启用
             
             // 4. 调用用户服务创建用户
-            UserVO createdUser = userClient.createUser(userDTO);
+            UserVO createdUser = userClient.createUserForFeign(userDTO);
             AssertUtils.notNull(createdUser, AuthResultCodeEnum.USER_CREATION_FAILED);
 
             // 5. 分配默认角色到数据库
@@ -433,7 +430,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws UsernameNotFoundException 当用户不存在时抛出
      */
-    private void assertUserExists(UserVO user, String username, String clientIp, String browser, String os) {
+    private void assertUserExists(UserBasicVO user, String username, String clientIp, String browser, String os) {
         if (user == null) {
             logService.saveLoginLogAsync(null, username, clientIp, browser, os, 0, AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
             throw new UsernameNotFoundException(AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
@@ -452,7 +449,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws ServiceException 当用户账户被禁用时抛出
      */
-    private void assertUserEnabled(UserVO user, String clientIp, String browser, String os) {
+    private void assertUserEnabled(UserBasicVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
             throw new ServiceException(AuthResultCodeEnum.ACCOUNT_DISABLED);
@@ -472,7 +469,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws BadCredentialsException 当密码不匹配时抛出
      */
-    private void assertPasswordMatches(String inputPassword, UserVO user, String clientIp, String browser, String os) {
+    private void assertPasswordMatches(String inputPassword, UserBasicVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
             throw new BadCredentialsException(AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
@@ -536,7 +533,7 @@ public class AuthServiceImpl
      * @param user 用户信息
      * @param expireSeconds 过期时间（秒）
      */
-    private void storeTokenToRedis(String token, UserVO user, long expireSeconds) {
+    private void storeTokenToRedis(String token, UserBasicVO user, long expireSeconds) {
         try {
             // 存储用户基本信息到Redis
             String userInfo = String.format("{\"userId\":%d,\"username\":\"%s\",\"status\":%d}",

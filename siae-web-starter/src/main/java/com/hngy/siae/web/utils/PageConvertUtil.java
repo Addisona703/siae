@@ -7,6 +7,7 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +94,7 @@ public class PageConvertUtil {
      * @param <V>       VO 类型
      * @return PageVO<V>
      */
-    public static <E, V> PageVO<V> convert(IPage<E> page, java.util.function.Function<E, V> converter) {
+    public static <E, V> PageVO<V> convert(IPage<E> page, Function<E, V> converter) {
         List<V> converted = page.getRecords().stream()
                 .map(converter)
                 .collect(Collectors.toList());

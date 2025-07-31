@@ -15,7 +15,7 @@ import java.util.List;
  * 当Redis不可用或被禁用时使用此实现，提供基础的权限检查功能
  * 可以保证系统在Redis不可用时仍能正常运行
  * 
- * @author SIAE开发团队
+ * @author KEYKB
  */
 @Slf4j
 @Service

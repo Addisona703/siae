@@ -2,12 +2,12 @@ package com.hngy.siae.core.permissions;
 
 /**
  * 用户模块权限常量定义
- *
+ * <p>
  * 命名规范：模块:资源:操作（如 user:profile:view）
  * 常量命名规范：USER_资源_操作（如 USER_PROFILE_VIEW）
  *
  * @author KEYKB
- * @date 2025/07/21
+ * &#064;date  2025/07/21
  */
 public class UserPermissions {
 
@@ -41,14 +41,20 @@ public class UserPermissions {
     public static final String USER_PROFILE_VIEW = "user:profile:view";
 
     // ==================== 正式成员管理权限 ====================
-    /** 更新正式成员 */
+    /** 创建正式成员 - 允许创建新的正式成员记录，包括直接创建和从候选成员转换 */
+    public static final String USER_MEMBER_CREATE = "user:member:create";
+
+    /** 更新正式成员 - 允许修改正式成员的基本信息，如部门、职位、状态等 */
     public static final String USER_MEMBER_UPDATE = "user:member:update";
 
-    /** 查询正式成员 */
+    /** 查询正式成员 - 允许查看正式成员的详细信息 */
     public static final String USER_MEMBER_VIEW = "user:member:view";
 
-    /** 分页查询正式成员列表 */
+    /** 分页查询正式成员列表 - 允许分页查询和条件筛选正式成员列表 */
     public static final String USER_MEMBER_LIST = "user:member:list";
+
+    /** 删除正式成员 - 允许删除正式成员记录（逻辑删除） */
+    public static final String USER_MEMBER_DELETE = "user:member:delete";
 
     // ==================== 候选成员管理权限 ====================
     /** 添加候选成员 */
@@ -129,5 +135,4 @@ public class UserPermissions {
 
     /** 分页查询用户获奖记录列表 */
     public static final String USER_AWARD_LIST = "user:award:list";
-
 }

@@ -4,7 +4,6 @@ import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.PermissionService;
 import com.hngy.siae.security.service.RedisPermissionService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,7 +23,7 @@ import java.util.stream.Stream;
  * Redis权限服务实现类
  * 从Redis缓存中获取用户权限和角色信息，支持缓存过期和刷新
  * 
- * @author SIAE开发团队
+ * @author KEYKB
  */
 @Slf4j
 @Service
@@ -345,8 +344,7 @@ public class RedisPermissionServiceImpl implements PermissionService, RedisPermi
 
             // 第二步：检查token在Redis中是否存在
             String tokenKey = TOKEN_KEY_PREFIX + token;
-            Boolean exists = objectRedisTemplate.hasKey(tokenKey);
-            boolean redisValid = Boolean.TRUE.equals(exists);
+            boolean redisValid = objectRedisTemplate.hasKey(tokenKey);
 
             if (!redisValid) {
                 log.debug("Token在Redis中不存在，用户可能已登出");

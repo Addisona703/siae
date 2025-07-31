@@ -1,7 +1,13 @@
 -- =============================================================================
 -- SIAE (软件协会官网) - 用户数据库 (user_db)
--- 版本: 3.0
--- 描述: 包含优化后的完整表结构和根据要求定制的详细测试数据。
+-- 版本: 4.0
+-- 描述: 优化后的完整表结构，移除第三方认证相关表，avatar字段迁移至user_profile表
+-- 修改日期: 2024-12-19
+-- 主要变更:
+--   1. 移除user表中的avatar字段，迁移至user_profile表
+--   2. 完全移除第三方认证相关表和数据
+--   3. 优化表结构和索引设计
+--   4. 规范化字段命名和注释
 -- =============================================================================
 
 -- ----------------------------
@@ -10,6 +16,10 @@
 DROP DATABASE IF EXISTS user_db;
 CREATE DATABASE IF NOT EXISTS user_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE user_db;
+
+-- 设置SQL模式和字符集
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- 1. 数据字典表 (Lookup Tables)
@@ -64,28 +74,32 @@ CREATE TABLE `award_type` (
 -- ----------------------------
 -- 2. 核心用户与业务表
 -- ----------------------------
+
+-- 用户主表：存储用户基本登录信息
 CREATE TABLE `user` (
   `id` BIGINT UNSIGNED PRIMARY KEY COMMENT '主键，使用雪花ID生成',
   `username` VARCHAR(64) NOT NULL COMMENT '登录名/用户名',
   `password` VARCHAR(255) NOT NULL COMMENT '加密密码 (请使用BCrypt)',
   `status` TINYINT DEFAULT 1 COMMENT '状态：0禁用，1启用',
-  `avatar` VARCHAR(512) COMMENT '头像URL',
   `is_deleted` TINYINT DEFAULT 0 COMMENT '是否逻辑删除：0否，1是',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   UNIQUE KEY `uk_username` (`username`),
   INDEX `idx_status` (`status`),
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_is_deleted` (`is_deleted`),
+  INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户主表';
 
+-- 用户详情表：存储用户个人资料和扩展信息
 CREATE TABLE `user_profile` (
   `user_id` BIGINT UNSIGNED PRIMARY KEY COMMENT '外键，关联user表',
   `nickname` VARCHAR(64) COMMENT '昵称',
   `real_name` VARCHAR(64) COMMENT '真实姓名',
+  `avatar` VARCHAR(500) DEFAULT NULL COMMENT '用户头像URL',
   `bio` TEXT COMMENT '个人简介',
   `bg_url` VARCHAR(512) COMMENT '主页背景图片URL',
   `email` VARCHAR(128) COMMENT '邮箱',
-  `phone` VARCHAR(20) COMMENT '手机',
+  `phone` VARCHAR(20) COMMENT '手机号码',
   `qq` VARCHAR(20) COMMENT 'QQ号 (用于联系)',
   `wechat` VARCHAR(64) COMMENT '微信号 (用于联系)',
   `id_card` VARCHAR(18) COMMENT '身份证号',
@@ -96,25 +110,15 @@ CREATE TABLE `user_profile` (
   INDEX `idx_email` (`email`),
   INDEX `idx_phone` (`phone`),
   INDEX `idx_real_name` (`real_name`),
-  CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+  INDEX `idx_nickname` (`nickname`),
+  CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户详情表';
 
-CREATE TABLE `user_third_party_auth` (
-  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '关联到我们系统内的用户ID',
-  `provider` VARCHAR(50) NOT NULL COMMENT '第三方平台名称 (如: ''wechat'', ''qq'')',
-  `provider_user_id` VARCHAR(255) NOT NULL COMMENT '用户在第三方平台的唯一ID (如 openid)',
-  `nickname_on_provider` VARCHAR(255) COMMENT '用户在第三方平台的昵称 (冗余)',
-  `avatar_on_provider` VARCHAR(512) COMMENT '用户在第三方平台的头像URL (冗余)',
-  `access_token` VARCHAR(512) COMMENT '第三方平台的访问令牌 (加密存储)',
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '绑定时间',
-  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  UNIQUE KEY `uk_provider_user` (`provider`, `provider_user_id`),
-  CONSTRAINT `fk_third_party_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='第三方认证表';
 
+
+-- 班级表：存储学院专业班级信息
 CREATE TABLE `class` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '班级ID',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '班级ID',
   `college_id` BIGINT UNSIGNED NOT NULL COMMENT '关联学院ID',
   `major_id` BIGINT UNSIGNED NOT NULL COMMENT '关联专业ID',
   `year` INT NOT NULL COMMENT '入学年份',
@@ -124,12 +128,16 @@ CREATE TABLE `class` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   UNIQUE KEY `uk_year_major_class` (`year`, `major_id`, `class_no`),
   INDEX `idx_is_deleted` (`is_deleted`),
-  CONSTRAINT `fk_class_college` FOREIGN KEY (`college_id`) REFERENCES `college` (`id`),
-  CONSTRAINT `fk_class_major` FOREIGN KEY (`major_id`) REFERENCES `major` (`id`)
-) COMMENT='班级表' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  INDEX `idx_college_id` (`college_id`),
+  INDEX `idx_major_id` (`major_id`),
+  INDEX `idx_year` (`year`),
+  CONSTRAINT `fk_class_college` FOREIGN KEY (`college_id`) REFERENCES `college` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_class_major` FOREIGN KEY (`major_id`) REFERENCES `major` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='班级表';
 
+-- 正式成员表：存储协会正式成员信息
 CREATE TABLE `member` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '成员ID',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '成员ID',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT '关联用户ID',
   `student_id` VARCHAR(32) NOT NULL COMMENT '学号',
   `department_id` BIGINT UNSIGNED NOT NULL COMMENT '关联部门ID',
@@ -142,13 +150,18 @@ CREATE TABLE `member` (
   UNIQUE KEY `uk_user_id` (`user_id`),
   UNIQUE KEY `uk_student_id` (`student_id`),
   INDEX `idx_is_deleted` (`is_deleted`),
-  CONSTRAINT `fk_member_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_member_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`),
-  CONSTRAINT `fk_member_position` FOREIGN KEY (`position_id`) REFERENCES `position` (`id`)
-) COMMENT='成员表' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  INDEX `idx_status` (`status`),
+  INDEX `idx_department_id` (`department_id`),
+  INDEX `idx_position_id` (`position_id`),
+  INDEX `idx_join_date` (`join_date`),
+  CONSTRAINT `fk_member_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_member_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_member_position` FOREIGN KEY (`position_id`) REFERENCES `position` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='正式成员表';
 
+-- 候选成员表：存储申请加入协会的候选成员信息
 CREATE TABLE `member_candidate` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '候选成员ID',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '候选成员ID',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT '关联用户ID',
   `student_id` VARCHAR(32) NOT NULL COMMENT '学号',
   `department_id` BIGINT UNSIGNED NOT NULL COMMENT '关联意向部门ID',
@@ -157,12 +170,15 @@ CREATE TABLE `member_candidate` (
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   UNIQUE KEY `uk_user_id` (`user_id`),
+  UNIQUE KEY `uk_student_id` (`student_id`),
   INDEX `idx_status` (`status`),
   INDEX `idx_is_deleted` (`is_deleted`),
-  CONSTRAINT `fk_candidate_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `fk_candidate_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`)
-) COMMENT='候选成员表' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  INDEX `idx_department_id` (`department_id`),
+  CONSTRAINT `fk_candidate_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_candidate_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='候选成员表';
 
+-- 用户获奖记录表：存储用户的各类获奖信息
 CREATE TABLE `user_award` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键，自增',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -179,15 +195,20 @@ CREATE TABLE `user_award` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录更新时间',
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_is_deleted` (`is_deleted`),
-  CONSTRAINT `fk_award_user` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_award_level` FOREIGN KEY (`award_level_id`) REFERENCES `award_level`(`id`),
-  CONSTRAINT `fk_award_type` FOREIGN KEY (`award_type_id`) REFERENCES `award_type`(`id`)
+  INDEX `idx_award_level_id` (`award_level_id`),
+  INDEX `idx_award_type_id` (`award_type_id`),
+  INDEX `idx_awarded_at` (`awarded_at`),
+  CONSTRAINT `fk_award_user` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_award_level` FOREIGN KEY (`award_level_id`) REFERENCES `award_level`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_award_type` FOREIGN KEY (`award_type_id`) REFERENCES `award_type`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户获奖记录表';
 
+-- 班级与用户关联表：存储用户与班级的关联关系
 CREATE TABLE `class_user` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-  `class_id` BIGINT NOT NULL COMMENT '班级ID',
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+  `class_id` BIGINT UNSIGNED NOT NULL COMMENT '班级ID',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+  `member_type` TINYINT DEFAULT 0 COMMENT '成员类型：0非协会成员，1预备成员，2正式成员',
   `status` TINYINT DEFAULT 1 COMMENT '状态：1在读，2转班，3毕业',
   `is_deleted` TINYINT DEFAULT 0 COMMENT '是否删除：0否，1是',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -195,9 +216,12 @@ CREATE TABLE `class_user` (
   UNIQUE KEY `uk_class_user` (`class_id`, `user_id`),
   INDEX `idx_status` (`status`),
   INDEX `idx_is_deleted` (`is_deleted`),
-  CONSTRAINT `fk_class_user_class` FOREIGN KEY (`class_id`) REFERENCES `class`(`id`),
-  CONSTRAINT `fk_class_user_user` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
-) COMMENT='班级与用户关联表' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  INDEX `idx_class_id` (`class_id`),
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_member_type` (`member_type`),
+  CONSTRAINT `fk_class_user_class` FOREIGN KEY (`class_id`) REFERENCES `class`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_class_user_user` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='班级与用户关联表';
 
 
 -- =============================================================================
@@ -258,21 +282,21 @@ INSERT INTO `user` (`id`, `username`, `password`, `status`) VALUES
 (12, 'web_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1),
 (13, 'mobile_minister', '$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi', 1);
 
--- 2. 插入用户详情数据
-INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `bg_url`, `bio`, `email`, `phone`, `gender`, `birthday`) VALUES
-(1, '会长大人', '李华', 'https://placehold.co/100x100/F56C6C/FFFFFF?text=会长', '协会的领航者', 'lihua@siae.com', '13800138001', 1, '2002-01-15'),
-(2, 'Java大师', '张伟', 'https://placehold.co/100x100/E6A23C/FFFFFF?text=Java', 'Everything is an object.', 'zhangwei@siae.com', '13800138002', 1, '2003-03-10'),
-(3, 'Pythonista', '王芳', 'https://placehold.co/100x100/409EFF/FFFFFF?text=Py', '人生苦短，我用Python。', 'wangfang@siae.com', '13800138003', 2, '2003-05-20'),
-(4, 'C语言之父(自封)', '刘强', 'https://placehold.co/100x100/67C23A/FFFFFF?text=C', '指针，指针，还是指针。', 'liuqiang@siae.com', '13800138004', 1, '2003-07-01'),
-(5, 'Java小兵', '赵敏', 'https://placehold.co/100x100/909399/FFFFFF?text=JM', '努力学习Java中...', 'zhaomin@siae.com', '13800138005', 2, '2004-09-01'),
-(6, 'Python新手', '孙琳', 'https://placehold.co/100x100/909399/FFFFFF?text=PyM', 'print("Hello World")', 'sunlin@siae.com', '13800138006', 2, '2004-10-10'),
-(7, 'C-Learner', '周杰', 'https://placehold.co/100x100/909399/FFFFFF?text=CM', NULL, 'zhoujie@siae.com', '13800138007', 1, '2004-11-11'),
-(8, '小萌新A', '吴迪', 'https://placehold.co/100x100/E9A8A8/FFFFFF?text=萌新', '希望加入JAVA部', 'wudi@siae.com', '13800138008', 1, '2005-01-20'),
-(9, '小萌新B', '郑雪', 'https://placehold.co/100x100/A8DDE9/FFFFFF?text=萌新', '对C语言很感兴趣', 'zhengxue@siae.com', '13800138009', 2, '2005-02-28'),
-(10, '路人甲', '冯程', 'https://placehold.co/100x100/CCCCCC/FFFFFF?text=路人', '我只是一个普通学生', 'fengcheng@siae.com', '13800138010', 1, '2004-06-06'),
-(11, '链圈大佬', '陈链', 'https://placehold.co/100x100/303133/FFFFFF?text=链', 'To the moon!', 'chenlian@siae.com', '13800138011', 1, '2003-04-05'),
-(12, '前端高手', '朱倩', 'https://placehold.co/100x100/303133/FFFFFF?text=Web', 'CSS是世界上最好的语言', 'zhuqian@siae.com', '13800138012', 2, '2003-08-15'),
-(13, 'App开发者', '蒋鑫', 'https://placehold.co/100x100/303133/FFFFFF?text=App', 'Android & iOS', 'jiangxin@siae.com', '13800138013', 1, '2003-10-25');
+-- 2. 插入用户详情数据（包含avatar字段）
+INSERT INTO `user_profile` (`user_id`, `nickname`, `real_name`, `avatar`, `bg_url`, `bio`, `email`, `phone`, `gender`, `birthday`) VALUES
+(1, '会长大人', '李华', 'https://placehold.co/100x100/F56C6C/FFFFFF?text=会长', 'https://placehold.co/800x200/F56C6C/FFFFFF?text=会长背景', '协会的领航者', 'lihua@siae.com', '13800138001', 1, '2002-01-15'),
+(2, 'Java大师', '张伟', 'https://placehold.co/100x100/E6A23C/FFFFFF?text=Java', 'https://placehold.co/800x200/E6A23C/FFFFFF?text=Java背景', 'Everything is an object.', 'zhangwei@siae.com', '13800138002', 1, '2003-03-10'),
+(3, 'Pythonista', '王芳', 'https://placehold.co/100x100/409EFF/FFFFFF?text=Py', 'https://placehold.co/800x200/409EFF/FFFFFF?text=Python背景', '人生苦短，我用Python。', 'wangfang@siae.com', '13800138003', 2, '2003-05-20'),
+(4, 'C语言之父(自封)', '刘强', 'https://placehold.co/100x100/67C23A/FFFFFF?text=C', 'https://placehold.co/800x200/67C23A/FFFFFF?text=C背景', '指针，指针，还是指针。', 'liuqiang@siae.com', '13800138004', 1, '2003-07-01'),
+(5, 'Java小兵', '赵敏', 'https://placehold.co/100x100/909399/FFFFFF?text=JM', 'https://placehold.co/800x200/909399/FFFFFF?text=Java成员', '努力学习Java中...', 'zhaomin@siae.com', '13800138005', 2, '2004-09-01'),
+(6, 'Python新手', '孙琳', 'https://placehold.co/100x100/909399/FFFFFF?text=PyM', 'https://placehold.co/800x200/909399/FFFFFF?text=Python成员', 'print("Hello World")', 'sunlin@siae.com', '13800138006', 2, '2004-10-10'),
+(7, 'C-Learner', '周杰', 'https://placehold.co/100x100/909399/FFFFFF?text=CM', NULL, NULL, 'zhoujie@siae.com', '13800138007', 1, '2004-11-11'),
+(8, '小萌新A', '吴迪', 'https://placehold.co/100x100/E9A8A8/FFFFFF?text=萌新', NULL, '希望加入JAVA部', 'wudi@siae.com', '13800138008', 1, '2005-01-20'),
+(9, '小萌新B', '郑雪', 'https://placehold.co/100x100/A8DDE9/FFFFFF?text=萌新', NULL, '对C语言很感兴趣', 'zhengxue@siae.com', '13800138009', 2, '2005-02-28'),
+(10, '路人甲', '冯程', 'https://placehold.co/100x100/CCCCCC/FFFFFF?text=路人', NULL, '我只是一个普通学生', 'fengcheng@siae.com', '13800138010', 1, '2004-06-06'),
+(11, '链圈大佬', '陈链', 'https://placehold.co/100x100/303133/FFFFFF?text=链', 'https://placehold.co/800x200/303133/FFFFFF?text=区块链', 'To the moon!', 'chenlian@siae.com', '13800138011', 1, '2003-04-05'),
+(12, '前端高手', '朱倩', 'https://placehold.co/100x100/303133/FFFFFF?text=Web', 'https://placehold.co/800x200/303133/FFFFFF?text=前端', 'CSS是世界上最好的语言', 'zhuqian@siae.com', '13800138012', 2, '2003-08-15'),
+(13, 'App开发者', '蒋鑫', 'https://placehold.co/100x100/303133/FFFFFF?text=App', 'https://placehold.co/800x200/303133/FFFFFF?text=移动开发', 'Android & iOS', 'jiangxin@siae.com', '13800138013', 1, '2003-10-25');
 
 -- 3. 插入班级数据
 INSERT INTO `class` (`id`, `college_id`, `major_id`, `year`, `class_no`) VALUES
@@ -320,9 +344,7 @@ INSERT INTO `user_award` (`user_id`, `award_title`, `award_level_id`, `award_typ
 (1, '全国大学生服务外包创新创业大赛', 501, 602, '教育部', '2024-05-20'), -- 李华 - 国家级创新创业奖项
 (2, '蓝桥杯软件类全国总决赛一等奖', 501, 601, '工业和信息化部人才交流中心', '2024-06-01'); -- 张伟 - 国家级学科竞赛奖项
 
--- 8. 插入第三方认证数据
-INSERT INTO `user_third_party_auth` (`user_id`, `provider`, `provider_user_id`) VALUES
-(1, 'wechat', 'o6_bmjrPTlm6_2sgVt7hMZOPfL2M'), -- 李华的微信OpenID
-(2, 'github', '1234567'); -- 张伟的GitHub ID
+-- 启用外键检查
+SET FOREIGN_KEY_CHECKS = 1;
 
 COMMIT;

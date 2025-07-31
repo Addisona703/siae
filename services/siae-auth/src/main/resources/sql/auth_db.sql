@@ -251,49 +251,51 @@ INSERT INTO `permission` (`id`, `name`, `code`, `type`, `parent_id`, `path`, `co
 
 -- 正式成员管理子菜单
 (112, '正式成员', 'user:member:manage', 'menu', 100, 'member', 'user/member/index', 'team', 3),
-(113, '成员更新', 'user:member:update', 'button', 112, NULL, NULL, NULL, 1),
-(114, '成员查看', 'user:member:view', 'button', 112, NULL, NULL, NULL, 2),
-(115, '成员列表', 'user:member:list', 'button', 112, NULL, NULL, NULL, 3),
+(113, '成员创建', 'user:member:create', 'button', 112, NULL, NULL, NULL, 1),
+(114, '成员更新', 'user:member:update', 'button', 112, NULL, NULL, NULL, 2),
+(115, '成员删除', 'user:member:delete', 'button', 112, NULL, NULL, NULL, 3),
+(116, '成员查看', 'user:member:view', 'button', 112, NULL, NULL, NULL, 4),
+(117, '成员列表', 'user:member:list', 'button', 112, NULL, NULL, NULL, 5),
 
 -- 候选成员管理子菜单
-(116, '候选成员', 'user:candidate:manage', 'menu', 100, 'candidate', 'user/candidate/index', 'user-plus', 4),
-(117, '候选成员创建', 'user:candidate:create', 'button', 116, NULL, NULL, NULL, 1),
-(118, '候选成员更新', 'user:candidate:update', 'button', 116, NULL, NULL, NULL, 2),
-(119, '候选成员删除', 'user:candidate:delete', 'button', 116, NULL, NULL, NULL, 3),
-(120, '候选成员查看', 'user:candidate:view', 'button', 116, NULL, NULL, NULL, 4),
-(121, '候选成员列表', 'user:candidate:list', 'button', 116, NULL, NULL, NULL, 5),
+(118, '候选成员', 'user:candidate:manage', 'menu', 100, 'candidate', 'user/candidate/index', 'user-plus', 4),
+(119, '候选成员创建', 'user:candidate:create', 'button', 118, NULL, NULL, NULL, 1),
+(120, '候选成员更新', 'user:candidate:update', 'button', 118, NULL, NULL, NULL, 2),
+(121, '候选成员删除', 'user:candidate:delete', 'button', 118, NULL, NULL, NULL, 3),
+(122, '候选成员查看', 'user:candidate:view', 'button', 118, NULL, NULL, NULL, 4),
+(123, '候选成员列表', 'user:candidate:list', 'button', 118, NULL, NULL, NULL, 5),
 
 -- 班级管理子菜单
-(122, '班级管理', 'user:class:manage', 'menu', 100, 'class', 'user/class/index', 'school', 5),
-(123, '班级创建', 'user:class:create', 'button', 122, NULL, NULL, NULL, 1),
-(124, '班级更新', 'user:class:update', 'button', 122, NULL, NULL, NULL, 2),
-(125, '班级删除', 'user:class:delete', 'button', 122, NULL, NULL, NULL, 3),
-(126, '班级查看', 'user:class:view', 'button', 122, NULL, NULL, NULL, 4),
-(127, '班级列表', 'user:class:list', 'button', 122, NULL, NULL, NULL, 5),
+(124, '班级管理', 'user:class:manage', 'menu', 100, 'class', 'user/class/index', 'school', 5),
+(125, '班级创建', 'user:class:create', 'button', 124, NULL, NULL, NULL, 1),
+(126, '班级更新', 'user:class:update', 'button', 124, NULL, NULL, NULL, 2),
+(127, '班级删除', 'user:class:delete', 'button', 124, NULL, NULL, NULL, 3),
+(128, '班级查看', 'user:class:view', 'button', 124, NULL, NULL, NULL, 4),
+(129, '班级列表', 'user:class:list', 'button', 124, NULL, NULL, NULL, 5),
 
 -- 奖项类型管理子菜单
-(128, '奖项类型', 'user:award-type:manage', 'menu', 100, 'award-type', 'user/award-type/index', 'trophy', 6),
-(129, '奖项类型创建', 'user:award-type:create', 'button', 128, NULL, NULL, NULL, 1),
-(130, '奖项类型更新', 'user:award-type:update', 'button', 128, NULL, NULL, NULL, 2),
-(131, '奖项类型删除', 'user:award-type:delete', 'button', 128, NULL, NULL, NULL, 3),
-(132, '奖项类型查看', 'user:award-type:view', 'button', 128, NULL, NULL, NULL, 4),
-(133, '奖项类型列表', 'user:award-type:list', 'button', 128, NULL, NULL, NULL, 5),
+(130, '奖项类型', 'user:award-type:manage', 'menu', 100, 'award-type', 'user/award-type/index', 'trophy', 6),
+(131, '奖项类型创建', 'user:award-type:create', 'button', 130, NULL, NULL, NULL, 1),
+(132, '奖项类型更新', 'user:award-type:update', 'button', 130, NULL, NULL, NULL, 2),
+(133, '奖项类型删除', 'user:award-type:delete', 'button', 130, NULL, NULL, NULL, 3),
+(134, '奖项类型查看', 'user:award-type:view', 'button', 130, NULL, NULL, NULL, 4),
+(135, '奖项类型列表', 'user:award-type:list', 'button', 130, NULL, NULL, NULL, 5),
 
 -- 奖项等级管理子菜单
-(134, '奖项等级', 'user:award-level:manage', 'menu', 100, 'award-level', 'user/award-level/index', 'star', 7),
-(135, '奖项等级创建', 'user:award-level:create', 'button', 134, NULL, NULL, NULL, 1),
-(136, '奖项等级更新', 'user:award-level:update', 'button', 134, NULL, NULL, NULL, 2),
-(137, '奖项等级删除', 'user:award-level:delete', 'button', 134, NULL, NULL, NULL, 3),
-(138, '奖项等级查看', 'user:award-level:view', 'button', 134, NULL, NULL, NULL, 4),
-(139, '奖项等级列表', 'user:award-level:list', 'button', 134, NULL, NULL, NULL, 5),
+(136, '奖项等级', 'user:award-level:manage', 'menu', 100, 'award-level', 'user/award-level/index', 'star', 7),
+(137, '奖项等级创建', 'user:award-level:create', 'button', 136, NULL, NULL, NULL, 1),
+(138, '奖项等级更新', 'user:award-level:update', 'button', 136, NULL, NULL, NULL, 2),
+(139, '奖项等级删除', 'user:award-level:delete', 'button', 136, NULL, NULL, NULL, 3),
+(140, '奖项等级查看', 'user:award-level:view', 'button', 136, NULL, NULL, NULL, 4),
+(141, '奖项等级列表', 'user:award-level:list', 'button', 136, NULL, NULL, NULL, 5),
 
 -- 用户获奖记录管理子菜单
-(140, '获奖记录', 'user:award:manage', 'menu', 100, 'award', 'user/award/index', 'medal', 8),
-(141, '获奖记录创建', 'user:award:create', 'button', 140, NULL, NULL, NULL, 1),
-(142, '获奖记录更新', 'user:award:update', 'button', 140, NULL, NULL, NULL, 2),
-(143, '获奖记录删除', 'user:award:delete', 'button', 140, NULL, NULL, NULL, 3),
-(144, '获奖记录查看', 'user:award:view', 'button', 140, NULL, NULL, NULL, 4),
-(145, '获奖记录列表', 'user:award:list', 'button', 140, NULL, NULL, NULL, 5);
+(142, '获奖记录', 'user:award:manage', 'menu', 100, 'award', 'user/award/index', 'medal', 8),
+(143, '获奖记录创建', 'user:award:create', 'button', 142, NULL, NULL, NULL, 1),
+(144, '获奖记录更新', 'user:award:update', 'button', 142, NULL, NULL, NULL, 2),
+(145, '获奖记录删除', 'user:award:delete', 'button', 142, NULL, NULL, NULL, 3),
+(146, '获奖记录查看', 'user:award:view', 'button', 142, NULL, NULL, NULL, 4),
+(147, '获奖记录列表', 'user:award:list', 'button', 142, NULL, NULL, NULL, 5);
 
 -- 初始化角色-权限关联关系
 -- 超级管理员(ROLE_ROOT)拥有所有权限
@@ -313,6 +315,7 @@ WHERE code NOT IN (
     'user:delete',
     'user:profile:delete',
     'user:candidate:delete',
+    'user:member:delete',
     'user:class:delete',
     'user:award-type:delete',
     'user:award-level:delete',

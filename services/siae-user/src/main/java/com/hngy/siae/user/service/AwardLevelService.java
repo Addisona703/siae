@@ -2,7 +2,9 @@ package com.hngy.siae.user.service;
 
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.user.dto.request.AwardLevelDTO;
+import com.hngy.siae.user.dto.request.AwardLevelCreateDTO;
+import com.hngy.siae.user.dto.request.AwardLevelQueryDTO;
+import com.hngy.siae.user.dto.request.AwardLevelUpdateDTO;
 import com.hngy.siae.user.dto.response.AwardLevelVO;
 
 import java.util.List;
@@ -17,18 +19,18 @@ public interface AwardLevelService {
     /**
      * 创建奖项等级
      *
-     * @param awardLevelDTO 奖项等级实体
+     * @param awardLevelCreateDTO 奖项等级创建参数
      * @return 奖项等级实体
      */
-    AwardLevelVO createAwardLevel(AwardLevelDTO awardLevelDTO);
+    AwardLevelVO createAwardLevel(AwardLevelCreateDTO awardLevelCreateDTO);
 
     /**
      * 更新奖项等级
      *
-     * @param awardLevelDTO 奖项等级实体
+     * @param awardLevelUpdateDTO 奖项等级更新参数
      * @return 奖项等级实体
      */
-    AwardLevelVO updateAwardLevel(AwardLevelDTO awardLevelDTO);
+    AwardLevelVO updateAwardLevel(AwardLevelUpdateDTO awardLevelUpdateDTO);
 
     /**
      * 根据ID获取奖项等级
@@ -56,10 +58,10 @@ public interface AwardLevelService {
     /**
      * 分页查询奖项等级
      *
-     * @param pageDTO 分页参数
+     * @param pageDTO 分页查询参数
      * @return 分页奖项等级实体
      */
-    PageVO<AwardLevelVO> listAwardLevelsByPage(PageDTO<AwardLevelDTO> pageDTO);
+    PageVO<AwardLevelVO> listAwardLevelsByPage(PageDTO<AwardLevelQueryDTO> pageDTO);
 
     /**
      * 根据ID删除奖项等级

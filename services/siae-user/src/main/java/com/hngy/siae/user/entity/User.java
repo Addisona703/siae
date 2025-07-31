@@ -45,11 +45,6 @@ public class User implements Serializable {
     private Integer status;
 
     /**
-     * 头像URL
-     */
-    private String avatar;
-
-    /**
      * 是否逻辑删除：0否，1是
      */
     @TableLogic

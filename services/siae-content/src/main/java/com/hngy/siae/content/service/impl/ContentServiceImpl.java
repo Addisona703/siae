@@ -1,6 +1,7 @@
 package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.result.Result;
@@ -78,7 +79,7 @@ public class ContentServiceImpl
                 .exists(), "这个内容不存在无法更新");
 
         // 2. 拷贝 DTO 到实体，并处理类型转换
-        Content content = BeanUtil.copyProperties(contentDTO, Content.class, "type");
+        Content content = BeanConvertUtil.to(contentDTO, Content.class);
         Optional.ofNullable(contentDTO.getType())
                 .map(typeStr -> {
                     ContentTypeEnum type = BaseEnum.fromDesc(ContentTypeEnum.class, typeStr);

@@ -39,6 +39,11 @@ public class ClassUser implements Serializable {
     private Long userId;
 
     /**
+     * 成员类型：0非协会成员，1预备成员，2正式成员
+     */
+    private Integer memberType;
+
+    /**
      * 状态：1在读，2转班，3毕业
      */
     private Integer status;

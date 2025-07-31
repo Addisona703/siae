@@ -1,6 +1,6 @@
 package com.hngy.siae.content.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -46,11 +46,11 @@ public class CategoriesServiceImpl
         AssertUtils.isFalse(exists, "分类名称已存在");
 
         // 插入分类
-        Category category = BeanUtil.copyProperties(categoryDTO, Category.class);
+        Category category = BeanConvertUtil.to(categoryDTO, Category.class);
         AssertUtils.isTrue(baseMapper.insert(category) > 0, "新增分类失败");
 
         // 封装返回
-        CategoryVO categoryVO = BeanUtil.copyProperties(category, CategoryVO.class);
+        CategoryVO categoryVO = BeanConvertUtil.to(category, CategoryVO.class);
         return Result.success(categoryVO);
     }
 
@@ -71,11 +71,11 @@ public class CategoriesServiceImpl
         AssertUtils.isFalse(exists, "分类名称或编码已存在");
 
         // 存在则更新分类
-        Category category = BeanUtil.copyProperties(categoryDTO, Category.class);
+        Category category = BeanConvertUtil.to(categoryDTO, Category.class);
         AssertUtils.isTrue(this.updateById(category), "更新分类失败");
 
         // 转换成VO返回
-        CategoryVO categoryVO = BeanUtil.copyProperties(category, CategoryVO.class);
+        CategoryVO categoryVO = BeanConvertUtil.to(category, CategoryVO.class);
         return Result.success(categoryVO);
     }
 
@@ -137,7 +137,7 @@ public class CategoriesServiceImpl
                 || category.getStatus() == CategoryStatusEnum.DELETED
                 ,"分类不存在");
 
-        CategoryVO categoryVO = BeanUtil.copyProperties(category, CategoryVO.class);
+        CategoryVO categoryVO = BeanConvertUtil.to(category, CategoryVO.class);
         return Result.success(categoryVO);
     }
 

@@ -1,13 +1,13 @@
 package com.hngy.siae.web.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.util.StringUtils;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * Web工具类
  * 提供HTTP请求相关的工具方法
  * 
- * @author SIAE开发团队
+ * @author KEYKB
  */
 public class WebUtils {
     
@@ -22,24 +22,24 @@ public class WebUtils {
      */
     public static String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        if (!StringUtils.hasText(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+        if (StrUtil.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
-        if (!StringUtils.hasText(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+        if (StrUtil.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("WL-Proxy-Client-IP");
         }
-        if (!StringUtils.hasText(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+        if (StrUtil.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("HTTP_CLIENT_IP");
         }
-        if (!StringUtils.hasText(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+        if (StrUtil.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("HTTP_X_FORWARDED_FOR");
         }
-        if (!StringUtils.hasText(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+        if (StrUtil.isBlank(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        
+
         // 处理多个IP的情况，取第一个非unknown的IP
-        if (StringUtils.hasText(ip) && ip.contains(",")) {
+        if (StrUtil.isNotBlank(ip) && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
         
@@ -54,7 +54,7 @@ public class WebUtils {
      */
     public static String getBrowser(HttpServletRequest request) {
         String userAgent = request.getHeader("User-Agent");
-        if (!StringUtils.hasText(userAgent)) {
+        if (StrUtil.isBlank(userAgent)) {
             return "未知浏览器";
         }
         
@@ -85,7 +85,7 @@ public class WebUtils {
      */
     public static String getOs(HttpServletRequest request) {
         String userAgent = request.getHeader("User-Agent");
-        if (!StringUtils.hasText(userAgent)) {
+        if (StrUtil.isBlank(userAgent)) {
             return "未知操作系统";
         }
         
@@ -128,7 +128,7 @@ public class WebUtils {
         StringBuffer requestURL = request.getRequestURL();
         String queryString = request.getQueryString();
         
-        if (StringUtils.hasText(queryString)) {
+        if (StrUtil.isNotBlank(queryString)) {
             requestURL.append("?").append(queryString);
         }
         

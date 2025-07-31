@@ -31,6 +31,8 @@ public enum UserResultCodeEnum implements IResultCode {
     CLASS_NOT_FOUND(1200, "班级不存在"),
     CLASS_ALREADY_EXISTS(1201, "班级已存在"),
     CLASS_USER_RELATION_NOT_FOUND(1202, "用户班级关系不存在"),
+    CLASS_USER_NOT_FOUND(1203, "班级用户关联不存在"),
+    USER_ALREADY_IN_CLASS(1204, "用户已在该班级中"),
 
     // 会员相关错误码 (1300-1399)
     MEMBER_NOT_FOUND(1300, "会员不存在"),
@@ -40,6 +42,7 @@ public enum UserResultCodeEnum implements IResultCode {
     MEMBER_CANDIDATE_ALREADY_PROCESSED(1304, "会员候选申请已处理"),
     MEMBER_CANDIDATE_ALREADY_EXISTS(1305, "该候选成员已存在"),
     MEMBER_CANDIDATE_INACTIVE(1306, "该同学未通过上一次考核"),
+    STUDENT_ID_ALREADY_EXISTS(1307, "学号已存在"),
     
     // 奖项相关错误码 (1400-1499)
     AWARD_NOT_FOUND(1400, "获奖记录不存在"),

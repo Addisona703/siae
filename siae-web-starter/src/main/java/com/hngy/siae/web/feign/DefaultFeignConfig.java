@@ -21,10 +21,10 @@ public class DefaultFeignConfig {
      * @param objectMapper 我们自己实现的解码器
      * @return Decoder
      */
-    @Bean
-    public Decoder feignDecoder(ObjectMapper objectMapper) {
-        return new FeignResultDecoder(objectMapper);
-    }
+//    @Bean
+//    public Decoder feignDecoder(ObjectMapper objectMapper) {
+//        return new FeignResultDecoder(objectMapper);
+//    }
 
     /**
      * 配置 Feign 的日志级别

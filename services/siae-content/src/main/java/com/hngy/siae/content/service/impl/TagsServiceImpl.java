@@ -1,6 +1,6 @@
 package com.hngy.siae.content.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -47,11 +47,11 @@ public class TagsServiceImpl
         AssertUtils.isFalse(exists, "标签已存在");
 
         // 插入标签
-        Tag tag = BeanUtil.copyProperties(tagDTO, Tag.class);
+        Tag tag = BeanConvertUtil.to(tagDTO, Tag.class);
         AssertUtils.isTrue(this.save(tag), "标签保存失败，请重试");
 
         // 封装vo返回
-        TagVO vo = BeanUtil.copyProperties(tag, TagVO.class);
+        TagVO vo = BeanConvertUtil.to(tag, TagVO.class);
         return Result.success(vo);
     }
 
@@ -74,11 +74,11 @@ public class TagsServiceImpl
         AssertUtils.isFalse(exists, "标签已存在，不要重复更新");
 
         // 拷贝属性并更新
-        Tag tag = BeanUtil.copyProperties(tagDTO, Tag.class);
+        Tag tag = BeanConvertUtil.to(tagDTO, Tag.class);
         tag.setId(id);
         AssertUtils.isTrue(this.updateById(tag), "更新标签失败");
 
-        TagVO vo = BeanUtil.copyProperties(tag, TagVO.class);
+        TagVO vo = BeanConvertUtil.to(tag, TagVO.class);
         return Result.success(vo);
     }
 

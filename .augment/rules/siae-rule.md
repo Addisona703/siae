@@ -49,6 +49,84 @@ public class UserController {
 }
 ```
 
+### 1.3 Javadoc注释规范
+- **规则**: 所有类和方法都要加上注释，要求简洁精炼，尽量简单描述
+
+```java
+/**
+ * 认证控制器
+ * 
+ * @author KEYKB
+ */
+@Tag(name = "认证管理", description = "认证相关API")
+@RestController
+@RequestMapping
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    /**
+     * 用户登录
+     *
+     * @param request  HTTP请求
+     * @param loginDTO 登录请求DTO
+     * @return 登录结果
+     */
+    @Operation(summary = "用户登录")
+    @PostMapping("/login")
+    public Result<LoginVO> login(HttpServletRequest request, @Valid @RequestBody LoginDTO loginDTO) {
+        // 具体逻辑
+    }
+}
+
+/**
+ * 日志服务接口
+ *
+ * @author KEYKB
+ */
+public interface LogService extends IService<LoginLog> {
+
+    /**
+     * 获取登录日志
+     *
+     * @param pageDTO 分页查询参数
+     * @return 登录日志分页结果
+     */
+    PageVO<LoginLogVO> getLoginLogs(PageDTO<LoginQueryDTO> pageDTO);
+}
+
+/**
+ * 日志服务实现类
+ * <p>
+ * 提供登录日志的查询和异步记录功能，
+ * 支持安全审计和用户行为分析。
+ *
+ * @author KEYKB
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class LogServiceImpl
+        extends ServiceImpl<LoginLogMapper, LoginLog>
+        implements LogService {
+
+  /**
+   * 分页查询登录日志
+   * <p>
+   * 支持按时间、用户名、状态等条件筛选登录记录。
+   *
+   * @param pageDTO 分页查询参数
+   * @return 分页的登录日志列表
+   */
+  @Override
+  public PageVO<LoginLogVO> getLoginLogs(PageDTO<LoginQueryDTO> pageDTO) {
+    // 具体逻辑
+  }
+}
+```
+
+
 ## 2. 服务层规范
 
 ### 2.1 服务接口继承规范
@@ -281,13 +359,49 @@ public Result<UserVO> getUser(
 ```java
 @Tag(name = "用户管理", description = "用户相关API")
 @RestController
-@RequestMapping("/users")
+@RequestMapping
 public class UserController {
 
     @Operation(summary = "创建用户", description = "创建新用户")
     @PostMapping
     public Result<Boolean> createUser(
             @Parameter(description = "用户创建参数") @Valid @RequestBody UserCreateDTO userDTO) {
+        // 实现逻辑
+    }
+}
+```
+
+### 7.3 接口路径
+- **规则**: 基础路径不需要配置，我已经在 application-dev.yaml 中配置了
+- **示例**: `@RequestMapping("/api/v1/user")` 替换为 `@RequestMapping`
+
+```java
+@Tag(name = "用户管理", description = "用户相关API")
+@RestController
+@RequestMapping
+public class UserController {
+
+    @Operation(summary = "创建用户", description = "创建新用户")
+    @PostMapping
+    public Result<Boolean> createUser(
+            @Parameter(description = "用户创建参数") @Valid @RequestBody UserCreateDTO userDTO) {
+        // 实现逻辑
+    }
+}
+@RestController
+@RequestMapping("/award-levels")
+@RequiredArgsConstructor
+@Tag(name = "奖项等级字典管理", description = "用于管理奖项等级信息的接口")
+@Validated
+public class AwardLevelController {
+
+    private final AwardLevelService awardLevelService;
+
+    @PostMapping
+    @Operation(summary = "创建奖项等级", description = "创建新的奖项等级")
+    @SiaeAuthorize("hasAuthority('" + USER_AWARD_LEVEL_CREATE + "')")
+    public Result<AwardLevelVO> createAwardLevel(
+            @Parameter(description = "奖项等级创建参数") @Validated @RequestBody AwardLevelDTO awardLevelDTO) {
         // 实现逻辑
     }
 }

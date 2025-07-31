@@ -46,7 +46,7 @@ public class ServiceCallFeignInterceptor implements RequestInterceptor {
             }
 
             // 验证token是否有效
-            if (serviceCallToken == null || serviceCallToken.trim().isEmpty()) {
+            if (serviceCallToken.trim().isEmpty()) {
                 log.error("❌ 生成的服务间调用token为空");
                 throw new RuntimeException("生成的服务间调用token为空");
             }
