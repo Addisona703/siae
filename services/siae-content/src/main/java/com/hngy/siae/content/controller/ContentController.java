@@ -17,15 +17,11 @@ import com.hngy.siae.content.service.ContentService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,11 +52,8 @@ public class ContentController {
      * @return 发布的内容详情
      */
     @Operation(summary = "发布内容", description = "创建并发布新的内容，支持文章、笔记、提问、文件、视频等多种类型")
-    @ApiResponse(responseCode = "200", description = "发布成功",
-        content = @Content(mediaType = "application/json",
-            schema = @Schema(implementation = ContentVO.class)))
     @PostMapping("/")
-    @PreAuthorize("hasAuthority('" + CONTENT_PUBLISH + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_PUBLISH + "')")
     public Result<ContentVO<ContentDetailVO>> publishContent(
             @Parameter(description = "内容发布请求数据，包含标题、类型、描述、分类等信息", required = true)
             @RequestBody @Validated(CreateGroup.class) ContentDTO contentDTO) {
@@ -75,15 +68,8 @@ public class ContentController {
      * @return 编辑后的内容详情
      */
     @Operation(summary = "编辑内容", description = "修改已存在的内容信息，包括标题、描述、分类等，需要提供内容ID")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "编辑成功",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ContentVO.class))),
-        @ApiResponse(responseCode = "404", description = "内容不存在",
-            content = @Content(mediaType = "application/json"))
-    })
     @PutMapping("/")
-    @PreAuthorize("hasAuthority('" + CONTENT_EDIT + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_EDIT + "')")
     public Result<ContentVO<ContentDetailVO>> editContent(
             @Parameter(description = "内容编辑请求数据，必须包含内容ID和要修改的字段", required = true)
             @RequestBody @Validated(UpdateGroup.class) ContentDTO contentDTO) {
@@ -99,14 +85,8 @@ public class ContentController {
      * @return 删除结果
      */
     @Operation(summary = "删除内容", description = "删除指定的内容，可选择永久删除或移至垃圾箱")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "删除成功",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "404", description = "内容不存在",
-            content = @Content(mediaType = "application/json"))
-    })
     @DeleteMapping("/")
-    @PreAuthorize("hasAuthority('" + CONTENT_DELETE + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_DELETE + "')")
     public Result<Void> deleteContent(
             @Parameter(description = "内容ID", required = true, example = "1")
             @NotNull @RequestParam Integer id,
@@ -123,15 +103,8 @@ public class ContentController {
      * @return 内容详情信息
      */
     @Operation(summary = "查询内容详情", description = "根据内容ID获取内容的详细信息，包括基本信息和具体内容详情")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "查询成功",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ContentVO.class))),
-        @ApiResponse(responseCode = "404", description = "内容不存在或已被删除",
-            content = @Content(mediaType = "application/json"))
-    })
     @GetMapping("/query/{contentId}")
-    @PreAuthorize("hasAuthority('" + CONTENT_QUERY + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_QUERY + "')")
     public Result<ContentVO<ContentDetailVO>> queryContent(
             @Parameter(description = "内容ID，用于唯一标识要查询的内容", required = true, example = "123456")
             @NotNull @PathVariable("contentId") Long contentId) {
@@ -140,11 +113,8 @@ public class ContentController {
 
 
     @Operation(summary = "查询内容列表", description = "分页查询内容列表，支持按分类、标签、状态等条件筛选")
-    @ApiResponse(responseCode = "200", description = "查询成功",
-        content = @Content(mediaType = "application/json",
-            schema = @Schema(implementation = PageVO.class)))
     @GetMapping("/")
-    @PreAuthorize("hasAuthority('" + CONTENT_LIST_VIEW + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_LIST_VIEW + "')")
     public Result<PageVO<ContentVO<EmptyDetailVO>>> queryContentList(
             @Parameter(description = "分页查询参数", required = true)
             @RequestBody @Valid PageDTO<ContentPageDTO> contentPageDTO) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 字符串枚举转换器工厂
+ * 将请求体内的字符串转换为枚举类型
  *
  * @author KEYKB
  * &#064;date: 2025/05/20

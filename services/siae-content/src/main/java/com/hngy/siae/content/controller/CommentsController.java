@@ -10,10 +10,6 @@ import com.hngy.siae.content.service.CommentsService;
 import com.hngy.siae.core.validation.CreateGroup;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
@@ -39,26 +35,55 @@ public class CommentsController {
     private final CommentFacade commentFacade;
 
 
+    /**
+     * 创建评论
+     *
+     * @param contentId 内容ID
+     * @param commentDTO 评论创建请求DTO
+     * @return 创建的评论信息
+     */
+    @Operation(summary = "创建评论", description = "为指定内容创建评论")
     @PostMapping("/{contentId}")
     public Result<CommentVO> createComment(
+            @Parameter(description = "内容ID", required = true, example = "1")
             @PathVariable Long contentId,
+            @Parameter(description = "评论创建请求数据", required = true)
             @Validated({Default.class, CreateGroup.class})
             @RequestBody CommentDTO commentDTO) {
         return commentFacade.createComment(contentId, commentDTO);
     }
 
 
+    /**
+     * 更新评论
+     *
+     * @param commentId 评论ID
+     * @param commentDTO 评论更新请求DTO
+     * @return 更新后的评论信息
+     */
+    @Operation(summary = "更新评论", description = "更新指定评论的内容")
     @PutMapping("/{commentId}")
     public Result<CommentVO> updateComment(
+            @Parameter(description = "评论ID", required = true, example = "1")
             @PathVariable Long commentId,
+            @Parameter(description = "评论更新请求数据", required = true)
             @Valid @RequestBody CommentDTO commentDTO) {
         // TODO: 更新后应该还需要重新进行一次审核或者先对内容进行审核再更新
         return commentsService.updateComment(commentId, commentDTO);
     }
 
 
+    /**
+     * 删除评论
+     *
+     * @param id 评论ID
+     * @return 删除结果
+     */
+    @Operation(summary = "删除评论", description = "删除指定的评论")
     @DeleteMapping("/{id}")
-    public Result<Void> deleteComment(@PathVariable Long id) {
+    public Result<Void> deleteComment(
+            @Parameter(description = "评论ID", required = true, example = "1")
+            @PathVariable Long id) {
         return commentsService.deleteComment(id);
     }
 
@@ -73,12 +98,6 @@ public class CommentsController {
      */
     @GetMapping("/{contentId}")
     @Operation(summary = "查询评论列表", description = "根据内容ID分页查询评论列表")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "查询成功",
-                    content = @Content(schema = @Schema(implementation = PageVO.class))),
-            @ApiResponse(responseCode = "400", description = "参数错误"),
-            @ApiResponse(responseCode = "500", description = "服务器内部错误")
-    })
     public Result<PageVO<CommentVO>> listComments(
             @Parameter(description = "内容ID", required = true) @PathVariable Long contentId,
             @Parameter(description = "页码", example = "1") @RequestParam(defaultValue = "1") Integer page,
@@ -94,12 +113,6 @@ public class CommentsController {
      */
     @PostMapping("/page")
     @Operation(summary = "分页查询评论", description = "使用标准化分页参数查询评论列表")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "查询成功",
-                    content = @Content(schema = @Schema(implementation = PageVO.class))),
-            @ApiResponse(responseCode = "400", description = "参数错误"),
-            @ApiResponse(responseCode = "500", description = "服务器内部错误")
-    })
     public Result<PageVO<CommentVO>> listCommentsPage(
             @Parameter(description = "分页查询参数", required = true)
             @Valid @RequestBody PageDTO<CommentDTO> pageDTO) {

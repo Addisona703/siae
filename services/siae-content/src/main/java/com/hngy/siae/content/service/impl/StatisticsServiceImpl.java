@@ -1,15 +1,15 @@
 package com.hngy.siae.content.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hngy.siae.core.result.Result;
+
 import com.hngy.siae.content.common.enums.ActionTypeEnum;
 import com.hngy.siae.content.dto.request.StatisticsDTO;
 import com.hngy.siae.content.dto.response.StatisticsVO;
 import com.hngy.siae.content.entity.Statistics;
 import com.hngy.siae.content.mapper.StatisticsMapper;
 import com.hngy.siae.content.service.StatisticsService;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -79,24 +79,22 @@ public class StatisticsServiceImpl
 
 
     @Override
-    public Result<StatisticsVO> getStatistics(Long contentId) {
+    public StatisticsVO getStatistics(Long contentId) {
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
         AssertUtils.notNull(statistics, "统计表不存在");
 
-        StatisticsVO statisticsVO = BeanUtil.copyProperties(statistics, StatisticsVO.class);
-        return Result.success(statisticsVO);
+        return BeanConvertUtil.to(statistics, StatisticsVO.class);
     }
 
 
     @Override
-    public Result<StatisticsVO> updateStatistics(Long contentId, StatisticsDTO statisticsDTO) {
+    public StatisticsVO updateStatistics(Long contentId, StatisticsDTO statisticsDTO) {
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
         AssertUtils.notNull(statistics, "统计表不存在");
 
-        BeanUtil.copyProperties(statisticsDTO, statistics);
+        BeanConvertUtil.to(statisticsDTO, statistics);
         AssertUtils.isTrue(this.updateById(statistics), "修改统计表信息失败");
 
-        StatisticsVO vo = BeanUtil.copyProperties(statistics, StatisticsVO.class);
-        return Result.success(vo);
+        return BeanConvertUtil.to(statistics, StatisticsVO.class);
     }
 }

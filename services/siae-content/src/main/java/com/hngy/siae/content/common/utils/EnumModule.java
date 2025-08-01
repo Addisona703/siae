@@ -11,7 +11,7 @@ public class EnumModule extends SimpleModule {
 
     public EnumModule() {
         // 扫描指定包下所有实现 BaseEnum 接口的枚举类
-        Reflections reflections = new Reflections("com.hngy.siae.common.enums");
+        Reflections reflections = new Reflections("com.hngy.siae.content.common.enums");
         Set<Class<? extends BaseEnum>> enumClasses = reflections.getSubTypesOf(BaseEnum.class);
 
         for (Class<? extends BaseEnum> enumClass : enumClasses) {

@@ -144,6 +144,8 @@
 | PUT | `/award-types` | 更新奖项类型 | `user:award-type:update` |
 | DELETE | `/award-types/{id}` | 删除奖项类型 | `user:award-type:delete` |
 | GET | `/award-types/{id}` | 查询奖项类型详情 | `user:award-type:view` |
+| GET | `/award-types/name/{name}` | 根据名称获取奖项类型 | `user:award-type:view` |
+| GET | `/award-types` | 获取所有奖项类型列表 | `user:award-type:list` |
 | POST | `/award-types/page` | 分页查询奖项类型列表 | `user:award-type:list` |
 
 ### 奖项等级管理 (AwardLevelController)
@@ -154,6 +156,8 @@
 | PUT | `/award-levels` | 更新奖项等级 | `user:award-level:update` |
 | DELETE | `/award-levels/{id}` | 删除奖项等级 | `user:award-level:delete` |
 | GET | `/award-levels/{id}` | 查询奖项等级详情 | `user:award-level:view` |
+| GET | `/award-levels/name/{name}` | 根据名称获取奖项等级 | `user:award-level:view` |
+| GET | `/award-levels` | 获取所有奖项等级列表 | `user:award-level:list` |
 | POST | `/award-levels/page` | 分页查询奖项等级列表 | `user:award-level:list` |
 
 ### 用户获奖记录管理 (UserAwardController)
@@ -179,11 +183,11 @@
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
 | POST | `/` | 发布内容 | `content:publish` |
-| PUT | `/{contentId}` | 编辑内容 | `content:edit` |
-| DELETE | `/{contentId}` | 删除内容 | `content:delete` |
+| PUT | `/` | 编辑内容 | `content:edit` |
+| DELETE | `/` | 删除内容 | `content:delete` |
 | GET | `/query/{contentId}` | 查询内容详情 | `content:query` |
 | GET | `/` | 查询内容列表 | `content:list:view` |
-| GET | `/hot` | 查询热门内容 | `content:hot:view` |
+| GET | `/hot` | 查询热门内容 | 无 (公开接口) |
 
 ### 标签管理 (TagsController)
 
@@ -199,23 +203,29 @@
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
 | POST | `/categories` | 创建分类 | `content:category:create` |
-| PUT | `/categories` | 编辑分类 | `content:category:edit` |
-| DELETE | `/categories` | 删除分类 | `content:category:delete` |
-| GET | `/categories` | 查询分类列表 | `content:category:view` |
+| PUT | `/categories` | 更新分类 | `content:category:edit` |
+| DELETE | `/categories/{categoryId}` | 删除分类 | `content:category:delete` |
+| GET | `/categories` | 分页查询分类列表 | `content:category:view` |
+| GET | `/categories/detail/{categoryId}` | 查询分类详情 | `content:category:view` |
+| POST | `/categories/toggle-enable` | 启用/禁用分类 | `content:category:toggle` |
 
 ### 审核管理 (AuditsController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
 | PUT | `/audits/{id}` | 处理审核 | `content:audit:handle` |
+| GET | `/audits/pending` | 获取待审核列表 | `content:audit:view` |
 | GET | `/audits` | 获取审核记录 | `content:audit:view` |
 
 ### 评论管理 (CommentsController)
 
 | HTTP方法 | API路径 | 接口描述 | 权限要求 |
 |----------|---------|----------|----------|
-| POST | `/comments/{contentId}` | 创建评论 | `content:comment:create` |
-| POST | `/comments/page` | 分页查询评论 | `content:comment:view` |
+| POST | `/comments/{contentId}` | 创建评论 | 无 (公开接口) |
+| PUT | `/comments/{commentId}` | 更新评论 | 无 (公开接口) |
+| DELETE | `/comments/{id}` | 删除评论 | 无 (公开接口) |
+| GET | `/comments/{contentId}` | 查询评论列表 | 无 (公开接口) |
+| POST | `/comments/page` | 分页查询评论 | 无 (公开接口) |
 
 ### 用户交互管理 (InteractionsController)
 
@@ -265,29 +275,29 @@
 
 | 服务名称 | 控制器数量 | 接口数量 | 权限保护接口 | 公开接口 |
 |----------|------------|----------|--------------|----------|
-| **认证服务 (siae-auth)** | 6 | 23 | 19 | 4 |
-| **用户服务 (siae-user)** | 8 | 40 | 40 | 0 |
-| **内容服务 (siae-content)** | 7 | 25 | 19 | 6 |
+| **认证服务 (siae-auth)** | 6 | 25 | 21 | 4 |
+| **用户服务 (siae-user)** | 8 | 44 | 44 | 0 |
+| **内容服务 (siae-content)** | 7 | 28 | 17 | 11 |
 | **消息服务 (siae-message)** | 1 | 2 | 0 | 2 |
-| **总计** | **22** | **90** | **78** | **12** |
+| **总计** | **22** | **99** | **82** | **17** |
 
 ### 按HTTP方法统计
 
 | HTTP方法 | 接口数量 | 占比 |
 |----------|----------|------|
-| GET | 35 | 41.2% |
-| POST | 32 | 37.6% |
-| PUT | 10 | 11.8% |
-| DELETE | 8 | 9.4% |
+| GET | 40 | 40.4% |
+| POST | 36 | 36.4% |
+| PUT | 12 | 12.1% |
+| DELETE | 11 | 11.1% |
 
 ### 权限分类统计
 
 | 权限类型 | 接口数量 | 说明 |
 |----------|----------|------|
-| 系统管理权限 | 18 | 认证、角色、权限、日志管理 |
-| 用户管理权限 | 40 | 用户信息、成员、班级、奖项管理 |
-| 内容管理权限 | 19 | 内容发布、标签、分类、审核、评论 |
-| 公开接口 | 12 | 无需权限验证的接口 |
+| 系统管理权限 | 21 | 认证、角色、权限、日志管理 |
+| 用户管理权限 | 44 | 用户信息、成员、班级、奖项管理 |
+| 内容管理权限 | 17 | 内容发布、标签、分类、审核管理 |
+| 公开接口 | 17 | 无需权限验证的接口 |
 
 ---
 
@@ -295,18 +305,19 @@
 
 ### 1. 接口访问方式
 
-#### 通过网关访问 (推荐)
-```
-http://localhost:8080/api/v1/{service}/{endpoint}
-```
-
-#### 直接访问服务
+#### 直接访问各微服务
 ```
 认证服务: http://localhost:8000/api/v1/auth/{endpoint}
 用户服务: http://localhost:8020/api/v1/user/{endpoint}
 内容服务: http://localhost:8010/api/v1/content/{endpoint}
 消息服务: http://localhost:8030/api/v1/message/{endpoint}
 ```
+
+**示例**:
+- 用户登录: `POST http://localhost:8000/api/v1/auth/login`
+- 创建用户: `POST http://localhost:8020/api/v1/user/create`
+- 发布内容: `POST http://localhost:8010/api/v1/content/`
+- 发送邮件验证码: `POST http://localhost:8030/api/v1/message/email/code/send`
 
 ### 2. 权限验证
 
@@ -318,15 +329,20 @@ http://localhost:8080/api/v1/{service}/{endpoint}
 
 每个服务都提供独立的Swagger UI文档：
 
-- 认证服务: http://localhost:8000/api/v1/auth/swagger-ui.html
-- 用户服务: http://localhost:8020/api/v1/user/swagger-ui.html
-- 内容服务: http://localhost:8010/api/v1/content/swagger-ui.html
-- 消息服务: http://localhost:8030/api/v1/message/swagger-ui.html
+- **认证服务**: http://localhost:8000/api/v1/auth/swagger-ui.html
+- **用户服务**: http://localhost:8020/api/v1/user/swagger-ui.html
+- **内容服务**: http://localhost:8010/api/v1/content/swagger-ui.html
+- **消息服务**: http://localhost:8030/api/v1/message/swagger-ui.html
 
-### 4. 统一网关文档
+### 4. 开发规范
 
-通过网关访问所有服务的API文档：
-- 网关聚合文档: http://localhost:8080/swagger-ui.html
+#### Swagger注解规范
+- **只允许使用**: `@Tag`, `@Operation`, `@Parameter`
+- **禁止使用**: `@ApiResponses`, `@ApiResponse`, `@Content`, `@Schema`
+
+#### 权限注解规范
+- **必须使用**: `@SiaeAuthorize`
+- **禁止使用**: `@PreAuthorize`
 
 ---
 
@@ -337,9 +353,19 @@ http://localhost:8080/api/v1/{service}/{endpoint}
 | 2024-01-01 | v1.0.0 | 初始版本，包含所有微服务API接口清单 |
 | 2024-01-01 | v1.1.0 | 完善权限注解，统一路径映射规范 |
 | 2024-01-01 | v1.2.0 | 添加接口统计和使用说明 |
+| 2025-01-01 | v2.0.0 | 全面更新接口信息，移除网关相关内容，更新统计数据 |
+
+### v2.0.0 更新内容
+- ✅ 更新了所有Controller的接口信息
+- ✅ 添加了遗漏的接口（如奖项类型/等级的按名称查询）
+- ✅ 修正了分类管理、审核管理、评论管理的接口路径
+- ✅ 更新了接口统计数据（总计99个接口）
+- ✅ 移除了网关相关的访问方式说明
+- ✅ 添加了开发规范说明（Swagger注解、权限注解）
+- ✅ 更新了权限分类统计
 
 ---
 
-**最后更新**: 2024-01-01
-**文档版本**: v1.2.0
+**最后更新**: 2025-08-01
+**文档版本**: v0.1.0
 **维护团队**: SIAE开发团队

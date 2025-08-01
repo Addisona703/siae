@@ -2,7 +2,7 @@ package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hngy.siae.core.result.Result;
+
 import com.hngy.siae.content.common.enums.ActionTypeEnum;
 import com.hngy.siae.content.common.enums.status.ActionStatusEnum;
 import com.hngy.siae.content.dto.request.ActionDTO;
@@ -32,7 +32,7 @@ public class InteractionsServiceImpl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> recordAction(ActionDTO actionDTO) {
+    public void recordAction(ActionDTO actionDTO) {
         ActionTypeEnum actionType = actionDTO.getActionType();
         Long userId = actionDTO.getUserId();
         Long targetId = actionDTO.getTargetId();
@@ -41,7 +41,7 @@ public class InteractionsServiceImpl
 
         if (existing != null) {
             if (existing.getStatus() == ActionStatusEnum.ACTIVATED) {
-                return Result.success();
+                return;
             }
 
             // 恢复为激活状态
@@ -52,12 +52,11 @@ public class InteractionsServiceImpl
         }
 
         statisticsService.incrementStatistics(targetId, actionType);
-        return Result.success();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Void> cancelAction(ActionDTO actionDTO) {
+    public void cancelAction(ActionDTO actionDTO) {
         ActionTypeEnum actionType = actionDTO.getActionType();
         Long userId = actionDTO.getUserId();
         Long targetId = actionDTO.getTargetId();
@@ -65,12 +64,11 @@ public class InteractionsServiceImpl
         UserAction existing = getExistingAction(userId, targetId, actionType);
 
         if (existing == null || existing.getStatus() == ActionStatusEnum.CANCELLED) {
-            return Result.success();
+            return;
         }
 
         updateStatus(existing, ActionStatusEnum.CANCELLED);
         statisticsService.decrementStatistics(targetId, actionType);
-        return Result.success();
     }
 
 

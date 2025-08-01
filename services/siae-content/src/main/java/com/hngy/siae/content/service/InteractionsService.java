@@ -1,7 +1,6 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.dto.request.ActionDTO;
 import com.hngy.siae.content.entity.UserAction;
 
@@ -14,18 +13,16 @@ import com.hngy.siae.content.entity.UserAction;
 public interface InteractionsService extends IService<UserAction> {
 
     /**
-     * 记录动作
+     * 记录用户行为
      *
-     * @param actionDTO 动作dto
-     * @return {@link Result }<{@link Void }>
+     * @param actionDTO 用户行为请求参数
      */
-    Result<Void> recordAction(ActionDTO actionDTO);
+    void recordAction(ActionDTO actionDTO);
 
     /**
-     * 取消操作
+     * 取消用户行为
      *
-     * @param actionDTO 动作dto
-     * @return {@link Result }<{@link Void }>
+     * @param actionDTO 用户行为请求参数
      */
-    Result<Void> cancelAction(ActionDTO actionDTO);
+    void cancelAction(ActionDTO actionDTO);
 }

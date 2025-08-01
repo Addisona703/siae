@@ -9,15 +9,11 @@ import com.hngy.siae.content.dto.response.AuditVO;
 import com.hngy.siae.content.service.AuditsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,22 +42,8 @@ public class AuditsController {
      * @return 处理结果
      */
     @Operation(summary = "处理审核", description = "处理内容审核，包括审核通过、拒绝等操作")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "处理成功",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "400", description = "请求参数错误",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要审核处理权限",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "404", description = "审核记录不存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
-            content = @Content(mediaType = "application/json"))
-    })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + CONTENT_AUDIT_HANDLE + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_HANDLE + "')")
     public Result<Void> handleAudit(
             @Parameter(description = "审核记录ID", required = true, example = "1")
             @PathVariable Long id,
@@ -71,11 +53,26 @@ public class AuditsController {
     }
 
 
+    /**
+     * 获取待审核列表
+     *
+     * @param page 页码
+     * @param pageSize 页面大小
+     * @param targetType 目标类型
+     * @param auditStatus 审核状态
+     * @return 待审核列表
+     */
+    @Operation(summary = "获取待审核列表", description = "分页获取待审核的内容列表")
     @GetMapping("/pending")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")
     public Result<PageVO<AuditVO>> getPendingAudits(
+            @Parameter(description = "页码", required = true, example = "1")
             @NotNull @RequestParam Integer page,
+            @Parameter(description = "页面大小", required = true, example = "10")
             @NotNull @RequestParam Integer pageSize,
+            @Parameter(description = "目标类型", required = false)
             @RequestParam(required = false) TypeEnum targetType,
+            @Parameter(description = "审核状态", required = false)
             @RequestParam(required = false) AuditStatusEnum auditStatus) {
         return auditsService.getAuditPage(page, pageSize, targetType, auditStatus);
     }
@@ -88,23 +85,8 @@ public class AuditsController {
      * @return 审核记录信息
      */
     @Operation(summary = "获取审核记录", description = "根据目标对象ID和类型获取审核记录详情")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "查询成功",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = AuditVO.class))),
-        @ApiResponse(responseCode = "400", description = "请求参数错误",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "未授权访问",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "403", description = "权限不足，需要审核查看权限",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "404", description = "审核记录不存在",
-            content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "服务器内部错误",
-            content = @Content(mediaType = "application/json"))
-    })
     @GetMapping
-    @PreAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")
     public Result<AuditVO> getAuditRecord(
             @Parameter(description = "目标对象ID，如内容ID", required = true, example = "123456")
             @NotNull @RequestParam Long targetId,

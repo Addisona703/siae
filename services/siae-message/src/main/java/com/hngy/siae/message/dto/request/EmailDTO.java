@@ -1,6 +1,6 @@
 package com.hngy.siae.message.dto.request;
 
-import com.hngy.siae.common.validation.UpdateGroup;
+import com.hngy.siae.core.validation.UpdateGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

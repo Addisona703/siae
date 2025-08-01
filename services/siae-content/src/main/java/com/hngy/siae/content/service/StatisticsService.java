@@ -1,7 +1,6 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.content.common.enums.ActionTypeEnum;
 import com.hngy.siae.content.dto.request.StatisticsDTO;
 import com.hngy.siae.content.dto.response.StatisticsVO;
@@ -42,16 +41,16 @@ public interface StatisticsService extends IService<Statistics> {
      * 获取统计数据
      *
      * @param contentId 内容ID
-     * @return {@link Result }<{@link StatisticsVO }>
+     * @return 统计信息
      */
-    Result<StatisticsVO> getStatistics(Long contentId);
+    StatisticsVO getStatistics(Long contentId);
 
     /**
      * 更新统计信息
      *
      * @param contentId     内容ID
      * @param statisticsDTO 统计数据
-     * @return {@link Result }<{@link StatisticsVO }>
+     * @return 更新后的统计信息
      */
-    Result<StatisticsVO> updateStatistics(Long contentId, StatisticsDTO statisticsDTO);
+    StatisticsVO updateStatistics(Long contentId, StatisticsDTO statisticsDTO);
 }

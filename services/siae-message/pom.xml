@@ -15,6 +15,23 @@
     <description>消息模块：包含邮件、短信、站内通知等</description>
 
     <dependencies>
+        <!-- 引入内部模块 -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-web-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-security-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot 邮件支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
