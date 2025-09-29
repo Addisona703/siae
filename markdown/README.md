@@ -1,5 +1,5 @@
 ### 显示结构树 : `tree /f /a`
-### 启动配置中心: `startup.sh -m standalone`
+### 启动配置中心: `startup.cmd -m standalone`
 ### 常见的注释标签：
 ```md
 // TODO: 描述

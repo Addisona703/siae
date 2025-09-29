@@ -20,6 +20,12 @@ spring:
     nacos:
       discovery:
         enabled: true
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
   # ❗ Database credentials - Now securely managed in Nacos
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -87,3 +93,10 @@ springdoc:
       paths-to-match: '/api/**'
       display-name: 'SIAE认证服务API'
   packages-to-scan: com.hngy.siae.auth.controller
+
+
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      org.springframework.security: DEBUG
+      com.hngy.siae: DEBUG

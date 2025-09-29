@@ -168,4 +168,37 @@ public class JwtUtils {
     public Date getExpirationDate(String token) {
         return parseToken(token).getExpiration();
     }
+
+    // ========================= 网关优化新增方法 =========================
+
+    /**
+     * 从Token获取用户ID（网关层使用）
+     *
+     * @param token JWT令牌
+     * @return 用户ID
+     */
+    public Long getUserIdFromToken(String token) {
+        return getUserId(token);
+    }
+
+    /**
+     * 从Token获取用户名（网关层使用）
+     *
+     * @param token JWT令牌
+     * @return 用户名
+     */
+    public String getUsernameFromToken(String token) {
+        return getUsername(token);
+    }
+
+    /**
+     * 从Token获取过期时间戳（网关层使用）
+     *
+     * @param token JWT令牌
+     * @return 过期时间戳（毫秒）
+     */
+    public Long getExpirationFromToken(String token) {
+        Date expiration = getExpirationDate(token);
+        return expiration != null ? expiration.getTime() : null;
+    }
 }

@@ -4,8 +4,9 @@ import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.aop.SiaeAuthorizeAspect;
 import com.hngy.siae.security.config.SimpleEnhancedPermissionConfig;
-import com.hngy.siae.security.filter.JwtAuthenticationFilter;
-import com.hngy.siae.security.filter.ServiceInterCallFilter;
+import com.hngy.siae.security.filter.ServiceAuthenticationFilter;
+// import com.hngy.siae.security.filter.JwtAuthenticationFilter; // 旧版本，已废弃
+// import com.hngy.siae.security.filter.ServiceInterCallFilter; // 旧版本，已废弃
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
 import com.hngy.siae.security.service.impl.RedisPermissionServiceImpl;
@@ -40,7 +41,10 @@ import org.springframework.context.ApplicationContext;
 /**
  * 安全功能自动配置类
  * 根据配置条件自动装配安全相关组件
- * 
+ *
+ * ✅ 已更新：使用新的 ServiceAuthenticationFilter（JWT网关优化方案）
+ * ❌ 废弃：JwtAuthenticationFilter 和 ServiceInterCallFilter（旧版本）
+ *
  * @author SIAE开发团队
  */
 @Slf4j
@@ -52,15 +56,16 @@ import org.springframework.context.ApplicationContext;
 @Import({
     RedisPermissionServiceImpl.class,
     FallbackPermissionServiceImpl.class,
-    JwtAuthenticationFilter.class,
+    ServiceAuthenticationFilter.class, // 新版本：优化的认证过滤器
 //    SimpleEnhancedPermissionConfig.class,
     SiaeAuthorizeAspect.class
 })
 public class SecurityAutoConfiguration {
 
     private final SecurityProperties securityProperties;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final ServiceInterCallFilter serviceInterCallFilter;
+    private final ServiceAuthenticationFilter serviceAuthenticationFilter; // 新版本过滤器
+    // private final JwtAuthenticationFilter jwtAuthenticationFilter; // 旧版本，已废弃
+    // private final ServiceInterCallFilter serviceInterCallFilter; // 旧版本，已废弃
     private final ApplicationContext applicationContext;
 
     @Value("${spring.application.name:unknown}")
@@ -80,11 +85,12 @@ public class SecurityAutoConfiguration {
     }
 
     /**
-     * 配置安全过滤器链
+     * 配置安全过滤器链（优化版本）
+     * 使用新的 ServiceAuthenticationFilter 实现网关优化方案
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("配置安全过滤器链，应用: {}", applicationName);
+        log.info("配置安全过滤器链，应用: {}（使用优化版本）", applicationName);
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -116,9 +122,8 @@ public class SecurityAutoConfiguration {
                 })
         );
 
-
         if (securityProperties.isAuthRequired(applicationName)) {
-            log.info("应用 {} 需要权限验证，配置认证规则", applicationName);
+            log.info("应用 {} 需要权限验证，配置认证规则（优化版本）", applicationName);
             configureAuthRequiredSecurity(http);
         } else {
             log.info("应用 {} 不需要权限验证，配置宽松规则", applicationName);
@@ -128,9 +133,9 @@ public class SecurityAutoConfiguration {
         return http.build();
     }
 
-
     /**
-     * 配置需要认证的安全规则
+     * 配置需要认证的安全规则（优化版本）
+     * 使用新的 ServiceAuthenticationFilter
      */
     private void configureAuthRequiredSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authz -> {
@@ -144,6 +149,15 @@ public class SecurityAutoConfiguration {
             authz.anyRequest().authenticated();
         });
 
+        // 添加优化的认证过滤器
+        if (securityProperties.getJwt().isEnabled()) {
+            http.addFilterBefore(serviceAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            log.info("✅ ServiceAuthenticationFilter（优化版本）已启用");
+            log.info("功能：网关请求直接读取用户信息 + 权限查询 + 认证上下文填充");
+        }
+
+        /*
+        // ❌ 旧版本过滤器已废弃，使用新的 ServiceAuthenticationFilter 替代
         // 添加JWT认证过滤器
         if (securityProperties.getJwt().isEnabled()) {
             http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -153,9 +167,10 @@ public class SecurityAutoConfiguration {
             http.addFilterAfter(serviceInterCallFilter, jwtAuthenticationFilter.getClass());
             log.info("服务间调用过滤器已启用，执行顺序：JwtAuthenticationFilter -> ServiceInterCallFilter");
         }
+        */
 
         // 添加特定服务的Token过滤器（如果存在）
-        // 注意：大部分服务应该使用通用的ServiceInterCallFilter，只有特殊需求的服务才需要自定义过滤器
+        // 注意：大部分服务应该使用新的ServiceAuthenticationFilter，只有特殊需求的服务才需要自定义过滤器
 //        configureServiceCallTokenFilter(http);
     }
 
@@ -167,14 +182,13 @@ public class SecurityAutoConfiguration {
     }
 
     /**
-     * 配置特定服务的Token过滤器
+     * 配置特定服务的Token过滤器（已废弃）
      *
-     * 如果应用上下文中存在ServiceCallTokenFilter Bean（特定服务自定义的过滤器），
-     * 则将其添加到过滤器链中，确保它在ServiceInterCallFilter之后执行。
-     *
-     * 执行顺序：JwtAuthenticationFilter -> ServiceInterCallFilter -> ServiceCallTokenFilter
+     * @deprecated 使用新的 ServiceAuthenticationFilter 统一处理所有认证场景
      */
+    @Deprecated
     private void configureServiceCallTokenFilter(HttpSecurity http) throws Exception {
+        /*
         try {
             // 尝试从应用上下文中获取ServiceCallTokenFilter Bean
             OncePerRequestFilter serviceCallTokenFilter = applicationContext.getBean("serviceCallTokenFilter", OncePerRequestFilter.class);
@@ -188,6 +202,8 @@ public class SecurityAutoConfiguration {
             // 如果没有找到ServiceCallTokenFilter Bean，则跳过配置
             log.debug("未找到特定服务Token过滤器Bean，跳过配置: {}", e.getMessage());
         }
+        */
+        log.debug("configureServiceCallTokenFilter 已废弃，使用 ServiceAuthenticationFilter 统一处理");
     }
 
     /**
@@ -217,20 +233,20 @@ public class SecurityAutoConfiguration {
     }
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
-                                   @Lazy JwtAuthenticationFilter jwtAuthenticationFilter,
-                                   ServiceInterCallFilter serviceInterCallFilter,
+                                   @Lazy ServiceAuthenticationFilter serviceAuthenticationFilter, // 新版本过滤器
                                    ApplicationContext applicationContext) {
         this.securityProperties = securityProperties;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.serviceInterCallFilter = serviceInterCallFilter;
+        this.serviceAuthenticationFilter = serviceAuthenticationFilter; // 新版本过滤器
         this.applicationContext = applicationContext;
-        
-        log.info("SIAE Security Starter 自动配置已启用");
+
+        log.info("SIAE Security Starter 自动配置已启用（优化版本）");
+        log.info("认证策略: 网关验签 + 服务填充");
         log.info("JWT认证: {}", securityProperties.getJwt().isEnabled() ? "启用" : "禁用");
         log.info("权限缓存: {}", securityProperties.getPermission().isCacheEnabled() ? "启用" : "禁用");
         log.info("Redis权限服务: {}", securityProperties.getPermission().isRedisEnabled() ? "启用" : "禁用");
         log.info("权限降级服务: {}", securityProperties.getPermission().isFallbackEnabled() ? "启用" : "禁用");
         log.info("简化增强权限控制: {}", securityProperties.getEnhancedPermission().isEnabled() ? "启用" : "禁用");
         log.info("SiaeAuthorize注解支持: 启用");
+        log.info("✅ ServiceAuthenticationFilter: 启用（支持网关请求、内部调用、直接访问）");
     }
 }

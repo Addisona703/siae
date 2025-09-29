@@ -25,11 +25,16 @@ import java.util.List;
 /**
  * Spring WebFlux 环境下的 JWT 鉴权过滤器
  *
+ * ⚠️ 已废弃：该过滤器已被 GatewayAuthFilter 替代
+ * 新版本实现了JWT网关优化方案，只进行验签和用户信息传递，避免重复解析
+ *
  * @author KEYKB
+ * @deprecated 使用 com.hngy.siae.gateway.filter.GatewayAuthFilter 替代
  */
 @Slf4j
-@Component
+// @Component  // 注释掉，禁用此过滤器
 @RequiredArgsConstructor
+@Deprecated
 public class JwtAuthFilter implements WebFilter {
 
     private final JwtUtils jwtUtils;

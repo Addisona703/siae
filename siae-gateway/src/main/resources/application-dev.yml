@@ -16,6 +16,12 @@ spring:
     nacos:
       discovery:
         server-addr: ${spring.cloud.nacos.server-addr} # 建议引用bootstrap中的地址，保持一致
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
     gateway:
       discovery:
         locator:
@@ -27,18 +33,24 @@ spring:
           uri: lb://siae-auth
           predicates:
             - Path=/api/v1/auth/**
+          # filters:
+          #   - RewritePath=/api/v1/auth/(?<segment>.*),/${segment}
 
         # 用户服务路由
         - id: siae-user-route
           uri: lb://siae-user
           predicates:
             - Path=/api/v1/user/**
+          # filters:
+          #   - RewritePath=/api/v1/user/(?<segment>.*),/${segment}
 
         # 内容服务路由
         - id: siae-content-route
           uri: lb://siae-content
           predicates:
             - Path=/api/v1/content/**
+          # filters:
+          #   - RewritePath=/api/v1/content/(?<segment>.*),/${segment}
 
         # 消息服务路由
         - id: siae-message-route
@@ -51,8 +63,21 @@ spring:
           uri: lb://siae-gateway
           predicates:
             - Path=/v3/api-docs/**
-          filters:
-            - RewritePath=/v3/api-docs/(?<segment>.*), /$\{segment}/v3/api-docs
+          # filters:
+          #   - RewritePath=/v3/api-docs/(?<segment>.*),/$\{segment}/v3/api-docs
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456 # Set if Redis has password
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
 
 # 开启Actuator端点
 management:
@@ -83,13 +108,3 @@ springdoc:
         name: 内容服务
       - url: /v3/api-docs/siae-message
         name: 消息服务
-
-# ===================================================================
-# !! 重要：将JWT密钥配置在这里 !!
-# ===================================================================
-#jwt:
-#  secret-key: "nD7I9zd0bReTmUiVpV9tlVMlNJTuwNTtcg351xRSxfy3DftE6nEhVnWZk0XiPFd"
-#  access-token-expire: 3600    # 1小时 (单位: 秒)
-#  refresh-token-expire: 604800 # 7天 (单位: 秒)
-#  issuer: siae-auth
-#  audience: siae-*

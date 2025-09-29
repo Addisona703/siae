@@ -14,17 +14,26 @@ import org.springframework.stereotype.Component;
  * 自动为认证服务发起的Feign调用添加服务间调用token，
  * 确保服务间调用能够通过目标服务的安全验证。
  *
+ * ⚠️ 已废弃：该拦截器已被 siae-web-starter 中的 FeignAuthenticationInterceptor 替代
+ * 新版本使用轻量级内部认证机制，性能更优，架构更清晰
+ *
  * @author SIAE开发团队
+ * @deprecated 使用 com.hngy.siae.web.config.FeignAuthenticationInterceptor 替代
  */
 @Slf4j
-@Component
+//@Component  // 注释掉，禁用此拦截器
 @RequiredArgsConstructor
+@Deprecated
 public class ServiceCallFeignInterceptor implements RequestInterceptor {
 
     private final JwtUtils jwtUtils;
 
     @Override
     public void apply(RequestTemplate template) {
+        // 该方法已被废弃，请使用 siae-web-starter 中的 FeignAuthenticationInterceptor
+        log.warn("⚠️ ServiceCallFeignInterceptor 已废弃，请使用 FeignAuthenticationInterceptor");
+
+        /*
         try {
             log.debug("=== Feign服务间调用拦截器开始处理 ===");
 
@@ -80,5 +89,6 @@ public class ServiceCallFeignInterceptor implements RequestInterceptor {
             log.error("❌ 配置Feign服务间调用时发生未知异常", e);
             throw new RuntimeException("服务间调用配置失败: " + e.getMessage(), e);
         }
+        */
     }
 }

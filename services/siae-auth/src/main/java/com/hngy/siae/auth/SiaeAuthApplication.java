@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author KEYKB
  */
 @EnableAsync
-@EnableFeignClients(basePackages = "com.hngy.siae", defaultConfiguration = DefaultFeignConfig.class)
+@EnableFeignClients(basePackages = "com.hngy.siae.auth.feign", defaultConfiguration = DefaultFeignConfig.class)
 @SpringBootApplication(scanBasePackages = "com.hngy.siae")
 public class SiaeAuthApplication {
     

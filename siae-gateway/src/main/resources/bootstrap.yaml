@@ -10,7 +10,7 @@ spring:
     nacos:
       # Nacos服务器地址，用于服务发现和配置中心
       # 这是唯一需要硬编码在这里的地址
-      server-addr: localhost:8848
+      server-addr: localhost:8948
       # Nacos config settings
       config:
         server-addr: ${spring.cloud.nacos.server-addr}

@@ -1,0 +1,65 @@
+# ===================================================================
+# SIAE 微服务通用配置 (siae-common.yaml)
+# 用于Nacos配置中心的共享配置
+# 包含JWT网关优化方案的完整配置
+# ===================================================================
+
+# SIAE认证优化配置
+siae:
+  auth:
+    # 启用网关认证优化模式 - 生产环境建议true
+    enable-gateway-auth: true
+    # 是否允许直接外部访问 - 生产环境建议false，开发环境可设为true
+    enable-direct-access: ${ENABLE_DIRECT_ACCESS:false}
+    # 网关密钥（用于验证请求来源） - 生产环境使用环境变量
+    gateway-secret-key: ${GATEWAY_SECRET_KEY:siae-gateway-2025}
+    # 内部服务密钥（用于服务间调用认证） - 生产环境使用环境变量
+    internal-secret-key: ${INTERNAL_SECRET_KEY:siae-internal-2025}
+    # 网关密钥有效期（秒）- 防重放攻击
+    gateway-secret-valid-seconds: 300
+
+  # SIAE Security Starter 配置
+  security:
+    # 启用安全模块
+    enabled: true
+    # JWT配置
+    jwt:
+      enabled: true
+    # 权限配置
+    permission:
+      cache-enabled: true
+      redis-enabled: true
+      fallback-enabled: true
+    # 增强权限控制
+    enhanced-permission:
+      enabled: false
+
+# Feign客户端配置
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+
+# Spring Boot Actuator 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# 日志配置
+logging:
+  level:
+    # 开发环境可以开启，生产环境建议关闭
+    com.hngy.siae: DEBUG
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.springframework.cloud.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"

@@ -20,21 +20,26 @@ import java.util.List;
 
 /**
  * 服务间调用过滤器
- * 
+ *
+ * ⚠️ 已废弃：该过滤器已被 ServiceAuthenticationFilter 替代
+ * 新版本实现了JWT网关优化方案，统一处理所有认证场景
+ *
  * 通用的服务间调用验证过滤器，用于验证SIAE系统内部服务间的调用。
  * 执行顺序：在JwtAuthenticationFilter之后执行，只处理已被识别为服务间调用的请求。
- * 
+ *
  * 主要功能：
  * 1. 服务身份验证：验证调用方和被调用方都是SIAE系统中的合法服务
  * 2. 服务Token验证：验证服务间调用使用的JWT token
  * 3. 监控和审计：记录服务间调用的详细信息
- * 
+ *
  * @author SIAE开发团队
+ * @deprecated 使用 com.hngy.siae.security.filter.ServiceAuthenticationFilter 替代
  */
 @Slf4j
-@Component
+// @Component // 注释掉，禁用此过滤器
 @ConditionalOnProperty(prefix = "siae.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
+@Deprecated
 public class ServiceInterCallFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;

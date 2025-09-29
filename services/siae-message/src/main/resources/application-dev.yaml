@@ -16,6 +16,12 @@ spring:
     nacos:
       discovery:
         enabled: true
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
   # ❗ 邮件配置 - 包含敏感授权码，已安全移入Nacos
   mail:
     host: smtp.qq.com                     # SMTP 服务器

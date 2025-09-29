@@ -29,11 +29,17 @@ public class SiaeAuthorizeAspect {
             throw new AccessDeniedException("用户未认证");
         }
 
-        // 超级管理员直接放行
-        boolean isRoot = auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_ROOT".equals(a.getAuthority()));
-        if (isRoot) {
-            log.debug("超级管理员访问，直接放行");
+        // 添加详细的权限调试日志
+        log.warn("用户权限检查 - 用户: {}, 所有权限: {}", auth.getName(),
+            auth.getAuthorities().stream().map(a -> a.getAuthority()).collect(java.util.stream.Collectors.toList()));
+
+        // 管理员权限检查 - 根据数据库定义的角色
+        boolean isSuperAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ROOT".equals(a.getAuthority()) ||
+                             "ROLE_ADMIN".equals(a.getAuthority()));
+
+        if (isSuperAdmin) {
+            log.warn("超级管理员访问，直接放行 - 用户: {}", auth.getName());
             return joinPoint.proceed();
         }
 

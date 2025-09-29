@@ -20,7 +20,9 @@
     // 这样调用
     @NotAllowed(groups = CreateGroup.class)  // 创建场景禁止传id
     private Long id;
-    ```
+   ```
     + 我还是选择多DTO了
 
 2. token长度变长导致存入不了数据库，无法登录，目前选择增大数据库中的token字段类型为varchar(1024)，后面修改存入redis。
+
+3. 数据库可以使用视图和存储过程事件（可以用来清理过期数据）

@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 /**
  * JWT认证过滤器
  * <p>
+ * ⚠️ 已废弃：该过滤器已被 ServiceAuthenticationFilter 替代
+ * 新版本实现了JWT网关优化方案，避免重复JWT解析
+ *
  * 功能特性：
  * 1. 支持配置化的JWT认证开关
  * 2. 支持白名单路径跳过认证
@@ -35,13 +38,15 @@ import java.util.stream.Collectors;
  * 4. 从Redis缓存中获取用户权限（优化性能）
  * 5. 构建Spring Security认证对象
  * 6. 优雅处理各种异常情况
- * 
+ *
  * @author SIAE开发团队
+ * @deprecated 使用 com.hngy.siae.security.filter.ServiceAuthenticationFilter 替代
  */
 @Slf4j
-@Component
+// @Component // 注释掉，禁用此过滤器
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "siae.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Deprecated
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;

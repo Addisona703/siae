@@ -8,7 +8,7 @@ spring:
   cloud:
     nacos:
       # Nacos server address
-      server-addr: localhost:8848
+      server-addr: localhost:8948
       # Nacos config settings
       config:
         server-addr: ${spring.cloud.nacos.server-addr}
