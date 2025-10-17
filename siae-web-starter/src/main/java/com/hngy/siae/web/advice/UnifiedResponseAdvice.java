@@ -53,10 +53,9 @@ public class UnifiedResponseAdvice implements ResponseBodyAdvice<Object> {
 
         // 检查是否在配置的基础包路径内
         String className = returnType.getContainingClass().getName();
-        boolean inBasePackage = Arrays.stream(webProperties.getResponse().getBasePackages())
-                .anyMatch(className::startsWith);
 
-        return inBasePackage;
+        return Arrays.stream(webProperties.getResponse().getBasePackages())
+                .anyMatch(className::startsWith);
     }
 
     /**

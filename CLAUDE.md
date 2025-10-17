@@ -187,3 +187,78 @@ The system uses optimized JWT tokens that only contain basic info (userId, usern
 - Web configurations in `siae-web-starter/`
 - Project documentation in `markdown/` directory
 - Development rules in `.augment/rules/siae-rule.md`
+
+## MCP (Model Context Protocol) Integration
+
+This project has integrated 3 MCP servers to enhance development capabilities. Use these tools when appropriate:
+
+### 1. Filesystem MCP (`mcp__filesystem__*`)
+**When to use:**
+- Reading/writing files when standard tools are insufficient
+- Batch file operations (e.g., `read_multiple_files` for reading several files at once)
+- Directory operations like listing with sizes, creating directories, moving files
+- Searching files with patterns and exclusions
+
+**Available tools:**
+- `mcp__filesystem__read_text_file`: Read complete file contents
+- `mcp__filesystem__read_multiple_files`: Read multiple files simultaneously (more efficient than individual reads)
+- `mcp__filesystem__write_file`: Create or overwrite files
+- `mcp__filesystem__edit_file`: Make line-based edits with git-style diff preview
+- `mcp__filesystem__list_directory`: List directory contents with [FILE]/[DIR] prefixes
+- `mcp__filesystem__directory_tree`: Get recursive tree view as JSON
+- `mcp__filesystem__search_files`: Recursively search for files by pattern
+- `mcp__filesystem__get_file_info`: Get detailed file metadata (size, timestamps, permissions)
+- `mcp__filesystem__move_file`: Move or rename files
+
+**Example scenarios:**
+- Reading multiple configuration files at once: Use `read_multiple_files` instead of multiple `Read` calls
+- Exploring project structure: Use `directory_tree` for hierarchical view
+- Finding files by name: Use `search_files` with patterns and exclusions
+
+### 2. Context7 MCP (`mcp__context7-mcp__*`)
+**When to use:**
+- Fetching up-to-date documentation for external libraries and frameworks
+- Resolving library names to Context7-compatible IDs
+- Getting specific documentation topics (e.g., "hooks", "routing")
+
+**Available tools:**
+- `mcp__context7-mcp__resolve-library-id`: Convert library name to Context7 ID (e.g., "react" → "/facebook/react")
+- `mcp__context7-mcp__get-library-docs`: Fetch documentation for a library using its Context7 ID
+
+**Example scenarios:**
+- User asks: "How do I use Spring Cloud Gateway filters?"
+  1. Call `resolve-library-id` with libraryName="spring-cloud-gateway"
+  2. Call `get-library-docs` with the resolved ID and topic="filters"
+- Need documentation for Netty WebSocket handlers
+  1. Call `resolve-library-id` with libraryName="netty"
+  2. Call `get-library-docs` with context7CompatibleLibraryID and topic="websocket"
+
+### 3. GitHub MCP (`mcp__github__*`)
+**When to use:**
+- Searching GitHub repositories, code, users, or issues
+- Managing issues and pull requests
+- Working with repository files and branches
+- Creating or forking repositories
+
+**Available tools:**
+- **Search**: `search_repositories`, `search_code`, `search_users`, `search_issues`
+- **Issues**: `get_issue`, `create_issue`, `update_issue`, `list_issues`, `add_issue_comment`, `get_issue_comments`
+- **Pull Requests**: `create_pull_request`, `get_pull_request`, `list_pull_requests`, `merge_pull_request`, `get_pull_request_files`, `get_pull_request_comments`
+- **Repository**: `get_repository`, `create_repository`, `fork_repository`, `get_file_contents`, `create_or_update_file`
+- **Git Operations**: `list_commits`, `get_commit`, `list_branches`, `create_branch`, `list_tags`, `get_tag`, `push_files`
+
+**Example scenarios:**
+- User asks: "Find examples of Netty WebSocket implementations on GitHub"
+  - Use `search_code` with q="WebSocket language:java NettyWebSocketServer"
+- Need to check dependencies in a GitHub project
+  - Use `get_repository` to get README and file structure
+  - Use `get_file_contents` with path="pom.xml" to check Maven dependencies
+- Creating issues or PRs after making changes
+  - Use `create_issue` or `create_pull_request` with appropriate parameters
+
+### MCP Usage Guidelines:
+1. **Prefer standard tools first**: Use built-in Read, Write, Edit, Glob, Grep tools for common operations
+2. **Use MCP for advanced scenarios**: Batch operations, external documentation, GitHub integration
+3. **Combine tools efficiently**: Use `read_multiple_files` when you need several files, not individual reads
+4. **Check documentation**: Use Context7 MCP when uncertain about library APIs or best practices
+5. **GitHub operations**: Use GitHub MCP for repository exploration, code search, and collaboration tasks

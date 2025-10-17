@@ -8,6 +8,7 @@ import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
 import com.hngy.siae.auth.dto.response.RegisterVO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 import com.hngy.siae.auth.entity.UserAuth;
+import com.hngy.siae.auth.dto.response.CurrentUserVO;
 
 /**
  * 认证服务接口
@@ -52,4 +53,12 @@ public interface AuthService extends IService<UserAuth> {
      * @param token 访问令牌
      */
     void logout(String token);
-} 
+
+    /**
+     * 获取当前登录用户信息
+     *
+     * @param authorizationHeader 请求头中的Authorization字段
+     * @return 当前用户视图对象
+     */
+    CurrentUserVO getCurrentUser(String authorizationHeader);
+}

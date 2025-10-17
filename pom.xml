@@ -21,7 +21,7 @@
         <module>services/siae-auth</module>
         <module>services/siae-user</module>
         <module>services/siae-content</module>
-        <module>services/siae-message</module>
+        <module>services/siae-notification</module>
     </modules>
 
     <!-- 3. 统一属性配置 -->

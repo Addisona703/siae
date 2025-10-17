@@ -1,7 +1,9 @@
 package com.hngy.siae.auth.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.auth.dto.request.DashboardQueryDTO;
 import com.hngy.siae.auth.dto.request.LoginQueryDTO;
+import com.hngy.siae.auth.dto.response.DashboardStatsVO;
 import com.hngy.siae.auth.dto.response.LoginFailVO;
 import com.hngy.siae.auth.dto.response.LoginLogVO;
 import com.hngy.siae.auth.entity.LoginLog;
@@ -14,9 +16,9 @@ import com.hngy.siae.core.dto.PageVO;
  * @author KEYKB
  */
 public interface LogService extends IService<LoginLog> {
-    
+
     /**
-     * 获取登录日志
+     * 获取登录日志（统一查询接口，支持按用户名、状态筛选）
      *
      * @param pageDTO 分页查询参数
      * @return 登录日志分页结果
@@ -30,6 +32,14 @@ public interface LogService extends IService<LoginLog> {
      * @return 登录失败日志分页结果
      */
     PageVO<LoginFailVO> getLoginFailLogs(PageDTO<LoginQueryDTO> pageDTO);
+
+    /**
+     * 获取仪表盘统计数据
+     *
+     * @param queryDTO 统计查询参数
+     * @return 仪表盘统计结果
+     */
+    DashboardStatsVO getDashboardStats(DashboardQueryDTO queryDTO);
 
     /**
      * 异步保存登录日志

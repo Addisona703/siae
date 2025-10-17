@@ -19,7 +19,7 @@ import static com.hngy.siae.web.swagger.SwaggerConstants.*;
 
 /**
  * 统一的OpenAPI配置类
- *
+ * <p>
  * 整合三个微服务的Swagger配置，支持多服务分组显示
  *
  * @author SIAE开发团队
@@ -89,15 +89,15 @@ public class OpenApiConfig {
     }
 
     /**
-     * 消息服务API分组
+     * 通知服务API分组
      */
     @Bean
-    public GroupedOpenApi messageApi() {
+    public GroupedOpenApi notificationApi() {
         return GroupedOpenApi.builder()
-                .group(MESSAGE_GROUP)
-                .displayName(MESSAGE_GROUP_DISPLAY)
-                .pathsToMatch(MESSAGE_PATHS)
-                .packagesToScan(MESSAGE_PACKAGE)
+                .group(NOTIFICATION_GROUP)
+                .displayName(NOTIFICATION_GROUP_DISPLAY)
+                .pathsToMatch(NOTIFICATION_PATHS)
+                .packagesToScan(NOTIFICATION_PACKAGE)
                 .build();
     }
 
@@ -180,7 +180,7 @@ public class OpenApiConfig {
             case AUTH_SERVICE_NAME -> "SIAE认证服务API";
             case USER_SERVICE_NAME -> "SIAE用户服务API";
             case CONTENT_SERVICE_NAME -> "SIAE内容服务API";
-            case MESSAGE_SERVICE_NAME -> "SIAE消息服务API";
+            case NOTIFICATION_SERVICE_NAME -> "SIAE通知服务API";
             case GATEWAY_SERVICE_NAME -> "SIAE网关聚合API";
             default -> "SIAE微服务API";
         };
@@ -194,7 +194,7 @@ public class OpenApiConfig {
             case AUTH_SERVICE_NAME -> AUTH_SERVICE_DESC;
             case USER_SERVICE_NAME -> USER_SERVICE_DESC;
             case CONTENT_SERVICE_NAME -> CONTENT_SERVICE_DESC;
-            case MESSAGE_SERVICE_NAME -> MESSAGE_SERVICE_DESC;
+            case NOTIFICATION_SERVICE_NAME -> NOTIFICATION_SERVICE_DESC;
             case GATEWAY_SERVICE_NAME -> GATEWAY_SERVICE_DESC;
             default -> DEFAULT_SERVICE_DESC;
         };
@@ -219,8 +219,7 @@ public class OpenApiConfig {
             case AUTH_SERVICE_NAME -> PROD_BASE_URL + "/api/v1/auth";
             case USER_SERVICE_NAME -> PROD_BASE_URL + "/api/v1/user";
             case CONTENT_SERVICE_NAME -> PROD_BASE_URL + "/api/v1/content";
-            case MESSAGE_SERVICE_NAME -> PROD_BASE_URL + "/api/v1/message";
-            case GATEWAY_SERVICE_NAME -> PROD_BASE_URL;
+            case NOTIFICATION_SERVICE_NAME -> PROD_BASE_URL + "/api/v1/notification";
             default -> PROD_BASE_URL;
         };
     }

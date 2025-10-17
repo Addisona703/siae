@@ -46,7 +46,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
     private static final List<String> WHITELIST = Arrays.asList(
         "/api/v1/auth/login",
         "/api/v1/auth/register",
-        "/api/v1/message/email/code/send",
+        "/api/v1/notification/email/code/send",
         "/swagger-ui",
         "/v3/api-docs",
         "/actuator/health"
