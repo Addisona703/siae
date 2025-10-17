@@ -52,11 +52,11 @@ spring:
           # filters:
           #   - RewritePath=/api/v1/content/(?<segment>.*),/${segment}
 
-        # 消息服务路由
-        - id: siae-message-route
-          uri: lb://siae-message
+        # 通知服务路由
+        - id: siae-notification-route
+          uri: lb://siae-notification
           predicates:
-            - Path=/api/v1/message/**
+            - Path=/api/v1/notification/**
 
         # OpenAPI文档路由
         - id: openapi-route
@@ -106,5 +106,5 @@ springdoc:
         name: 认证服务
       - url: /v3/api-docs/siae-content
         name: 内容服务
-      - url: /v3/api-docs/siae-message
-        name: 消息服务
+      - url: /v3/api-docs/siae-notification
+        name: 通知服务

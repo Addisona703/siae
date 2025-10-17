@@ -1,0 +1,108 @@
+# ===================================================================
+# CENTRALIZED CONFIGURATION FOR SIAE-NOTIFICATION (DEV)
+# Managed entirely in Nacos
+# ===================================================================
+
+# 1. 服务端口
+server:
+  port: 8030
+  servlet:
+    context-path: /api/v1/notification
+
+# 2. 核心业务配置
+spring:
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/notification_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+
+  # 启用Nacos服务发现
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # FreeMarker模板引擎配置
+  freemarker:
+    enabled: true
+    template-loader-path: classpath:/templates/
+    cache: false  # 开发环境关闭缓存，生产环境建议开启
+    charset: UTF-8
+    suffix: .ftl
+    content-type: text/html
+    settings:
+      number_format: 0.##
+      datetime_format: yyyy-MM-dd HH:mm:ss
+      date_format: yyyy-MM-dd
+      time_format: HH:mm:ss
+
+  # ❗ 邮件配置 - 包含敏感授权码，已安全移入Nacos（临时禁用）
+  mail:
+    host: smtp.qq.com                     # SMTP 服务器
+    port: 587                             # 启用 STARTTLS 的标准端口
+    username: 3183389935@qq.com           # 发件邮箱
+    password: uzzvjxjovoeudfbj            # 授权码（非邮箱密码）
+    default-encoding: UTF-8               # 邮件编码
+    properties:
+      mail:
+        smtp:
+          auth: true                      # 是否开启认证
+          starttls:
+            enable: true                  # 启用 STARTTLS
+            required: true                # 要求使用 STARTTLS
+          timeout: 5000                   # 连接超时（毫秒）
+          connectiontimeout: 5000         # 建立连接超时
+          writetimeout: 5000              # 写超时
+
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 3. SpringDoc API文档配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'siae-notification'
+      paths-to-match: '/api/**'
+  packages-to-scan: com.hngy.siae.notification.controller

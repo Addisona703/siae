@@ -4,9 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
+import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
+import com.hngy.siae.auth.dto.response.CurrentUserVO;
 import com.hngy.siae.auth.dto.response.LoginVO;
 import com.hngy.siae.auth.dto.response.RegisterVO;
-import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
 import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserAuth;
@@ -25,6 +26,7 @@ import com.hngy.siae.auth.service.AuthService;
 import com.hngy.siae.security.service.RedisPermissionService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
+import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.core.exception.ServiceException;
@@ -39,10 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.Date;
-import java.util.List;
 
 /**
  * 认证服务实现类
@@ -332,6 +332,49 @@ public class AuthServiceImpl
 
         log.info("用户登出成功，用户ID: {}", userId);
     }
+
+    /**
+     * 获取当前登录用户信息
+     *
+     * @param authorizationHeader 请求头中的Authorization字段
+     * @return 当前用户信息
+     */
+    @Override
+    public CurrentUserVO getCurrentUser(String authorizationHeader) {
+        // 1. 断言 header
+        AssertUtils.notEmpty(authorizationHeader, CommonResultCodeEnum.UNAUTHORIZED);
+
+        // 2. 提取 token
+        String token = authorizationHeader.startsWith("Bearer ")
+                ? authorizationHeader.substring(7)
+                : authorizationHeader;
+        AssertUtils.notEmpty(token, CommonResultCodeEnum.UNAUTHORIZED);
+        AssertUtils.isTrue(redisPermissionService.validateToken(token), CommonResultCodeEnum.UNAUTHORIZED);
+
+        // 3. 获取用户基本信息
+        Long userId = jwtUtils.getUserId(token);
+        String username = jwtUtils.getUsername(token);
+        AssertUtils.notNull(userId, CommonResultCodeEnum.UNAUTHORIZED);
+        AssertUtils.notEmpty(username, CommonResultCodeEnum.UNAUTHORIZED);
+
+        UserBasicVO userBasic = userClient.getUserByUsername(username);
+        AssertUtils.notNull(userBasic, AuthResultCodeEnum.USER_NOT_FOUND);
+        AssertUtils.isTrue(Objects.equals(userId, userBasic.getId()), CommonResultCodeEnum.UNAUTHORIZED);
+        AssertUtils.isTrue(userBasic.getStatus() == null || userBasic.getStatus() == 1, AuthResultCodeEnum.ACCOUNT_DISABLED);
+
+        // 4. 从 Redis 获取权限和角色
+        List<String> permissions = redisPermissionService.getUserPermissions(userId);
+        List<String> roleCodes = redisPermissionService.getUserRoles(userId);
+
+        // 5. 构建返回对象
+        return CurrentUserVO.builder()
+                .userId(userBasic.getId())
+                .username(userBasic.getUsername())
+                .roles(roleCodes != null ? roleCodes : new ArrayList<>())
+                .permissions(permissions != null ? permissions : new ArrayList<>())
+                .build();
+    }
+
 
     /**
      * 将用户权限和角色分别缓存到Redis

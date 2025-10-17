@@ -117,8 +117,11 @@ CREATE TABLE `login_log` (
   `login_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '登录时间',
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_login_time` (`login_time`),
-  INDEX `idx_username` (`username`)
+  INDEX `idx_username` (`username`),
+  INDEX `idx_status` (`status`),
+  INDEX `idx_status_login_time` (`status`, `login_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统访问记录';
+
 
 
 -- =================================================================

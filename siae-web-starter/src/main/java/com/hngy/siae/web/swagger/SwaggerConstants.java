@@ -44,8 +44,8 @@ public final class SwaggerConstants {
     /** 内容服务名称 */
     public static final String CONTENT_SERVICE_NAME = "siae-content";
     
-    /** 消息服务名称 */
-    public static final String MESSAGE_SERVICE_NAME = "siae-message";
+    /** 通知服务名称 */
+    public static final String NOTIFICATION_SERVICE_NAME = "siae-notification";
     
     /** 网关服务名称 */
     public static final String GATEWAY_SERVICE_NAME = "siae-gateway";
@@ -64,9 +64,9 @@ public final class SwaggerConstants {
     public static final String CONTENT_GROUP = "03-内容服务";
     public static final String CONTENT_GROUP_DISPLAY = "📝 内容服务API";
     
-    /** 消息服务分组 */
-    public static final String MESSAGE_GROUP = "04-消息服务";
-    public static final String MESSAGE_GROUP_DISPLAY = "📨 消息服务API";
+    /** 通知服务分组 */
+    public static final String NOTIFICATION_GROUP = "04-通知服务";
+    public static final String NOTIFICATION_GROUP_DISPLAY = "🔔 通知服务API";
     
     /** 系统管理分组 */
     public static final String SYSTEM_GROUP = "05-系统管理";
@@ -92,9 +92,9 @@ public final class SwaggerConstants {
         "/comments/**", "/audits/**", "/interactions/**", "/statistics/**"
     };
     
-    /** 消息服务路径 */
-    public static final String[] MESSAGE_PATHS = {
-        "/api/v1/message/**", "/messages/**", "/notifications/**"
+    /** 通知服务路径 */
+    public static final String[] NOTIFICATION_PATHS = {
+        "/api/v1/notification/**", "/notifications/**", "/email/**"
     };
     
     /** 系统管理路径 */
@@ -113,8 +113,8 @@ public final class SwaggerConstants {
     /** 内容服务包路径 */
     public static final String CONTENT_PACKAGE = "com.hngy.siae.content.controller";
     
-    /** 消息服务包路径 */
-    public static final String MESSAGE_PACKAGE = "com.hngy.siae.message.controller";
+    /** 通知服务包路径 */
+    public static final String NOTIFICATION_PACKAGE = "com.hngy.siae.notification.controller";
 
     // ==================== 安全认证常量 ====================
     
@@ -226,8 +226,8 @@ public final class SwaggerConstants {
     /** 内容服务描述 */
     public static final String CONTENT_SERVICE_DESC = BASE_DESCRIPTION + "内容服务API文档，提供内容发布、分类管理、标签管理、评论管理等功能";
     
-    /** 消息服务描述 */
-    public static final String MESSAGE_SERVICE_DESC = BASE_DESCRIPTION + "消息服务API文档，提供消息推送、通知管理等功能";
+    /** 通知服务描述 */
+    public static final String NOTIFICATION_SERVICE_DESC = BASE_DESCRIPTION + "通知服务API文档，提供邮件发送、站内通知、短信推送等功能";
     
     /** 网关服务描述 */
     public static final String GATEWAY_SERVICE_DESC = BASE_DESCRIPTION + "网关聚合API文档，统一展示所有微服务接口";
