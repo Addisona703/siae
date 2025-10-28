@@ -106,6 +106,7 @@ public class TagsServiceImpl
 
         // 构建查询条件
         LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNotNull(Tag::getId);
 
         if (queryDTO != null) {
             // 关键词搜索（搜索名称或描述）
@@ -129,6 +130,13 @@ public class TagsServiceImpl
             if (StrUtil.isNotBlank(queryDTO.getCreatedAtEnd())) {
                 queryWrapper.le(Tag::getCreateTime, queryDTO.getCreatedAtEnd());
             }
+        }
+
+        String keyword = pageDTO.getKeyword();
+        if (StrUtil.isNotBlank(keyword) && (queryDTO == null || StrUtil.isBlank(queryDTO.getName()))) {
+            queryWrapper.and(wrapper ->
+                    wrapper.like(Tag::getName, keyword)
+            );
         }
 
         // 执行分页查询

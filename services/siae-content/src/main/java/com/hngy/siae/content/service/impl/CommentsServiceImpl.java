@@ -89,6 +89,7 @@ public class CommentsServiceImpl
         // 构建分页查询条件
         Page<Comment> page = PageConvertUtil.toPage(pageDTO);
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNotNull(Comment::getId);
 
         // 添加查询条件
         CommentDTO params = pageDTO.getParams();

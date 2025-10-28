@@ -1,9 +1,12 @@
 package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.hngy.siae.core.utils.BeanConvertUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
@@ -27,10 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-
-/**
+/** 
  * 内容服务impl
  *
  * @author KEYKB
@@ -43,9 +43,6 @@ import java.util.stream.Collectors;
 public class ContentServiceImpl
         extends ServiceImpl<ContentMapper, Content>
         implements ContentService {
-
-    private final ContentMapper contentMapper;
-
 
     @Override
     public Content createContent(ContentDTO dto) {
@@ -123,32 +120,47 @@ public class ContentServiceImpl
     public Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto) {
         // 创建分页参数
         Page<Content> page = PageConvertUtil.toPage(dto);
-        // 查询数据
-        List<Content> list = contentMapper.selectByCondition(dto);
-        AssertUtils.notNull(list, "这里没有任何内容");
-        // 查询总数
-        long total = contentMapper.countByCondition(dto.getParams());
 
-        // TODO: 整合的时候直接改成用mybatis-plus写多表分页查询
+        LambdaQueryWrapper<Content> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNotNull(Content::getId);
 
-        // 创建一个临时的 Page 对象用于转换
-        Page<Content> resultPage = new Page<>(page.getCurrent(), page.getSize(), total);
-        resultPage.setRecords(list);
+        ContentPageDTO params = dto.getParams();
+        if (params != null) {
+            if (params.getCategoryId() != null) {
+                queryWrapper.eq(Content::getCategoryId, params.getCategoryId());
+            }
+            if (params.getStatus() != null) {
+                queryWrapper.eq(Content::getStatus, params.getStatus());
+            }
+            if (params.getType() != null) {
+                queryWrapper.eq(Content::getType, params.getType());
+            }
+            if (CollUtil.isNotEmpty(params.getTagIds())) {
+                String tagIdSql = CollUtil.join(params.getTagIds(), ",");
+                queryWrapper.inSql(Content::getId,
+                        "SELECT ctr.content_id FROM content_tag_relation ctr WHERE ctr.tag_id IN (" + tagIdSql + ")");
+            }
+        }
 
-        // 使用 PageConvertUtil 转换，但需要自定义转换逻辑
-        List<ContentVO<EmptyDetailVO>> voList = list.stream().map(content -> {
+        if (StrUtil.isNotBlank(dto.getKeyword())) {
+            String keyword = dto.getKeyword();
+            queryWrapper.and(wrapper ->
+                    wrapper.like(Content::getTitle, keyword)
+                            .or()
+                            .like(Content::getDescription, keyword)
+            );
+        }
+
+        queryWrapper.orderByDesc(Content::getCreateTime);
+
+        Page<Content> resultPage = this.page(page, queryWrapper);
+
+        PageVO<ContentVO<EmptyDetailVO>> pageVO = PageConvertUtil.convert(resultPage, content -> {
             ContentVO<EmptyDetailVO> vo = new ContentVO<>();
             BeanUtils.copyProperties(content, vo);
             vo.setDetail(new EmptyDetailVO());
             return vo;
-        }).collect(Collectors.toList());
-
-        // 创建最终的分页结果
-        Page<ContentVO<EmptyDetailVO>> voPage = new Page<>(page.getCurrent(), page.getSize(), total);
-        voPage.setRecords(voList);
-
-        // 使用 PageConvertUtil 转换
-        PageVO<ContentVO<EmptyDetailVO>> pageVO = PageConvertUtil.convert(voPage);
+        });
 
         return Result.success(pageVO);
     }

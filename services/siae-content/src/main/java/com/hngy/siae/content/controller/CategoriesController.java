@@ -92,10 +92,11 @@ public class CategoriesController {
      * @return 分类分页列表
      */
     @Operation(summary = "分页查询分类列表", description = "获取分类的分页列表，支持关键词搜索和条件筛选")
-    @GetMapping
+    @PostMapping("/page")
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_VIEW + "')")
     public Result<PageVO<CategoryVO>> listCategories(
-            @Parameter(description = "分页查询参数，包含查询条件") @Valid PageDTO<CategoryQueryDTO> pageDTO) {
+            @Parameter(description = "分页查询参数，包含查询条件")
+            @Valid @RequestBody PageDTO<CategoryQueryDTO> pageDTO) {
         PageVO<CategoryVO> pageVO = categoriesService.listCategories(pageDTO);
         return Result.success(pageVO);
     }

@@ -26,8 +26,8 @@ public class JwtUtils {
     // JWT签名密钥（必须大于等于256位）
     private final String secret = "nD7I9zd0bReTmUiVpV9tlVMlNJTuwNTtcg351xRSxfy3DftE6nEhVnWZk0XiPFd";
 
-    // 访问令牌过期时间（秒）1小时
-    private final long accessTokenExpire = 3600L;
+    // 访问令牌过期时间（秒）24小时
+    private final long accessTokenExpire = 86400L;
 
     // 刷新令牌过期时间（秒）7天
     private final long refreshTokenExpire = 604800L;

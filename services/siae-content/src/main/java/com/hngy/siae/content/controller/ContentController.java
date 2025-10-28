@@ -113,7 +113,7 @@ public class ContentController {
 
 
     @Operation(summary = "查询内容列表", description = "分页查询内容列表，支持按分类、标签、状态等条件筛选")
-    @GetMapping("/")
+    @PostMapping("/page")
     @SiaeAuthorize("hasAuthority('" + CONTENT_LIST_VIEW + "')")
     public Result<PageVO<ContentVO<EmptyDetailVO>>> queryContentList(
             @Parameter(description = "分页查询参数", required = true)

@@ -135,14 +135,24 @@ public class ContentFacadeImpl implements ContentFacade {
         int offset = (contentHotPageDTO.getPageNum() - 1) * contentHotPageDTO.getPageSize();
 
         // 3. 查询热门内容
+        Integer typeCode = Optional.ofNullable(contentHotPageDTO.getType())
+                .map(ContentTypeEnum::getCode)
+                .orElse(null);
+
+        String sortBy = Optional.ofNullable(contentHotPageDTO.getSortBy())
+                .map(value -> switch (value) {
+                    case "likeCount", "favoriteCount", "commentCount", "createTime", "viewCount" -> value;
+                    default -> "viewCount";
+                })
+                .orElse("viewCount");
+
         List<HotContentVO> hotContentList = statisticsMapper.selectHotContent(
                 contentHotPageDTO.getCategoryId(),
-                Optional.ofNullable(contentHotPageDTO.getType())
-                        .map(ContentTypeEnum::name)
-                        .orElse(null),
-                contentHotPageDTO.getSortBy(),
+                typeCode,
+                sortBy,
                 contentHotPageDTO.getPageSize(),
-                offset
+                offset,
+                ContentStatusEnum.PUBLISHED.getCode()
         );
 
         // 4. 查询总数 (需要添加一个查询总数的方法)

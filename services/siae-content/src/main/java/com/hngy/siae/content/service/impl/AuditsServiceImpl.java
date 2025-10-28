@@ -89,6 +89,7 @@ public class AuditsServiceImpl
 
         // 构造查询条件
         LambdaQueryWrapper<Audit> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.isNotNull(Audit::getId);
         queryWrapper.eq(targetType != null, Audit::getTargetType, targetType);
         queryWrapper.eq(auditStatus != null, Audit::getAuditStatus, auditStatus);
 
