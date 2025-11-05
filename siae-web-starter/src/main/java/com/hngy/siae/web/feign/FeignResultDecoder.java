@@ -39,7 +39,7 @@ public class FeignResultDecoder implements Decoder {
         log.debug("Feign 响应体: {}", bodyStr);
 
         // 先打印响应，确认格式
-        System.out.println("Feign响应体: " + bodyStr);
+//        System.out.println("Feign响应体: " + bodyStr);
 
         // 2. 构造 Result<T> 的 JavaType，这是正确反序列化泛型的关键
         JavaType resultType = TypeFactory.defaultInstance().constructParametricType(Result.class, TypeFactory.defaultInstance().constructType(type));

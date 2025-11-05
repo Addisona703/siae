@@ -33,16 +33,16 @@ public class MemberVO implements Serializable {
     private Long userId;
 
     /**
-     * 部门ID
+     * 部门名称
      */
-    @Schema(description = "部门ID", example = "1")
-    private Long departmentId;
+    @Schema(description = "部门名称", example = "技术部")
+    private String departmentName;
 
     /**
-     * 职位ID
+     * 职位名称
      */
-    @Schema(description = "职位ID", example = "2")
-    private Long positionId;
+    @Schema(description = "职位名称", example = "部长")
+    private String positionName;
 
     /**
      * 状态：0禁用，1启用

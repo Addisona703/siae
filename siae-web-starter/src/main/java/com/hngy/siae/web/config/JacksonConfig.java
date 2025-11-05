@@ -3,6 +3,9 @@ package com.hngy.siae.web.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
+import com.fasterxml.jackson.databind.type.LogicalType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -88,13 +91,20 @@ public class JacksonConfig {
     @Bean
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
         ObjectMapper mapper = builder.build();
-        
+
+        WebProperties.Jackson jacksonConfig = webProperties.getJackson();
+
         // 忽略未知属性
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
+
         // 允许空对象
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        
+
+        if (jacksonConfig.isAcceptEnumEmptyStringAsNull()) {
+            mapper.coercionConfigFor(LogicalType.Enum)
+                  .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
+        }
+
         return mapper;
     }
 }

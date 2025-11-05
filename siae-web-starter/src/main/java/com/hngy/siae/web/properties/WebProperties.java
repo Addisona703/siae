@@ -77,6 +77,11 @@ public class WebProperties {
          * 是否序列化null值
          */
         private boolean serializeNulls = false;
+
+        /**
+         * 是否将枚举类型的空字符串反序列化为null
+         */
+        private boolean acceptEnumEmptyStringAsNull = true;
     }
 
     /**

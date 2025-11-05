@@ -1,7 +1,6 @@
 package com.hngy.siae.user.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -76,7 +75,7 @@ public class MemberServiceImpl
         member.setIsDeleted(0);
         save(member);
 
-        return BeanConvertUtil.to(member, MemberVO.class);
+        return requireMemberDetailById(member.getId());
     }
 
     @Override
@@ -114,7 +113,7 @@ public class MemberServiceImpl
         memberCandidateService.updateById(candidate);
         
         // 返回成员信息
-        return BeanConvertUtil.to(member, MemberVO.class);
+        return requireMemberDetailById(member.getId());
     }
 
     /**
@@ -144,7 +143,7 @@ public class MemberServiceImpl
         BeanConvertUtil.to(memberUpdateDTO, member, "id", "userId", "isDeleted");
         updateById(member);
 
-        return BeanConvertUtil.to(member, MemberVO.class);
+        return requireMemberDetailById(member.getId());
     }
 
     /**
@@ -155,9 +154,7 @@ public class MemberServiceImpl
      */
     @Override
     public MemberVO getMemberById(Long id) {
-        Member member = getById(id);
-        AssertUtils.notNull(member, UserResultCodeEnum.MEMBER_NOT_FOUND);
-        return BeanConvertUtil.to(member, MemberVO.class);
+        return requireMemberDetailById(id);
     }
 
     /**
@@ -168,12 +165,9 @@ public class MemberServiceImpl
      */
     @Override
     public MemberVO getMemberByUserId(Long userId) {
-        Member member = lambdaQuery()
-                .eq(Member::getUserId, userId)
-                .eq(Member::getIsDeleted, 0)
-                .one();
-        AssertUtils.notNull(member, UserResultCodeEnum.MEMBER_NOT_FOUND);
-        return BeanConvertUtil.to(member, MemberVO.class);
+        MemberVO memberVO = baseMapper.selectMemberDetailByUserId(userId);
+        AssertUtils.notNull(memberVO, UserResultCodeEnum.MEMBER_NOT_FOUND);
+        return memberVO;
     }
 
     /**
@@ -184,9 +178,8 @@ public class MemberServiceImpl
      */
     @Override
     public List<MemberVO> listMembers(MemberQueryDTO queryDTO) {
-        LambdaQueryWrapper<Member> wrapper = createQueryWrapper(queryDTO);
-        List<Member> members = list(wrapper);
-        return BeanConvertUtil.toList(members, MemberVO.class);
+        List<MemberVO> members = baseMapper.selectMemberDetails(queryDTO);
+        return members != null ? members : List.of();
     }
 
     /**
@@ -197,9 +190,9 @@ public class MemberServiceImpl
      */
     @Override
     public PageVO<MemberVO> listMembersByPage(PageDTO<MemberQueryDTO> pageDTO) {
-        LambdaQueryWrapper<Member> wrapper = createQueryWrapper(pageDTO.getParams());
-        Page<Member> page = page(PageConvertUtil.toPage(pageDTO), wrapper);
-        return PageConvertUtil.convert(page, MemberVO.class);
+        Page<MemberVO> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
+        Page<MemberVO> resultPage = baseMapper.selectMemberDetailsPage(page, pageDTO.getParams());
+        return PageConvertUtil.convert(resultPage);
     }
 
     /**
@@ -218,32 +211,15 @@ public class MemberServiceImpl
     }
 
     /**
-     * 构建查询条件
+     * 查询成员详情并进行空值校验
      *
-     * @param queryDTO 查询条件DTO
-     * @return 查询条件包装器
+     * @param id 成员ID
+     * @return 成员视图对象
      */
-    private LambdaQueryWrapper<Member> createQueryWrapper(MemberQueryDTO queryDTO) {
-        LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
-
-        // 默认只查询未删除的数据
-        wrapper.eq(Member::getIsDeleted, 0);
-
-        if (queryDTO == null) {
-            return wrapper;
-        }
-
-        // 条件拼接
-        wrapper.eq(queryDTO.getId() != null, Member::getId, queryDTO.getId())
-                .eq(queryDTO.getUserId() != null, Member::getUserId, queryDTO.getUserId())
-                .eq(queryDTO.getDepartmentId() != null, Member::getDepartmentId, queryDTO.getDepartmentId())
-                .eq(queryDTO.getPositionId() != null, Member::getPositionId, queryDTO.getPositionId())
-                .eq(StrUtil.isNotBlank(queryDTO.getStudentId()), Member::getStudentId, queryDTO.getStudentId())
-                .eq(queryDTO.getStatus() != null, Member::getStatus, queryDTO.getStatus())
-                .ge(queryDTO.getJoinDateStart() != null, Member::getJoinDate, queryDTO.getJoinDateStart())
-                .le(queryDTO.getJoinDateEnd() != null, Member::getJoinDate, queryDTO.getJoinDateEnd());
-
-        return wrapper.orderByDesc(Member::getCreatedAt);
+    private MemberVO requireMemberDetailById(Long id) {
+        MemberVO memberVO = baseMapper.selectMemberDetailById(id);
+        AssertUtils.notNull(memberVO, UserResultCodeEnum.MEMBER_NOT_FOUND);
+        return memberVO;
     }
 
-} 
+}
