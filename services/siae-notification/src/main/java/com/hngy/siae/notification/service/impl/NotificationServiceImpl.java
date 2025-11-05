@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.utils.BeanConvertUtil;
+import com.hngy.siae.notification.events.NotificationCreatedEvent;
 import com.hngy.siae.web.utils.PageConvertUtil;
 import com.hngy.siae.notification.dto.request.NotificationCreateDTO;
 import com.hngy.siae.notification.dto.response.NotificationVO;
@@ -15,6 +16,8 @@ import com.hngy.siae.notification.mapper.SystemNotificationMapper;
 import com.hngy.siae.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMapper, SystemNotification> implements NotificationService {
 
+    private final ApplicationEventPublisher publisher;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long sendNotification(NotificationCreateDTO dto) {
@@ -35,6 +40,9 @@ public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMappe
         notification.setIsRead(false);
         save(notification);
         log.info("发送通知成功 - 用户ID: {}, 标题: {}", dto.getUserId(), dto.getTitle());
+
+        // 关键：发布事件，监听器会在事务提交后再推送
+        publisher.publishEvent(new NotificationCreatedEvent(notification));
         return notification.getId();
     }
 

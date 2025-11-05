@@ -100,6 +100,13 @@
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
+        <!-- ✅ Spring Boot Test：用于编写和运行集成测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- 你可以后续加入短信、MQ 等 -->
         <!-- 示例：RabbitMQ 消息中转 -->
         <!--

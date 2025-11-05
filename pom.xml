@@ -17,6 +17,7 @@
         <module>siae-core</module>
         <module>siae-web-starter</module>
         <module>siae-security-starter</module>
+        <module>siae-messaging-starter</module>
         <module>siae-gateway</module>
         <module>services/siae-auth</module>
         <module>services/siae-user</module>

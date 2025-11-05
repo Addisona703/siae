@@ -4,6 +4,7 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.notification.dto.request.NotificationCreateDTO;
 import com.hngy.siae.notification.dto.response.NotificationVO;
+import com.hngy.siae.notification.push.SsePushServiceImpl;
 import com.hngy.siae.notification.service.NotificationService;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 通知控制器
@@ -26,6 +29,13 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SsePushServiceImpl ssePushService;
+
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(Authentication authentication) {
+        Long userId = (Long) authentication.getDetails();
+        return ssePushService.open(userId);
+    }
 
     @Operation(summary = "发送通知", description = "发送系统通知（管理员）")
     @PostMapping("/send")

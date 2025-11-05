@@ -11,6 +11,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -35,6 +36,8 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
 
     private final JwtUtils jwtUtils;
     private final AuthProperties authProperties;
+
+    private static final String ACCESS_TOKEN_COOKIE = "ACCESS_TOKEN";
 
     // 无需认证的路径白名单
     private static final List<String> WHITELIST = Arrays.asList(
@@ -133,6 +136,10 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         String bearerToken = request.getHeaders().getFirst("Authorization");
         if (StrUtil.isNotBlank(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
+        }
+        HttpCookie cookie = request.getCookies().getFirst(ACCESS_TOKEN_COOKIE);
+        if (cookie != null && StrUtil.isNotBlank(cookie.getValue())) {
+            return cookie.getValue();
         }
         return null;
     }
