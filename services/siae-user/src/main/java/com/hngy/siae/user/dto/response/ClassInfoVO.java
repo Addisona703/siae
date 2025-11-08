@@ -48,6 +48,12 @@ public class ClassInfoVO implements Serializable {
      */
     @Schema(description = "专业名称", example = "移动应用开发")
     private String majorName;
+
+    /**
+     * 专业简称
+     */
+    @Schema(description = "专业简称", example = "移应")
+    private String majorAbbr;
     
     /**
      * 入学年份

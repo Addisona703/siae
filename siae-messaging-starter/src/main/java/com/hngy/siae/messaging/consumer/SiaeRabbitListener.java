@@ -53,10 +53,4 @@ public @interface SiaeRabbitListener {
      */
     @AliasFor(annotation = RabbitListener.class, attribute = "queuesToDeclare")
     Queue[] queuesToDeclare() default {};
-
-    /**
-     * 快捷创建 Exchange.
-     */
-    @AliasFor(annotation = RabbitListener.class, attribute = "exchanges")
-    Exchange[] exchanges() default {};
 }

@@ -52,21 +52,27 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
+        log.info("GatewayAuthFilter invoked for {} {}", exchange.getRequest().getMethod(), path);
 
         // 跳过白名单路径
+        String tenantIdHeader = exchange.getRequest().getHeaders().getFirst("X-Tenant-Id");
+
         if (isInWhitelist(path)) {
-            return addGatewayHeaders(exchange, chain, null);
+            log.info("Path {} matched whitelist, skipping auth", path);
+            return addGatewayHeaders(exchange, chain, null, tenantIdHeader);
         }
 
         // 获取JWT Token
         String token = extractToken(exchange.getRequest());
         if (StrUtil.isBlank(token)) {
+            log.warn("Missing authentication token for path {}", path);
             return unauthorized(exchange, "Missing authentication token");
         }
 
         try {
             // 1. 校验JWT Token有效性（这里只做一次JWT解析）
             if (!jwtUtils.validateToken(token)) {
+                log.warn("Invalid or expired token for path {}", path);
                 return unauthorized(exchange, "Invalid or expired token");
             }
 
@@ -76,6 +82,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
             Long expireTime = jwtUtils.getExpirationFromToken(token);
 
             if (userId == null || StrUtil.isBlank(username)) {
+                log.warn("Token missing user info for path {}", path);
                 return unauthorized(exchange, "Invalid user information in token");
             }
 
@@ -88,7 +95,8 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
                 .build();
 
             // 4. 传递用户信息到微服务
-            return addGatewayHeaders(exchange, chain, userInfo);
+            log.info("Gateway auth success for user {} (id={}) path {}", username, userId, path);
+            return addGatewayHeaders(exchange, chain, userInfo, tenantIdHeader);
 
         } catch (Exception e) {
             log.error("Gateway JWT validation failed for path: {}", path, e);
@@ -100,12 +108,16 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
      * 添加网关认证头信息
      */
     private Mono<Void> addGatewayHeaders(ServerWebExchange exchange, GatewayFilterChain chain,
-                                        GatewayUserInfo userInfo) {
+                                        GatewayUserInfo userInfo, String tenantIdHeader) {
         ServerWebExchange.Builder exchangeBuilder = exchange.mutate()
             .request(requestBuilder -> {
                 // 标识请求来自网关
                 requestBuilder.header("X-Gateway-Auth", "true");
                 requestBuilder.header("X-Gateway-Secret", generateGatewaySecret());
+
+                if (StrUtil.isNotBlank(tenantIdHeader)) {
+                    requestBuilder.header("X-Tenant-Id", tenantIdHeader);
+                }
 
                 // 传递基础用户信息（如果有）
                 if (userInfo != null) {
@@ -135,12 +147,15 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private String extractToken(ServerHttpRequest request) {
         String bearerToken = request.getHeaders().getFirst("Authorization");
         if (StrUtil.isNotBlank(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            log.debug("Token extracted from Authorization header");
             return bearerToken.substring(7);
         }
         HttpCookie cookie = request.getCookies().getFirst(ACCESS_TOKEN_COOKIE);
         if (cookie != null && StrUtil.isNotBlank(cookie.getValue())) {
+            log.debug("Token extracted from ACCESS_TOKEN cookie");
             return cookie.getValue();
         }
+        log.debug("No token found in headers or cookies");
         return null;
     }
 
@@ -158,6 +173,9 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+
+        log.warn("Gateway rejected request {} {}: {}", exchange.getRequest().getMethod(),
+                exchange.getRequest().getURI().getPath(), message);
 
         String result = "{\"code\":401,\"message\":\"" + message + "\",\"data\":null}";
         DataBuffer buffer = response.bufferFactory().wrap(result.getBytes(StandardCharsets.UTF_8));

@@ -1,0 +1,20 @@
+# ===================================================================
+# BOOTSTRAP CONFIGURATION (The ONLY local config file)
+# Location: siae-media/src/main/resources/bootstrap.yaml
+# ===================================================================
+spring:
+  application:
+    # 定义服务名称为 siae-media
+    name: siae-media
+  cloud:
+    nacos:
+      # Nacos服务器地址
+      server-addr: localhost:8948
+      # Nacos配置中心设置
+      config:
+        server-addr: ${spring.cloud.nacos.server-addr}
+        group: SIAE_GROUP
+        file-extension: yaml
+  config:
+    # 从Nacos导入对应当前服务的配置文件
+    import: nacos:siae-media?group=SIAE_GROUP&refresh=true

@@ -105,4 +105,13 @@ public class AssertUtils {
             throw new ServiceException(resultCode);
         }
     }
+
+    /**
+     * 工具类构造函数断言，防止工具类被实例化
+     *
+     * @throws UnsupportedOperationException 总是抛出此异常
+     */
+    public static void utilityClass() {
+        throw new UnsupportedOperationException("这是一个工具类，不能被实例化");
+    }
 }

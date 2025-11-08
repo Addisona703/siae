@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component("authUtil")
+@Deprecated
 public class AuthUtil {
 
     /**

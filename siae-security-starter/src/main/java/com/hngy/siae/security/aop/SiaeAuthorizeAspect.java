@@ -32,8 +32,8 @@ public class SiaeAuthorizeAspect {
             AssertUtils.fail(CommonResultCodeEnum.UNAUTHORIZED);
         }
 
-        // 添加详细的权限调试日志
-        log.warn("用户权限检查 - 用户: {}, 所有权限: {}", auth.getName(),
+        // 添加详细的权限日志，便于排查
+        log.info("用户权限检查开始 - 用户: {}, 所有权限: {}", auth.getName(),
                 auth.getAuthorities().stream().map(a -> a.getAuthority()).collect(java.util.stream.Collectors.toList()));
 
         // 管理员权限检查 - 根据数据库定义的角色
@@ -58,12 +58,12 @@ public class SiaeAuthorizeAspect {
             AssertUtils.fail(CommonResultCodeEnum.FORBIDDEN);
         }
 
-        log.debug("评估权限表达式: {}", expr);
+        log.info("评估权限表达式: {}，用户: {}", expr, auth.getName());
 
         Boolean allowed = parser.parseExpression(expr).getValue(context, Boolean.class);
 
         if (Boolean.TRUE.equals(allowed)) {
-            log.debug("权限校验通过");
+            log.info("权限校验通过 - 用户: {}, 表达式: {}", auth.getName(), expr);
             return joinPoint.proceed();
         }
 

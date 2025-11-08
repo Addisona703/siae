@@ -57,9 +57,11 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                                    FilterChain filterChain) throws ServletException, IOException {
 
         try {
+            log.info("Auth filter invoked: {} {}", request.getMethod(), request.getRequestURI());
+
             // 1. 识别请求来源
             RequestSource requestSource = identifyRequestSource(request);
-            log.debug("Request source identified: {} for path: {}", requestSource, request.getRequestURI());
+            log.info("Request source identified: {} for path: {}", requestSource, request.getRequestURI());
 
             // 2. 根据来源采用不同的认证策略
             switch (requestSource) {
@@ -120,15 +122,18 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
         // 白名单请求可能没有用户信息
         if (StrUtil.isBlank(userIdHeader)) {
             if (isInWhitelist(request.getRequestURI())) {
-                log.debug("Gateway whitelist request: {}", request.getRequestURI());
+                log.info("Gateway whitelist request: {}", request.getRequestURI());
                 return;
             } else {
+                log.warn("Gateway headers present but user info missing for path: {}", request.getRequestURI());
                 throw new AuthenticationException("Missing user info from gateway");
             }
         }
 
         try {
             Long userId = Long.parseLong(userIdHeader);
+
+            log.info("Gateway request user info received: userId={}, username={}", userIdHeader, usernameHeader);
 
             // 从Redis查询用户权限（这里是唯一的权限查询点）
             List<String> permissions = redisPermissionService.getAllUserAuthorities(userId);
@@ -141,7 +146,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             // 设置Spring Security上下文
             setSecurityContext(userId, usernameHeader, permissions);
 
-            log.debug("Gateway request authenticated for user: {} with {} permissions",
+            log.info("Gateway request authenticated for user: {} with {} permissions",
                     usernameHeader, permissions.size());
 
         } catch (NumberFormatException e) {
@@ -164,7 +169,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
                 List<String> permissions = redisPermissionService.getAllUserAuthorities(userId);
 
                 setSecurityContext(userId, "service-call-user", permissions != null ? permissions : Collections.emptyList());
-                log.debug("Internal service call authenticated from: {} on behalf of user: {}", callerService, userId);
+                log.info("Internal service call authenticated from: {} on behalf of user: {}", callerService, userId);
 
             } catch (NumberFormatException e) {
                 throw new AuthenticationException("Invalid user ID in internal service call");
@@ -173,7 +178,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             // 对于没有代表特定用户的内部服务调用，设置系统级认证
             // 这种情况通常发生在：登录、注册、健康检查等系统级操作
             setSystemServiceContext(callerService != null ? callerService : "internal-service");
-            log.debug("Internal service call authenticated from: {} (system level)", callerService);
+            log.info("Internal service call authenticated from: {} (system level)", callerService);
         }
     }
 
@@ -189,7 +194,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
         if (isInWhitelist(path)) {
-            log.debug("Direct access whitelist: {}", path);
+            log.info("Direct access whitelist: {}", path);
             return;
         }
 
@@ -225,6 +230,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
         authToken.setDetails(userId); // 存储用户ID供后续使用
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
+        log.info("Security context set for user: {} with {} authorities", username, authorities.size());
     }
 
     /**
@@ -243,6 +249,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
         authToken.setDetails("SYSTEM_SERVICE"); // 标识为系统服务
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
+        log.info("System service context set for caller: {}", serviceName);
     }
 
     /**
@@ -283,6 +290,8 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
      * 处理认证异常
      */
     private void handleAuthenticationException(HttpServletResponse response, String message) throws IOException {
+        log.warn("Authentication exception triggered: {}", message);
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write("{\"code\":401,\"message\":\"" + message + "\",\"data\":null}");

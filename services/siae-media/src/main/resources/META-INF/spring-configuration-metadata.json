@@ -1,0 +1,36 @@
+{
+  "properties": [
+    {
+      "name": "minio.endpoint",
+      "type": "java.lang.String",
+      "description": "MinIO 服务端点地址"
+    },
+    {
+      "name": "minio.accessKey",
+      "type": "java.lang.String",
+      "description": "MinIO 访问密钥"
+    },
+    {
+      "name": "minio.secretKey",
+      "type": "java.lang.String",
+      "description": "MinIO 密钥"
+    },
+    {
+      "name": "minio.bucketName",
+      "type": "java.lang.String",
+      "description": "MinIO 存储桶名称"
+    },
+    {
+      "name": "minio.region",
+      "type": "java.lang.String",
+      "description": "MinIO 区域",
+      "defaultValue": "us-east-1"
+    }
+  ],
+  "hints": [
+    {
+      "name": "spring.datasource.druid",
+      "sourceType": "com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure"
+    }
+  ]
+}

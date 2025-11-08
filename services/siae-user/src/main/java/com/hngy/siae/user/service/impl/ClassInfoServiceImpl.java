@@ -14,6 +14,7 @@ import com.hngy.siae.user.dto.request.ClassInfoQueryDTO;
 import com.hngy.siae.user.dto.request.ClassInfoUpdateDTO;
 import com.hngy.siae.user.dto.response.ClassInfoVO;
 import com.hngy.siae.user.entity.ClassInfo;
+import com.hngy.siae.user.entity.College;
 import com.hngy.siae.user.entity.Major;
 import com.hngy.siae.user.mapper.ClassInfoMapper;
 import com.hngy.siae.user.mapper.CollegeMapper;
@@ -54,10 +55,10 @@ public class ClassInfoServiceImpl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ClassInfoVO createClass(ClassInfoCreateDTO classInfoCreateDTO) {
-        AssertUtils.notNull(collegeMapper.selectById(classInfoCreateDTO.getCollegeId()),
-                UserResultCodeEnum.COLLEGE_NOT_FOUND);
-        AssertUtils.notNull(majorMapper.selectById(classInfoCreateDTO.getMajorId()),
-                UserResultCodeEnum.MAJOR_NOT_FOUND);
+        College college = collegeMapper.selectById(classInfoCreateDTO.getCollegeId());
+        AssertUtils.notNull(college, UserResultCodeEnum.COLLEGE_NOT_FOUND);
+        Major major = majorMapper.selectById(classInfoCreateDTO.getMajorId());
+        AssertUtils.notNull(major, UserResultCodeEnum.MAJOR_NOT_FOUND);
 
         boolean exists = lambdaQuery()
                 .eq(ClassInfo::getCollegeId, classInfoCreateDTO.getCollegeId())
@@ -72,6 +73,9 @@ public class ClassInfoServiceImpl
         save(classInfo);
 
         ClassInfoVO classInfoVO = BeanConvertUtil.to(classInfo, ClassInfoVO.class);
+        classInfoVO.setCollegeName(college.getName());
+        classInfoVO.setMajorName(major.getName());
+        classInfoVO.setMajorAbbr(major.getAbbr());
         setClassName(classInfoVO);
 
         return classInfoVO;
@@ -88,10 +92,10 @@ public class ClassInfoServiceImpl
         ClassInfo classInfo = getById(classInfoUpdateDTO.getId());
         AssertUtils.notNull(classInfo, UserResultCodeEnum.CLASS_NOT_FOUND);
 
-        AssertUtils.notNull(collegeMapper.selectById(classInfoUpdateDTO.getCollegeId()),
-                UserResultCodeEnum.COLLEGE_NOT_FOUND);
-        AssertUtils.notNull(majorMapper.selectById(classInfoUpdateDTO.getMajorId()),
-                UserResultCodeEnum.MAJOR_NOT_FOUND);
+        College college = collegeMapper.selectById(classInfoUpdateDTO.getCollegeId());
+        AssertUtils.notNull(college, UserResultCodeEnum.COLLEGE_NOT_FOUND);
+        Major major = majorMapper.selectById(classInfoUpdateDTO.getMajorId());
+        AssertUtils.notNull(major, UserResultCodeEnum.MAJOR_NOT_FOUND);
 
         // 检查班级唯一性（排除当前记录）
         boolean exists = lambdaQuery()
@@ -107,6 +111,9 @@ public class ClassInfoServiceImpl
         updateById(classInfo);
 
         ClassInfoVO classInfoVO = BeanConvertUtil.to(classInfo, ClassInfoVO.class);
+        classInfoVO.setCollegeName(college.getName());
+        classInfoVO.setMajorName(major.getName());
+        classInfoVO.setMajorAbbr(major.getAbbr());
         setClassName(classInfoVO);
 
         return classInfoVO;
@@ -120,10 +127,8 @@ public class ClassInfoServiceImpl
      */
     @Override
     public ClassInfoVO getClassById(Long id) {
-        ClassInfo classInfo = getById(id);
-        AssertUtils.notNull(classInfo, UserResultCodeEnum.CLASS_NOT_FOUND);
-
-        ClassInfoVO classInfoVO = BeanConvertUtil.to(classInfo, ClassInfoVO.class);
+        ClassInfoVO classInfoVO = baseMapper.selectClassDetailById(id);
+        AssertUtils.notNull(classInfoVO, UserResultCodeEnum.CLASS_NOT_FOUND);
         setClassName(classInfoVO);
 
         return classInfoVO;
@@ -153,7 +158,7 @@ public class ClassInfoServiceImpl
         Page<ClassInfo> resultPage = page(page, queryWrapper);
 
         PageVO<ClassInfoVO> pageVO = PageConvertUtil.convert(resultPage, ClassInfoVO.class);
-        pageVO.getRecords().forEach(this::setClassName);
+        pageVO.getRecords().forEach(this::fillMajorInfoAndSetClassName);
 
         return pageVO;
     }
@@ -186,7 +191,7 @@ public class ClassInfoServiceImpl
                 .list();
 
         List<ClassInfoVO> classInfoVOList = BeanConvertUtil.toList(classInfoList, ClassInfoVO.class);
-        classInfoVOList.forEach(this::setClassName);
+        classInfoVOList.forEach(this::fillMajorInfoAndSetClassName);
 
         return classInfoVOList;
     }
@@ -222,7 +227,7 @@ public class ClassInfoServiceImpl
                 .list();
 
         List<ClassInfoVO> classInfoVOList = BeanConvertUtil.toList(classInfoList, ClassInfoVO.class);
-        classInfoVOList.forEach(this::setClassName);
+        classInfoVOList.forEach(this::fillMajorInfoAndSetClassName);
 
         return classInfoVOList;
     }
@@ -249,8 +254,20 @@ public class ClassInfoServiceImpl
      * 设置班级名称，格式：专业简称 + 年份后两位 + "-" + 班号
      * 例如：移应23-1
      */
-    private void setClassName(ClassInfoVO classInfoVO) {
-        if (classInfoVO == null) {
+    private void fillMajorInfoAndSetClassName(ClassInfoVO classInfoVO) {
+        fillMajorInfoIfNeeded(classInfoVO);
+        setClassName(classInfoVO);
+    }
+
+    private void fillMajorInfoIfNeeded(ClassInfoVO classInfoVO) {
+        if (classInfoVO == null || classInfoVO.getMajorId() == null) {
+            return;
+        }
+
+        boolean hasName = StrUtil.isNotBlank(classInfoVO.getMajorName());
+        boolean hasAbbr = StrUtil.isNotBlank(classInfoVO.getMajorAbbr());
+
+        if (hasName && hasAbbr) {
             return;
         }
 
@@ -259,9 +276,17 @@ public class ClassInfoServiceImpl
             return;
         }
 
-        String majorAbbr = major.getAbbr();
-        if (!StrUtil.isNotBlank(majorAbbr)) {
-            majorAbbr = major.getName();
+        if (!hasName) {
+            classInfoVO.setMajorName(major.getName());
+        }
+        if (!hasAbbr && StrUtil.isNotBlank(major.getAbbr())) {
+            classInfoVO.setMajorAbbr(major.getAbbr());
+        }
+    }
+
+    private void setClassName(ClassInfoVO classInfoVO) {
+        if (classInfoVO == null) {
+            return;
         }
 
         String yearSuffix = "";
@@ -270,7 +295,7 @@ public class ClassInfoServiceImpl
             yearSuffix = yearStr.length() > 2 ? yearStr.substring(yearStr.length() - 2) : yearStr;
         }
 
-        String className = majorAbbr + yearSuffix + "-" + classInfoVO.getClassNo();
+        String className = classInfoVO.getMajorAbbr() + yearSuffix + "-" + classInfoVO.getClassNo();
         classInfoVO.setClassName(className);
     }
 }

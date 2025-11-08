@@ -58,3 +58,21 @@ spring:
 ---
 ### Mybatis-plus
 1.参数回填、使得不只能回填id
+
+---
+### 2. 代码提交规范
+```
+feat: 新功能
+fix: 修复bug
+docs: 文档更新
+style: 代码格式调整
+refactor: 代码重构
+test: 测试相关
+chore: 构建过程或辅助工具的变动
+```
+
+### 3. 分支管理
+- main: 主分支，生产环境代码
+- develop: 开发分支
+- feature/*: 功能分支
+- hotfix/*: 热修复分支

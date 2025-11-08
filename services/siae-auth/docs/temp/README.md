@@ -877,7 +877,7 @@ version: '3.8'
 
 services:
   siae-auth:
-    build: .
+    build: ../..
     ports:
       - "8000:8000"
     environment:

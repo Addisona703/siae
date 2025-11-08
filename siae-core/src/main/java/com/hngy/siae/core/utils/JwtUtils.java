@@ -27,7 +27,7 @@ public class JwtUtils {
     private final String secret = "nD7I9zd0bReTmUiVpV9tlVMlNJTuwNTtcg351xRSxfy3DftE6nEhVnWZk0XiPFd";
 
     // 访问令牌过期时间（秒）24小时
-    private final long accessTokenExpire = 86400L;
+    private final long defaultAccessTokenExpire = 86400L;
 
     // 刷新令牌过期时间（秒）7天
     private final long refreshTokenExpire = 604800L;
@@ -46,7 +46,11 @@ public class JwtUtils {
      * @return JWT访问令牌
      */
     public String createAccessToken(Long userId, String username) {
-        return createToken(userId, username, null, accessTokenExpire);
+        return createToken(userId, username, null, defaultAccessTokenExpire);
+    }
+
+    public String createAccessToken(Long userId, String username, long expireSeconds) {
+        return createToken(userId, username, null, expireSeconds);
     }
 
     /**
@@ -61,7 +65,7 @@ public class JwtUtils {
     @Deprecated
     public String createAccessToken(Long userId, String username, List<String> authorities) {
         // 忽略authorities参数，不再将权限信息存储在JWT中
-        return createToken(userId, username, null, accessTokenExpire);
+        return createToken(userId, username, null, 12324);
     }
 
     public String createRefreshToken(Long userId, String username) {

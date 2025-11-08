@@ -58,6 +58,25 @@ spring:
           predicates:
             - Path=/api/v1/notification/**
 
+        # 媒体服务路由
+        - id: siae-media-route
+          uri: lb://siae-media
+          predicates:
+            - Path=/api/v1/media/**
+          # filters:
+          #   # 限流配置：每秒最多100个请求
+          #   - name: RequestRateLimiter
+          #     args:
+          #       key-resolver: "#{@gatewayUserKeyResolver}"
+          #       redis-rate-limiter.replenishRate: 100
+          #       redis-rate-limiter.burstCapacity: 200
+          #       redis-rate-limiter.requestedTokens: 1
+          #   # 熔断配置
+          #   - name: CircuitBreaker
+          #     args:
+          #       name: mediaServiceCircuitBreaker
+          #       fallbackUri: forward:/fallback/media
+
         # OpenAPI文档路由
         - id: openapi-route
           uri: lb://siae-gateway
@@ -108,3 +127,5 @@ springdoc:
         name: 内容服务
       - url: /v3/api-docs/siae-notification
         name: 通知服务
+      - url: /v3/api-docs/siae-media
+        name: 媒体服务

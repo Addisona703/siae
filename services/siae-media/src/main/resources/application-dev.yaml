@@ -1,0 +1,236 @@
+# ===================================================================
+# CENTRALIZED CONFIGURATION FOR SIAE-MEDIA (DEV)
+# 此文件内容应复制到 Nacos 配置中心
+# Data ID: siae-media.yml
+# Group: SIAE_GROUP
+# ===================================================================
+
+# 1. 服务端口配置
+server:
+  port: 8084
+  servlet:
+    context-path: /api/v1/media
+  shutdown: graceful  # 启用优雅关闭
+
+siae:
+  auth:
+    enable-direct-access: true  # 本地调试允许直连
+
+# 2. Spring 框架配置
+spring:
+  # 2.1 Nacos 服务发现
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        metadata:
+          version: 0.0.1-SNAPSHOT
+          management.context-path: /actuator
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
+
+  # 2.2 数据库连接配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/media_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 连接池配置
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      test-while-idle: true
+      validation-query: SELECT 1
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      # 监控配置
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: admin
+        login-password: admin
+        reset-enable: false
+      # Web监控
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+      # SQL监控
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 2000
+        wall:
+          enabled: true
+          config:
+            multi-statement-allow: true
+
+  # 2.3 Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # 2.4 RabbitMQ 消息队列配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: root
+    password: 123456
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 1
+        retry:
+          enabled: true
+          max-attempts: 3
+
+  # 2.5 Jackson JSON序列化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+  # 2.6 生命周期配置
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+# 3. MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_uuid
+      logic-delete-field: deletedAt
+      logic-delete-value: NOW()
+      logic-not-delete-value: "NULL"
+  type-aliases-package: com.hngy.siae.media.domain.entity
+
+# 4. MinIO 对象存储配置
+# 对应配置类: com.hngy.siae.media.config.MinioConfig
+# 注意：endpoint 应该是 MinIO 的 API 端口，根据你的启动命令是 9000
+# 控制台地址是 http://localhost:9001
+minio:
+  endpoint: http://localhost:9000
+  accessKey: root
+  secretKey: 123456789
+  bucketName: siae-media
+  region: us-east-1
+
+# 5. 媒体业务配置
+media:
+  upload:
+    max-file-size: 104857600        # 100 MB
+    max-multipart-size: 536870912   # 512 MB
+    presigned-url-expiry: 900       # 15 分钟
+    allowed-mime-types:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+      - image/svg+xml
+      - image/heic
+      - image/heif
+      - application/pdf
+      - text/plain
+      - text/markdown
+      - text/csv
+      - application/msword
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - application/vnd.ms-excel
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/vnd.ms-powerpoint
+      - application/vnd.openxmlformats-officedocument.presentationml.presentation
+      - application/vnd.oasis.opendocument.text
+      - application/vnd.oasis.opendocument.spreadsheet
+      - application/vnd.oasis.opendocument.presentation
+      - application/rtf
+      - application/json
+      - application/xml
+      - video/mp4
+      - video/quicktime
+      - video/x-msvideo
+      - video/x-matroska
+      - audio/mpeg
+      - audio/aac
+      - audio/flac
+      - audio/wav
+      - audio/ogg
+  download:
+    presigned-url-expiry: 900
+  quota:
+    default-max-bytes: 10737418240   # 10 GB
+    default-max-objects: 5000
+  cdn:
+    enabled: false
+    base-url: https://cdn.example.com
+
+# 5. SpringDoc API文档配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'siae-media'
+      paths-to-match: '/api/**'
+  packages-to-scan: com.hngy.siae.media.controller
+
+# 6. Actuator 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: dev
+  tracing:
+    enabled: false
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# 7. 日志配置
+logging:
+  level:
+    root: INFO
+    com.hngy.siae.media: DEBUG

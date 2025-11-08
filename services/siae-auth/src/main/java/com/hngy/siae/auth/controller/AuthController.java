@@ -13,9 +13,7 @@ import com.hngy.siae.auth.service.AuthService;
 import com.hngy.siae.web.utils.WebUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,10 +36,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private static final String ACCESS_TOKEN_COOKIE = "ACCESS_TOKEN";
-    private static final String REFRESH_TOKEN_COOKIE = "REFRESH_TOKEN";
-    private static final int DEFAULT_REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
-
     /**
      * 用户登录
      *
@@ -52,17 +46,12 @@ public class AuthController {
     @Operation(summary = "用户登录")
     @PostMapping("/login")
     public Result<LoginVO> login(HttpServletRequest request,
-                                 HttpServletResponse servletResponse,
                                  @Valid @RequestBody LoginDTO loginDTO) {
         String clientIp = WebUtils.getClientIp(request);
         String browser = WebUtils.getBrowser(request);
         String os = WebUtils.getOs(request);
 
         LoginVO loginResponse = authService.login(loginDTO, clientIp, browser, os);
-        writeTokenCookies(loginResponse.getAccessToken(),
-                loginResponse.getExpiresIn(),
-                loginResponse.getRefreshToken(),
-                servletResponse);
         return Result.success(loginResponse);
     }
 
@@ -76,17 +65,12 @@ public class AuthController {
     @Operation(summary = "用户注册")
     @PostMapping("/register")
     public Result<RegisterVO> register(HttpServletRequest request,
-                                       HttpServletResponse response,
                                        @Valid @RequestBody RegisterDTO registerDTO) {
         String clientIp = WebUtils.getClientIp(request);
         String browser = WebUtils.getBrowser(request);
         String os = WebUtils.getOs(request);
         
         RegisterVO registerResponse = authService.register(registerDTO, clientIp, browser, os);
-        writeTokenCookies(registerResponse.getAccessToken(),
-                registerResponse.getExpiresIn(),
-                registerResponse.getRefreshToken(),
-                response);
         return Result.success(registerResponse);
     }
 
@@ -98,13 +82,8 @@ public class AuthController {
      */
     @Operation(summary = "刷新访问令牌", description = "使用刷新令牌获取新的访问令牌")
     @PostMapping("/refresh-token")
-    public Result<TokenRefreshVO> refreshToken(HttpServletResponse servletResponse,
-                                               @Valid @RequestBody TokenRefreshDTO TokenRefreshDTO) {
+    public Result<TokenRefreshVO> refreshToken(@Valid @RequestBody TokenRefreshDTO TokenRefreshDTO) {
         TokenRefreshVO refreshResponse = authService.refreshToken(TokenRefreshDTO);
-        writeTokenCookies(refreshResponse.getAccessToken(),
-                refreshResponse.getExpiresIn(),
-                refreshResponse.getRefreshToken(),
-                servletResponse);
         return Result.success(refreshResponse);
     }
 
@@ -116,13 +95,11 @@ public class AuthController {
      */
     @Operation(summary = "用户登出", description = "使当前令牌失效")
     @PostMapping("/logout")
-    public Result<Boolean> logout(HttpServletRequest request, HttpServletResponse response) {
+    public Result<Boolean> logout(HttpServletRequest request) {
         // 清理 Spring Security 上下文
         SecurityContextHolder.clearContext();
         String token = resolveAccessToken(request);
         authService.logout(token);
-        clearTokenCookie(response, ACCESS_TOKEN_COOKIE);
-        clearTokenCookie(response, REFRESH_TOKEN_COOKIE);
         return Result.success(true);
     }
 
@@ -140,52 +117,10 @@ public class AuthController {
         return Result.success(currentUser);
     }
 
-    private void writeTokenCookies(String accessToken,
-                                   Long accessTokenTtlSeconds,
-                                   String refreshToken,
-                                   HttpServletResponse response) {
-        if (StrUtil.isNotBlank(accessToken) && accessTokenTtlSeconds != null) {
-            Cookie accessCookie = new Cookie(ACCESS_TOKEN_COOKIE, accessToken);
-            accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(false);
-            accessCookie.setPath("/");
-            accessCookie.setMaxAge(accessTokenTtlSeconds.intValue());
-            response.addCookie(accessCookie);
-        }
-
-        if (StrUtil.isNotBlank(refreshToken)) {
-            Cookie refreshCookie = new Cookie(REFRESH_TOKEN_COOKIE, refreshToken);
-            refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(false);
-            refreshCookie.setPath("/");
-            refreshCookie.setMaxAge(DEFAULT_REFRESH_TOKEN_MAX_AGE);
-            response.addCookie(refreshCookie);
-        }
-    }
-
-    private void clearTokenCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
-
     private String resolveAccessToken(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         if (StrUtil.isNotBlank(authorization) && authorization.startsWith("Bearer ")) {
             return authorization.substring(7);
-        }
-
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (ACCESS_TOKEN_COOKIE.equals(cookie.getName()) &&
-                    StrUtil.isNotBlank(cookie.getValue())) {
-                    return cookie.getValue();
-                }
-            }
         }
         return null;
     }

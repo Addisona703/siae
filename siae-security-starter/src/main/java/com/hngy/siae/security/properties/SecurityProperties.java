@@ -42,7 +42,7 @@ public class SecurityProperties {
     /**
      * 需要权限验证的服务列表
      */
-    private List<String> authRequiredServices = List.of("siae-auth", "siae-user", "siae-content", "siae-admin");
+    private List<String> authRequiredServices = List.of("siae-media", "siae-auth", "siae-user", "siae-content", "siae-admin");
 
     /**
      * 白名单路径（不需要认证）

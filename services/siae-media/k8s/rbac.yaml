@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: siae-media
+  namespace: siae
+  labels:
+    app: siae-media
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: siae-media-role
+  namespace: siae
+  labels:
+    app: siae-media
+rules:
+  # 允许读取 ConfigMap 和 Secret
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  # 允许读取 Pod 信息（用于服务发现）
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: siae-media-rolebinding
+  namespace: siae
+  labels:
+    app: siae-media
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: siae-media-role
+subjects:
+  - kind: ServiceAccount
+    name: siae-media
+    namespace: siae

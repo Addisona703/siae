@@ -1,17 +1,14 @@
 package com.hngy.siae.security.autoconfigure;
 
-import com.hngy.siae.core.result.CommonResultCodeEnum;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.aop.SiaeAuthorizeAspect;
-import com.hngy.siae.security.config.SimpleEnhancedPermissionConfig;
 import com.hngy.siae.security.filter.ServiceAuthenticationFilter;
 // import com.hngy.siae.security.filter.JwtAuthenticationFilter; // 旧版本，已废弃
 // import com.hngy.siae.security.filter.ServiceInterCallFilter; // 旧版本，已废弃
+import com.hngy.siae.security.handler.JsonAccessDeniedHandler;
+import com.hngy.siae.security.handler.JsonAuthenticationEntryPoint;
 import com.hngy.siae.security.properties.SecurityProperties;
 import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
 import com.hngy.siae.security.service.impl.RedisPermissionServiceImpl;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -26,7 +23,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.context.annotation.Lazy;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -84,12 +79,26 @@ public class SecurityAutoConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new JsonAuthenticationEntryPoint(objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonAccessDeniedHandler jsonAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new JsonAccessDeniedHandler(objectMapper);
+    }
+
     /**
      * 配置安全过滤器链（优化版本）
      * 使用新的 ServiceAuthenticationFilter 实现网关优化方案
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           JsonAuthenticationEntryPoint authenticationEntryPoint,
+                                           JsonAccessDeniedHandler accessDeniedHandler) throws Exception {
         log.info("配置安全过滤器链，应用: {}（使用优化版本）", applicationName);
 
         http.csrf(AbstractHttpConfigurer::disable)
@@ -100,26 +109,10 @@ public class SecurityAutoConfiguration {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.logout(AbstractHttpConfigurer::disable);
 
-        // 自定义未认证处理，返回标准JSON响应，不跳转
+        // 自定义未认证/无权限处理，返回标准 JSON 响应
         http.exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
-                    // 设置响应状态为 401
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json;charset=UTF-8");
-
-                    // 创建错误返回对象
-                    Result<Object> result = Result.error(CommonResultCodeEnum.UNAUTHORIZED);
-
-                    // 将响应转换为 JSON 格式并返回
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    response.getWriter().write(objectMapper.writeValueAsString(result));
-
-                    // 确保响应流被正确刷新到客户端
-                    response.getWriter().flush();
-
-                    // 记录详细的日志，包括堆栈信息
-                    log.error("未认证访问被拒绝: {}, 异常: {}, 详细信息: {}", request.getRequestURI(), authException);
-                })
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
         );
 
         if (securityProperties.isAuthRequired(applicationName)) {
