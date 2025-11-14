@@ -44,15 +44,31 @@ final class RabbitTopologyUtils {
         if (admin == null || declarables == null || CollectionUtils.isEmpty(declarables.getDeclarables())) {
             return;
         }
-        declarables.getDeclarables().forEach(declarable -> {
-            if (declarable instanceof Exchange exchange) {
-                admin.declareExchange(exchange);
-            } else if (declarable instanceof Queue queue) {
-                admin.declareQueue(queue);
-            } else if (declarable instanceof Binding binding) {
-                admin.declareBinding(binding);
-            }
-        });
+        // Declare in correct order: exchanges first, then queues, then bindings
+        try {
+            declarables.getDeclarables().stream()
+                    .filter(d -> d instanceof Exchange)
+                    .forEach(d -> {
+                        Exchange exchange = (Exchange) d;
+                        admin.declareExchange(exchange);
+                    });
+            
+            declarables.getDeclarables().stream()
+                    .filter(d -> d instanceof Queue)
+                    .forEach(d -> {
+                        Queue queue = (Queue) d;
+                        admin.declareQueue(queue);
+                    });
+            
+            declarables.getDeclarables().stream()
+                    .filter(d -> d instanceof Binding)
+                    .forEach(d -> {
+                        Binding binding = (Binding) d;
+                        admin.declareBinding(binding);
+                    });
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to declare RabbitMQ topology", e);
+        }
     }
 
     private static Exchange buildExchange(String name, SiaeRabbitProperties.Exchange config) {

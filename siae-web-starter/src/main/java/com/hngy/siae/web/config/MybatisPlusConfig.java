@@ -53,8 +53,8 @@ public class MybatisPlusConfig {
         // 防止全表更新与删除插件
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         
-        // 非法 SQL 拦截插件
-        interceptor.addInnerInterceptor(new IllegalSQLInnerInterceptor());
+        // 非法 SQL 拦截插件（开发环境可以注释掉，允许无 WHERE 条件的查询）
+        // interceptor.addInnerInterceptor(new IllegalSQLInnerInterceptor());
         
         return interceptor;
     }

@@ -16,7 +16,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty(prefix = "siae.security.enhanced-permission", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "siae.security", name = "enabled", havingValue = "true", matchIfMissing = false)
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SimpleEnhancedPermissionConfig {
 

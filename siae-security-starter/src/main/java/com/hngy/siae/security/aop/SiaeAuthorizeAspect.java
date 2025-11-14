@@ -19,6 +19,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Aspect
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    prefix = "siae.security", 
+    name = "enabled", 
+    havingValue = "true", 
+    matchIfMissing = false
+)
 public class SiaeAuthorizeAspect {
 
     private final SpelExpressionParser parser = new SpelExpressionParser();

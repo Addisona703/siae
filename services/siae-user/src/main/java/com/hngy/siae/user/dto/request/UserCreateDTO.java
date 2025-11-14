@@ -1,5 +1,6 @@
 package com.hngy.siae.user.dto.request;
 
+import com.hngy.siae.user.enums.MemberTypeEnum;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -40,6 +41,18 @@ public class UserCreateDTO implements Serializable {
     private String password;
 
     /**
+     * 用户头像文件ID
+     */
+    @Size(max = 64, message = "头像文件ID长度不能超过64个字符")
+    private String avatarFileId;
+
+    /**
+     * 学号
+     */
+    @Size(max = 32, message = "学号长度不能超过32个字符")
+    private String studentId;
+
+    /**
      * 状态：1启用，0禁用（默认值1）
      */
     private Integer status = 1;
@@ -70,12 +83,6 @@ public class UserCreateDTO implements Serializable {
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
-
-    /**
-     * 用户头像URL
-     */
-    @Size(max = 500, message = "头像URL长度不能超过500个字符")
-    private String avatar;
 
     /**
      * 个人简介
@@ -113,24 +120,36 @@ public class UserCreateDTO implements Serializable {
     private String wechat;
 
     /**
-     * 主页背景图片URL
+     * 主页背景文件ID
      */
-    @Size(max = 512, message = "背景图片URL长度不能超过512个字符")
-    private String bgUrl;
+    @Size(max = 64, message = "背景文件ID长度不能超过64个字符")
+    private String backgroundFileId;
 
-    // ==================== 班级关联字段（可选，存储到 class_user 表） ====================
-
-    /**
-     * 班级ID（可选）
-     */
-    private Long classId;
+    // ==================== 班级关联字段（可选，存储到 major_class_enrollment 表） ====================
 
     /**
-     * 成员类型：0非协会成员，1预备成员，2正式成员（默认值0）
+     * 专业ID（可选）
      */
-    @Min(value = 0, message = "成员类型值不能小于0")
-    @Max(value = 2, message = "成员类型值不能大于2")
-    private Integer memberType = 0;
+    private Long majorId;
+
+    /**
+     * 入学年份（可选）
+     */
+    @Min(value = 2000, message = "入学年份不能早于2000年")
+    @Max(value = 2099, message = "入学年份不能超过2099年")
+    private Integer entryYear;
+
+    /**
+     * 班号（可选）
+     */
+    @Min(value = 1, message = "班号不能小于1")
+    @Max(value = 99, message = "班号不能大于99")
+    private Integer classNo;
+
+    /**
+     * 成员类型：0非协会成员，1协会成员（默认值：非协会成员）
+     */
+    private MemberTypeEnum memberType;
 
     /**
      * 入会日期（可选）

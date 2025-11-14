@@ -99,4 +99,17 @@ public class ContentPermissions {
     /** 查询评论 */
     public static final String CONTENT_COMMENT_VIEW = "content:comment:view";
 
+    // ==================== 收藏管理权限 ====================
+    /** 添加收藏 */
+    public static final String CONTENT_FAVORITE_ADD = "content:favorite:add";
+
+    /** 管理收藏（创建/编辑/删除收藏夹，更新收藏） */
+    public static final String CONTENT_FAVORITE_MANAGE = "content:favorite:manage";
+
+    /** 取消收藏 */
+    public static final String CONTENT_FAVORITE_REMOVE = "content:favorite:remove";
+
+    /** 查看收藏 */
+    public static final String CONTENT_FAVORITE_VIEW = "content:favorite:view";
+
 }

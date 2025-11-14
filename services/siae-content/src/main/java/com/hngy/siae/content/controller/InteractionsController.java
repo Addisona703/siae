@@ -30,13 +30,13 @@ public class InteractionsController {
 
     /**
      * 记录用户行为
+     * 权限说明：所有认证用户可以记录交互行为（点赞、浏览等）
      *
      * @param actionDTO 用户行为请求DTO
      * @return 操作结果
      */
     @Operation(summary = "记录用户行为", description = "记录用户对内容的交互行为，如点赞、收藏、浏览等")
     @PostMapping("/action")
-    @SiaeAuthorize("hasAuthority('" + CONTENT_INTERACTION_RECORD + "')")
     public Result<Void> recordAction(
             @Parameter(description = "用户行为请求数据，包含用户ID、目标ID、行为类型等", required = true)
             @Valid @RequestBody ActionDTO actionDTO) {
@@ -46,13 +46,13 @@ public class InteractionsController {
 
     /**
      * 取消用户行为
+     * 权限说明：所有认证用户可以取消交互行为（取消点赞等）
      *
      * @param actionDTO 用户行为请求DTO
      * @return 操作结果
      */
     @Operation(summary = "取消用户行为", description = "取消用户对内容的交互行为，如取消点赞、取消收藏等")
     @DeleteMapping("/action")
-    @SiaeAuthorize("hasAuthority('" + CONTENT_INTERACTION_CANCEL + "')")
     public Result<Void> cancelAction(
             @Parameter(description = "用户行为请求数据，包含用户ID、目标ID、行为类型等", required = true)
             @Valid @RequestBody ActionDTO actionDTO) {

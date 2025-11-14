@@ -1,10 +1,6 @@
 package com.hngy.siae.user.service;
 
-import com.hngy.siae.core.dto.PageDTO;
-import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.user.dto.request.AwardLevelCreateDTO;
-import com.hngy.siae.user.dto.request.AwardLevelQueryDTO;
-import com.hngy.siae.user.dto.request.AwardLevelUpdateDTO;
 import com.hngy.siae.user.dto.response.AwardLevelVO;
 
 import java.util.List;
@@ -27,10 +23,12 @@ public interface AwardLevelService {
     /**
      * 更新奖项等级
      *
-     * @param awardLevelUpdateDTO 奖项等级更新参数
+     * @param id 奖项等级ID
+     * @param name 奖项等级名称
+     * @param orderId 排序ID
      * @return 奖项等级实体
      */
-    AwardLevelVO updateAwardLevel(AwardLevelUpdateDTO awardLevelUpdateDTO);
+    AwardLevelVO updateAwardLevel(Long id, String name, Integer orderId);
 
     /**
      * 根据ID获取奖项等级
@@ -41,27 +39,11 @@ public interface AwardLevelService {
     AwardLevelVO getAwardLevelById(Long id);
 
     /**
-     * 根据名称获取奖项等级
+     * 获取所有奖项等级（字典数据）
      *
-     * @param name 奖项等级名称
-     * @return 奖项等级实体
-     */
-    AwardLevelVO getAwardLevelByName(String name);
-
-    /**
-     * 获取所有奖项等级
-     *
-     * @return 奖项等级实体列表
+     * @return 奖项等级实体列表，按orderId排序
      */
     List<AwardLevelVO> listAllAwardLevels();
-
-    /**
-     * 分页查询奖项等级
-     *
-     * @param pageDTO 分页查询参数
-     * @return 分页奖项等级实体
-     */
-    PageVO<AwardLevelVO> listAwardLevelsByPage(PageDTO<AwardLevelQueryDTO> pageDTO);
 
     /**
      * 根据ID删除奖项等级

@@ -1,0 +1,177 @@
+{
+  "description": "用户服务数据库表结构文档",
+  "version": "1.0",
+  "tables": [
+    {
+      "tableName": "user",
+      "entityClass": "User",
+      "description": "用户主表，存储用户最核心的登录认证信息",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键，使用雪花算法生成", "primaryKey": true },
+        { "name": "username", "type": "String", "description": "登录名/用户名" },
+        { "name": "password", "type": "String", "description": "加密密码 (使用BCrypt)" },
+        { "name": "studentId", "type": "String", "description": "学号" },
+        { "name": "avatarFileId", "type": "String", "description": "用户头像文件ID" },
+        { "name": "status", "type": "Integer", "description": "状态：0禁用，1启用" },
+        { "name": "isDeleted", "type": "Integer", "description": "是否逻辑删除：0否，1是", "logicDelete": true },
+        { "name": "createdAt", "type": "LocalDateTime", "description": "创建时间" },
+        { "name": "updatedAt", "type": "LocalDateTime", "description": "更新时间" }
+      ]
+    },
+    {
+      "tableName": "user_profile",
+      "entityClass": "UserProfile",
+      "description": "用户详情表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键，自增", "primaryKey": true },
+        { "name": "userId", "type": "Long", "description": "用户ID（关联user表）", "foreignKey": "user.id" },
+        { "name": "realName", "type": "String", "description": "真实姓名" },
+        { "name": "nickname", "type": "String", "description": "昵称" },
+        { "name": "email", "type": "String", "description": "邮箱" },
+        { "name": "phone", "type": "String", "description": "手机号码" },
+        { "name": "bio", "type": "String", "description": "个人简介" },
+        { "name": "gender", "type": "Integer", "description": "性别：0未知，1男，2女" },
+        { "name": "birthday", "type": "LocalDate", "description": "出生日期" },
+        { "name": "idCard", "type": "String", "description": "身份证号" },
+        { "name": "qq", "type": "String", "description": "QQ号" },
+        { "name": "wechat", "type": "String", "description": "微信号" },
+        { "name": "backgroundFileId", "type": "String", "description": "主页背景文件ID" },
+        { "name": "createdAt", "type": "LocalDateTime", "description": "记录创建时间" },
+        { "name": "updatedAt", "type": "LocalDateTime", "description": "记录更新时间" }
+      ]
+    },
+    {
+      "tableName": "membership",
+      "entityClass": "Membership",
+      "description": "成员统一表，合并了原 member 和 member_candidate 表，通过 lifecycleStatus 字段区分候选成员(0)和正式成员(1)",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "记录ID", "primaryKey": true },
+        { "name": "userId", "type": "Long", "description": "用户ID（唯一）", "foreignKey": "user.id" },
+        { "name": "headshotFileId", "type": "String", "description": "成员大头照文件ID" },
+        { "name": "lifecycleStatus", "type": "LifecycleStatusEnum", "description": "生命周期状态：0候选，1正式" },
+        { "name": "joinDate", "type": "LocalDate", "description": "成为正式成员的日期（候选时为NULL）" },
+        { "name": "isDeleted", "type": "Integer", "description": "是否删除：0否，1是", "logicDelete": true },
+        { "name": "createdAt", "type": "LocalDateTime", "description": "创建时间" },
+        { "name": "updatedAt", "type": "LocalDateTime", "description": "更新时间" }
+      ]
+    },
+    {
+      "tableName": "department",
+      "entityClass": "Department",
+      "description": "部门字典表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键", "primaryKey": true },
+        { "name": "name", "type": "String", "description": "部门名称" }
+      ]
+    },
+    {
+      "tableName": "position",
+      "entityClass": "Position",
+      "description": "职位字典表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键", "primaryKey": true },
+        { "name": "name", "type": "String", "description": "职位名称" }
+      ]
+    },
+    {
+      "tableName": "member_department",
+      "entityClass": "MemberDepartment",
+      "description": "成员部门关联表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键ID", "primaryKey": true },
+        { "name": "membershipId", "type": "Long", "description": "成员ID（关联 membership 表）", "foreignKey": "membership.id" },
+        { "name": "departmentId", "type": "Long", "description": "部门ID", "foreignKey": "department.id" },
+        { "name": "joinDate", "type": "LocalDate", "description": "加入日期" },
+        { "name": "hasPosition", "type": "Integer", "description": "是否在该部门担任职位：0否，1是" }
+      ]
+    },
+    {
+      "tableName": "member_position",
+      "entityClass": "MemberPosition",
+      "description": "成员职位历史表，原 user_position 表重命名为 member_position，关联字段从 userId 改为 membershipId",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键ID", "primaryKey": true },
+        { "name": "membershipId", "type": "Long", "description": "成员ID（关联 membership 表）", "foreignKey": "membership.id" },
+        { "name": "positionId", "type": "Long", "description": "职位ID", "foreignKey": "position.id" },
+        { "name": "departmentId", "type": "Long", "description": "部门ID，NULL 表示全协会职位", "foreignKey": "department.id" },
+        { "name": "startDate", "type": "LocalDate", "description": "任职开始日期" },
+        { "name": "endDate", "type": "LocalDate", "description": "任职结束日期，NULL 表示仍在任" }
+      ]
+    },
+    {
+      "tableName": "major",
+      "entityClass": "Major",
+      "description": "专业字典表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键", "primaryKey": true },
+        { "name": "name", "type": "String", "description": "专业名称" },
+        { "name": "code", "type": "String", "description": "专业编码" },
+        { "name": "abbr", "type": "String", "description": "专业简称" },
+        { "name": "collegeName", "type": "String", "description": "所属学院名称" }
+      ]
+    },
+    {
+      "tableName": "major_class_enrollment",
+      "entityClass": "MajorClassEnrollment",
+      "description": "专业班级入学表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键，自增", "primaryKey": true },
+        { "name": "majorId", "type": "Long", "description": "专业ID", "foreignKey": "major.id" },
+        { "name": "entryYear", "type": "Integer", "description": "入学年份" },
+        { "name": "classNo", "type": "Integer", "description": "班号" },
+        { "name": "userId", "type": "Long", "description": "用户ID", "foreignKey": "user.id" },
+        { "name": "memberType", "type": "MemberTypeEnum", "description": "成员类型：0非协会成员，1协会成员" },
+        { "name": "status", "type": "ClassUserStatusEnum", "description": "状态：1在读，2离校" },
+        { "name": "joinDate", "type": "LocalDate", "description": "入会日期" },
+        { "name": "isDeleted", "type": "Integer", "description": "是否删除：0否，1是", "logicDelete": true },
+        { "name": "createdAt", "type": "LocalDateTime", "description": "记录创建时间" },
+        { "name": "updatedAt", "type": "LocalDateTime", "description": "记录更新时间" }
+      ]
+    },
+    {
+      "tableName": "award_type",
+      "entityClass": "AwardType",
+      "description": "奖项类型字典表，如：蓝桥杯、职业技能大赛-区块链赛项",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键", "primaryKey": true },
+        { "name": "name", "type": "String", "description": "奖项类型名称" },
+        { "name": "orderId", "type": "Integer", "description": "排序ID，值越小排序越靠前" }
+      ]
+    },
+    {
+      "tableName": "award_level",
+      "entityClass": "AwardLevel",
+      "description": "奖项等级字典表，如：省一等奖、国三等奖",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键", "primaryKey": true },
+        { "name": "name", "type": "String", "description": "奖项等级名称" },
+        { "name": "orderId", "type": "Integer", "description": "排序ID，值越小排序越靠前" }
+      ]
+    },
+    {
+      "tableName": "user_award",
+      "entityClass": "UserAward",
+      "description": "用户获奖记录表",
+      "fields": [
+        { "name": "id", "type": "Long", "description": "主键，自增", "primaryKey": true },
+        { "name": "awardTitle", "type": "String", "description": "奖项名称" },
+        { "name": "awardLevelId", "type": "Long", "description": "关联奖项等级ID", "foreignKey": "award_level.id" },
+        { "name": "awardTypeId", "type": "Long", "description": "关联奖项类型ID", "foreignKey": "award_type.id" },
+        { "name": "awardedBy", "type": "String", "description": "颁发单位" },
+        { "name": "awardedAt", "type": "LocalDate", "description": "获奖时间" },
+        { "name": "description", "type": "String", "description": "获奖描述（选填）" },
+        { "name": "certificateFileId", "type": "String", "description": "奖状或证明材料文件ID" },
+        { "name": "teamMembers", "type": "String", "description": "团队成员用户ID数组（JSON格式，包含所有获奖成员），示例：[1,2,3,5]" },
+        { "name": "isDeleted", "type": "Integer", "description": "是否删除：0否，1是", "logicDelete": true },
+        { "name": "createdAt", "type": "LocalDateTime", "description": "记录创建时间" },
+        { "name": "updatedAt", "type": "LocalDateTime", "description": "记录更新时间" }
+      ]
+    }
+  ],
+  "notes": [
+    "所有带 isDeleted 字段的表都使用逻辑删除",
+    "主键策略：user 表使用雪花算法(ASSIGN_ID)，其他表使用自增(AUTO)",
+    "时间字段统一使用 LocalDateTime 或 LocalDate 类型",
+    "外键关系通过 foreignKey 字段标注，但数据库层面可能未建立物理外键约束"
+  ]
+}

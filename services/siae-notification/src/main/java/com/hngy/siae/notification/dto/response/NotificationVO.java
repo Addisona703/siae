@@ -1,5 +1,6 @@
 package com.hngy.siae.notification.dto.response;
 
+import com.hngy.siae.notification.enums.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,7 +22,7 @@ public class NotificationVO {
     private Long userId;
 
     @Schema(description = "通知类型")
-    private String type;
+    private NotificationType type;
 
     @Schema(description = "通知标题")
     private String title;

@@ -75,8 +75,8 @@ public class UserRoleServiceImpl
 
         // 检查用户是否都存在
         for (Long userId : userIds) {
-            Boolean userExists = userClient.checkUserExists(userId);
-            AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
+//            Boolean userExists = userClient.checkUserExists(userId);
+//            AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
         }
 
         // 删除现有的用户角色关联
@@ -133,7 +133,7 @@ public class UserRoleServiceImpl
         Set<Long> roleIds = userRoles.stream().map(UserRole::getRoleId).collect(Collectors.toSet());
 
         // ① 通过 UserClient 批量查询用户名（避免N+1查询问题）
-        Map<Long, String> userMap = userClient.getUserMapByIds(userIds);
+//        Map<Long, String> userMap = userClient.getUserMapByIds(userIds);
 
         // ② 批量查询角色信息（避免N+1查询问题）
         List<Role> roles = roleService.listByIds(roleIds);
@@ -149,7 +149,7 @@ public class UserRoleServiceImpl
             vo.setCreatedAt(ur.getCreatedAt());
 
             // 设置用户名（使用批量查询结果）
-            vo.setUsername(userMap.getOrDefault(ur.getUserId(), "未知用户"));
+//            vo.setUsername(userMap.getOrDefault(ur.getUserId(), "未知用户"));
 
             // 设置角色信息（使用批量查询结果）
             Role role = roleMap.get(ur.getRoleId());
@@ -186,8 +186,8 @@ public class UserRoleServiceImpl
         AssertUtils.notNull(role, AuthResultCodeEnum.ROLE_NOT_FOUND);
 
         // 检查用户是否存在
-        Boolean userExists = userClient.checkUserExists(updateDTO.getUserId());
-        AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
+//        Boolean userExists = userClient.checkUserExists(updateDTO.getUserId());
+//        AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
 
         // 更新用户角色关联
         userRole.setUserId(updateDTO.getUserId());
@@ -209,8 +209,8 @@ public class UserRoleServiceImpl
         AssertUtils.notNull(roleId, CommonResultCodeEnum.VALIDATE_FAILED);
 
         // 检查用户是否存在
-        Boolean userExists = userClient.checkUserExists(userId);
-        AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
+//        Boolean userExists = userClient.checkUserExists(userId);
+//        AssertUtils.isTrue(userExists, AuthResultCodeEnum.USER_NOT_FOUND);
 
         // 检查角色是否存在
         Role role = roleService.getById(roleId);

@@ -40,6 +40,16 @@ public class User implements Serializable {
     private String password;
 
     /**
+     * 学号
+     */
+    private String studentId;
+
+    /**
+     * 用户头像文件ID
+     */
+    private String avatarFileId;
+
+    /**
      * 状态：0禁用，1启用
      */
     private Integer status;

@@ -1,7 +1,7 @@
 package com.hngy.siae.content.dto.request.content;
 
-import com.hngy.siae.content.common.enums.ContentTypeEnum;
-import com.hngy.siae.content.common.enums.status.ContentStatusEnum;
+import com.hngy.siae.content.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.status.ContentStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

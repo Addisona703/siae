@@ -1,19 +1,24 @@
 # ===================================================================
-# BOOTSTRAP CONFIGURATION (The ONLY local config file)
-# Location: siae-auth/src/main/resources/bootstrap.yaml
+# BOOTSTRAP CONFIGURATION
 # ===================================================================
+
 spring:
   application:
     name: siae-auth
+  
+  profiles:
+    # 切换环境：
+    # - dev: 本地开发，不依赖 Nacos
+    # - nacos: 使用 Nacos 配置
+    # 可通过环境变量 ENV 切换：export ENV=nacos
+    active: ${ENV:dev}
+  
   cloud:
     nacos:
-      # Nacos server address
       server-addr: localhost:8948
-      # Nacos config settings
       config:
-        server-addr: ${spring.cloud.nacos.server-addr}
         group: SIAE_GROUP
-        file-extension: yaml
+  
   config:
-    # Import the configuration from Nacos
-    import: nacos:siae-auth.yaml?group=SIAE_GROUP&refresh=true
+    # ⚠️ 重要：必须加 .yaml 扩展名
+    import: optional:nacos:siae-auth.yaml

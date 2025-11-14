@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.content.mapper.ContentMapper">
+
+    <!-- 内容详情扩展结果映射 -->
+    <resultMap id="ContentDetailResultMap" type="com.hngy.siae.content.dto.response.ContentDetailDTO">
+        <!-- 内容基本信息 -->
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="description" column="description"/>
+        <result property="uploadedBy" column="uploaded_by"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        
+        <!-- 分类名称 -->
+        <result property="categoryName" column="category_name"/>
+        
+        <!-- 统计信息 -->
+        <result property="viewCount" column="view_count"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="commentCount" column="comment_count"/>
+        
+        <!-- 标签ID列表（使用逗号分隔的字符串，需要在Service层转换） -->
+        <result property="tagIdsStr" column="tag_ids"/>
+    </resultMap>
+
+    <!-- 查询内容详情（包含分类、标签、统计信息） -->
+    <select id="selectContentDetailById" resultMap="ContentDetailResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            c.uploaded_by,
+            c.category_id,
+            c.status,
+            c.create_time,
+            c.update_time,
+            cat.name as category_name,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count,
+            GROUP_CONCAT(DISTINCT t.id) as tag_ids
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        LEFT JOIN content_tag_relation ctr ON c.id = ctr.content_id
+        LEFT JOIN tag t ON ctr.tag_id = t.id
+        WHERE c.id = #{contentId}
+        AND c.status != 3
+        GROUP BY c.id
+    </select>
+
+</mapper>

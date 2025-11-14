@@ -1,5 +1,6 @@
 package com.hngy.siae.user.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -11,7 +12,6 @@ import java.time.LocalDateTime;
 
 /**
  * 用户详情表实体类
- * 存储用户的扩展信息，与 user 表一对一关联
  *
  * @author KEYKB
  */
@@ -23,15 +23,15 @@ public class UserProfile implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 外键，关联user表
+     * 主键，自增
      */
-    @TableId
-    private Long userId;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
 
     /**
-     * 昵称
+     * 用户ID（关联user表）
      */
-    private String nickname;
+    private Long userId;
 
     /**
      * 真实姓名
@@ -39,19 +39,9 @@ public class UserProfile implements Serializable {
     private String realName;
 
     /**
-     * 用户头像URL
+     * 昵称
      */
-    private String avatar;
-
-    /**
-     * 个人简介
-     */
-    private String bio;
-
-    /**
-     * 主页背景图片URL
-     */
-    private String bgUrl;
+    private String nickname;
 
     /**
      * 邮箱
@@ -59,24 +49,14 @@ public class UserProfile implements Serializable {
     private String email;
 
     /**
-     * 手机
+     * 手机号码
      */
     private String phone;
 
     /**
-     * QQ号 (用于联系)
+     * 个人简介
      */
-    private String qq;
-
-    /**
-     * 微信号 (用于联系)
-     */
-    private String wechat;
-
-    /**
-     * 身份证号
-     */
-    private String idCard;
+    private String bio;
 
     /**
      * 性别：0未知，1男，2女
@@ -89,12 +69,32 @@ public class UserProfile implements Serializable {
     private LocalDate birthday;
 
     /**
-     * 创建时间
+     * 身份证号
+     */
+    private String idCard;
+
+    /**
+     * QQ号
+     */
+    private String qq;
+
+    /**
+     * 微信号
+     */
+    private String wechat;
+
+    /**
+     * 主页背景文件ID
+     */
+    private String backgroundFileId;
+
+    /**
+     * 记录创建时间
      */
     private LocalDateTime createdAt;
 
     /**
-     * 更新时间
+     * 记录更新时间
      */
     private LocalDateTime updatedAt;
-} 
+}

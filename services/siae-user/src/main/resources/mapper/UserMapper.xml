@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.user.mapper.UserMapper">
+
+    <!-- 查询用户详细信息（三表联查） -->
+    <select id="selectUserDetailById" resultType="com.hngy.siae.user.dto.response.UserDetailVO">
+        SELECT
+            -- 用户基本信息
+            u.id,
+            u.username,
+            u.student_id AS studentId,
+            u.avatar_file_id AS avatarFileId,
+            u.status,
+            u.created_at AS createdAt,
+            u.updated_at AS updatedAt,
+            
+            -- 用户详情信息
+            up.real_name AS realName,
+            up.nickname,
+            up.email,
+            up.phone,
+            up.bio,
+            up.gender,
+            up.birthday,
+            up.id_card AS idCard,
+            up.qq,
+            up.wechat,
+            up.background_file_id AS backgroundFileId,
+            
+            -- 班级关联信息
+            mce.major_id AS majorId,
+            m.name AS majorName,
+            mce.entry_year AS entryYear,
+            mce.class_no AS classNo,
+            CONCAT(
+                COALESCE(NULLIF(m.abbr, ''), m.name),
+                RIGHT(mce.entry_year, 2),
+                '-',
+                mce.class_no,
+                '班'
+            ) AS className,
+            mce.member_type AS memberType,
+            mce.join_date AS joinDate
+        FROM user u
+        LEFT JOIN user_profile up ON u.id = up.user_id
+        LEFT JOIN major_class_enrollment mce ON u.id = mce.user_id AND mce.is_deleted = 0
+        LEFT JOIN major m ON mce.major_id = m.id
+        WHERE u.id = #{userId}
+          AND u.is_deleted = 0
+    </select>
+
+</mapper>

@@ -2,8 +2,8 @@ package com.hngy.siae.content.dto.response;
 
 
 
-import com.hngy.siae.content.common.enums.ContentTypeEnum;
-import com.hngy.siae.content.common.enums.status.ContentStatusEnum;
+import com.hngy.siae.content.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.status.ContentStatusEnum;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -177,10 +177,52 @@ CREATE TABLE audit (
   audit_status TINYINT DEFAULT 0 COMMENT '审核状态（0待审核、1通过、2不通过）',
   audit_reason VARCHAR(255) COMMENT '审核意见',
   audit_by BIGINT UNSIGNED COMMENT '审核人用户ID',
+  version INT DEFAULT 0 COMMENT '乐观锁版本号',
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
   INDEX idx_target(target_type, target_id),
   INDEX idx_status(audit_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='审核记录表';
+
+-- ========================================
+-- 收藏功能扩展
+-- ========================================
+
+-- 收藏夹表
+CREATE TABLE favorite_folder (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+  name VARCHAR(64) NOT NULL COMMENT '收藏夹名称',
+  description VARCHAR(255) COMMENT '收藏夹描述',
+  is_default TINYINT DEFAULT 0 COMMENT '是否默认收藏夹（0否，1是）',
+  is_public TINYINT DEFAULT 0 COMMENT '是否公开（0私密，1公开）',
+  sort_order INT DEFAULT 0 COMMENT '排序序号',
+  item_count INT DEFAULT 0 COMMENT '收藏内容数量',
+  status TINYINT DEFAULT 1 COMMENT '状态（0已删除，1正常）',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  INDEX idx_user_id(user_id),
+  INDEX idx_status(status),
+  INDEX idx_sort(user_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏夹表';
+
+-- 收藏内容表
+CREATE TABLE favorite_item (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+  folder_id BIGINT UNSIGNED NOT NULL COMMENT '收藏夹ID',
+  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+  content_id BIGINT UNSIGNED NOT NULL COMMENT '内容ID',
+  note TEXT COMMENT '收藏备注',
+  sort_order INT DEFAULT 0 COMMENT '在收藏夹内的排序',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  UNIQUE KEY uk_folder_content(folder_id, content_id),
+  INDEX idx_user_id(user_id),
+  INDEX idx_content_id(content_id),
+  INDEX idx_folder_sort(folder_id, sort_order),
+  INDEX idx_create_time(create_time),
+  CONSTRAINT fk_favorite_folder FOREIGN KEY (folder_id) REFERENCES favorite_folder(id) ON DELETE CASCADE,
+  CONSTRAINT fk_favorite_content FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='收藏内容表';
 
 -- ========================================
 -- 测试数据插入
@@ -261,3 +303,18 @@ INSERT INTO audit (target_id, target_type, audit_status, audit_reason, audit_by)
 (1, 0, 1, '内容质量较高，审核通过', 100),
 (3, 0, 1, '健康问题，已审核', 101),
 (2, 0, 1, '技术笔记无违规内容', 100);
+
+-- 插入收藏夹测试数据
+INSERT INTO favorite_folder (user_id, name, description, is_default, is_public, sort_order, item_count) VALUES
+(2, '默认收藏夹', '系统自动创建的默认收藏夹', 1, 0, 0, 2),
+(2, '技术学习', '收藏的技术类文章和资源', 0, 1, 1, 1),
+(3, '默认收藏夹', '系统自动创建的默认收藏夹', 1, 0, 0, 1),
+(4, '默认收藏夹', '系统自动创建的默认收藏夹', 1, 0, 0, 1);
+
+-- 插入收藏内容测试数据
+INSERT INTO favorite_item (folder_id, user_id, content_id, note, sort_order) VALUES
+(1, 2, 1, '很实用的Spring Boot教程，值得反复学习', 0),
+(1, 2, 5, '旅行视频拍得不错', 1),
+(2, 2, 2, 'MySQL优化笔记，工作中经常用到', 0),
+(3, 3, 3, NULL, 0),
+(4, 4, 5, '想去同样的地方旅行', 0);

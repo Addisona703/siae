@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.user.mapper.MembershipMapper">
+
+    <!-- 基础字段 -->
+    <sql id="BaseColumns">
+        m.id,
+        m.user_id AS userId,
+        m.headshot_file_id AS headshotFileId,
+        m.lifecycle_status AS lifecycleStatus,
+        m.join_date AS joinDate,
+        m.is_deleted AS isDeleted,
+        m.created_at AS createdAt,
+        m.updated_at AS updatedAt
+    </sql>
+
+    <!-- 根据用户ID查询成员信息 -->
+    <select id="selectByUserId" resultType="com.hngy.siae.user.entity.Membership">
+        SELECT
+            <include refid="BaseColumns"/>
+        FROM membership m
+        WHERE m.user_id = #{userId}
+          AND m.is_deleted = 0
+    </select>
+
+    <!-- 根据生命周期状态查询成员列表 -->
+    <!--<select id="selectByLifecycleStatus" resultType="com.hngy.siae.user.entity.Membership">-->
+    <!--    SELECT-->
+    <!--        <include refid="BaseColumns"/>-->
+    <!--    FROM membership m-->
+    <!--    WHERE m.lifecycle_status = #{lifecycleStatus}-->
+    <!--      AND m.is_deleted = 0-->
+    <!--    ORDER BY m.created_at DESC-->
+    <!--</select>-->
+
+    <!-- 查询所有候选成员 -->
+    <!--<select id="selectCandidates" resultType="com.hngy.siae.user.entity.Membership">-->
+    <!--    SELECT-->
+    <!--        <include refid="BaseColumns"/>-->
+    <!--    FROM membership m-->
+    <!--    WHERE m.lifecycle_status = 0-->
+    <!--      AND m.is_deleted = 0-->
+    <!--    ORDER BY m.created_at DESC-->
+    <!--</select>-->
+
+    <!-- 查询所有正式成员 -->
+    <!--<select id="selectOfficialMembers" resultType="com.hngy.siae.user.entity.Membership">-->
+    <!--    SELECT-->
+    <!--        <include refid="BaseColumns"/>-->
+    <!--    FROM membership m-->
+    <!--    WHERE m.lifecycle_status = 1-->
+    <!--      AND m.is_deleted = 0-->
+    <!--    ORDER BY m.join_date DESC-->
+    <!--</select>-->
+
+    <!-- 候选成员转正 -->
+    <!--<update id="promoteToOfficial">-->
+    <!--    UPDATE membership-->
+    <!--    SET lifecycle_status = 1,-->
+    <!--        join_date = #{joinDate},-->
+    <!--        updated_at = NOW()-->
+    <!--    WHERE id = #{id}-->
+    <!--      AND lifecycle_status = 0-->
+    <!--      AND is_deleted = 0-->
+    <!--</update>-->
+
+    <!-- 批量查询成员信息（含用户信息） -->
+    <!--<select id="selectMembershipsWithUser" resultType="com.hngy.siae.user.entity.Membership">-->
+    <!--    SELECT-->
+    <!--        <include refid="BaseColumns"/>,-->
+    <!--        u.username,-->
+    <!--        u.student_id AS studentId,-->
+    <!--        up.real_name AS realName,-->
+    <!--        up.nickname,-->
+    <!--        up.avatar_file_id AS avatarFileId-->
+    <!--    FROM membership m-->
+    <!--    LEFT JOIN user u ON m.user_id = u.id-->
+    <!--    LEFT JOIN user_profile up ON m.user_id = up.user_id-->
+    <!--    WHERE m.is_deleted = 0-->
+    <!--    <if test="lifecycleStatus != null">-->
+    <!--        AND m.lifecycle_status = #{lifecycleStatus}-->
+    <!--    </if>-->
+    <!--    ORDER BY m.created_at DESC-->
+    <!--</select>-->
+
+    <!-- 根据ID查询成员详情（含用户信息） -->
+    <select id="selectMembershipDetailById" resultType="com.hngy.siae.user.dto.response.MembershipDetailVO">
+        SELECT
+            m.id,
+            m.user_id AS userId,
+            m.headshot_file_id AS headshotFileId,
+            m.lifecycle_status AS lifecycleStatus,
+            m.join_date AS joinDate,
+            m.created_at AS createdAt,
+            m.updated_at AS updatedAt,
+            u.username,
+            u.student_id AS studentId,
+            u.avatar_file_id AS avatarFileId,
+            up.real_name AS realName,
+            up.nickname,
+            up.email,
+            up.phone,
+            up.bio,
+            mce.entry_year AS entryYear,
+            maj.name AS majorName,
+            mce.status AS enrollmentStatus
+        FROM membership m
+        LEFT JOIN user u ON m.user_id = u.id
+        LEFT JOIN user_profile up ON m.user_id = up.user_id
+        LEFT JOIN major_class_enrollment mce ON m.user_id = mce.user_id AND mce.is_deleted = 0
+        LEFT JOIN major maj ON mce.major_id = maj.id
+        WHERE m.id = #{id}
+          AND m.is_deleted = 0
+    </select>
+
+    <!-- 分页查询成员列表 -->
+    <select id="selectMembershipPage" resultType="com.hngy.siae.user.dto.response.MembershipVO">
+        SELECT
+            m.id,
+            m.user_id AS userId,
+            m.headshot_file_id AS headshotFileId,
+            m.lifecycle_status AS lifecycleStatus,
+            m.join_date AS joinDate,
+            m.created_at AS createdAt,
+            m.updated_at AS updatedAt,
+            up.real_name AS realName,
+            up.bio AS bio,
+            d.name AS departmentName,
+            p.name AS positionName,
+            mce.entry_year AS entryYear,
+            maj.name AS majorName,
+            mce.status AS enrollmentStatus
+        FROM membership m
+        LEFT JOIN user u ON m.user_id = u.id
+        LEFT JOIN user_profile up ON m.user_id = up.user_id
+        LEFT JOIN member_department md ON m.id = md.membership_id
+        LEFT JOIN department d ON md.department_id = d.id
+        LEFT JOIN member_position mp ON m.id = mp.membership_id AND mp.end_date IS NULL
+        LEFT JOIN position p ON mp.position_id = p.id
+        LEFT JOIN major_class_enrollment mce ON m.user_id = mce.user_id AND mce.is_deleted = 0
+        LEFT JOIN major maj ON mce.major_id = maj.id
+        WHERE m.is_deleted = 0
+        <if test="query.id != null">
+            AND m.id = #{query.id}
+        </if>
+        <if test="query.userId != null">
+            AND m.user_id = #{query.userId}
+        </if>
+        <if test="query.lifecycleStatus != null">
+            AND m.lifecycle_status = #{query.lifecycleStatus}
+        </if>
+        <if test="query.departmentId != null">
+            AND md.department_id = #{query.departmentId}
+        </if>
+        <if test="query.positionId != null">
+            AND mp.position_id = #{query.positionId}
+        </if>
+        <if test="query.joinDateStart != null">
+            AND m.join_date &gt;= #{query.joinDateStart}
+        </if>
+        <if test="query.joinDateEnd != null">
+            AND m.join_date &lt;= #{query.joinDateEnd}
+        </if>
+        <if test="query.isCurrentMember != null">
+            <choose>
+                <when test="query.isCurrentMember == true">
+                    AND mce.status = 1
+                </when>
+                <when test="query.isCurrentMember == false">
+                    AND (mce.status = 2 OR mce.id IS NULL)
+                </when>
+            </choose>
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (
+                up.real_name LIKE CONCAT('%', #{query.keyword}, '%')
+                OR u.username LIKE CONCAT('%', #{query.keyword}, '%')
+                OR u.student_id LIKE CONCAT('%', #{query.keyword}, '%')
+            )
+        </if>
+        <if test="query.realName != null and query.realName != ''">
+            AND up.real_name LIKE CONCAT('%', #{query.realName}, '%')
+        </if>
+        <if test="query.username != null and query.username != ''">
+            AND u.username LIKE CONCAT('%', #{query.username}, '%')
+        </if>
+        <if test="query.studentId != null and query.studentId != ''">
+            AND u.student_id = #{query.studentId}
+        </if>
+        <if test="query.entryYear != null">
+            AND mce.entry_year = #{query.entryYear}
+        </if>
+        GROUP BY m.id
+        ORDER BY m.created_at DESC
+    </select>
+
+    <!-- 根据用户ID查询荣誉成就列表 -->
+    <select id="selectAwardsByUserId" resultType="java.lang.String">
+        SELECT ua.award_title
+        FROM user_award ua
+        WHERE ua.is_deleted = 0
+          AND JSON_CONTAINS(ua.team_members, CAST(#{userId} AS JSON))
+        ORDER BY ua.awarded_at DESC
+    </select>
+
+    <!-- 根据成员ID查询部门列表 -->
+    <select id="selectDepartmentsByMembershipId" resultType="com.hngy.siae.user.dto.response.MemberDepartmentVO">
+        SELECT
+            md.department_id AS departmentId,
+            d.name AS departmentName,
+            md.join_date AS joinDate,
+            md.has_position AS hasPosition
+        FROM member_department md
+        LEFT JOIN department d ON md.department_id = d.id
+        WHERE md.membership_id = #{membershipId}
+        ORDER BY md.join_date DESC
+    </select>
+
+    <!-- 根据成员ID查询职位列表 -->
+    <select id="selectPositionsByMembershipId" resultType="com.hngy.siae.user.dto.response.MemberPositionVO">
+        SELECT
+            mp.position_id AS positionId,
+            p.name AS positionName,
+            mp.department_id AS departmentId,
+            d.name AS departmentName,
+            mp.start_date AS startDate,
+            mp.end_date AS endDate
+        FROM member_position mp
+        LEFT JOIN position p ON mp.position_id = p.id
+        LEFT JOIN department d ON mp.department_id = d.id
+        WHERE mp.membership_id = #{membershipId}
+        ORDER BY mp.start_date DESC
+    </select>
+
+</mapper>

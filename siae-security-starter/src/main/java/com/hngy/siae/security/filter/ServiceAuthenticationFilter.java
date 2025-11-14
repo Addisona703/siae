@@ -2,8 +2,11 @@ package com.hngy.siae.security.filter;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hngy.siae.core.enums.RequestSource;
 import com.hngy.siae.core.config.AuthProperties;
+import com.hngy.siae.core.result.CommonResultCodeEnum;
+import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.service.RedisPermissionService;
 import com.hngy.siae.core.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
@@ -38,9 +41,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // 如果网关认证被禁用，则跳过此过滤器
+        if (!authProperties.isEnableGatewayAuth()) {
+            log.debug("Gateway auth disabled, skipping ServiceAuthenticationFilter for: {}", request.getRequestURI());
+            return true;
+        }
+        return false;
+    }
+
     private final JwtUtils jwtUtils;
     private final RedisPermissionService redisPermissionService;
     private final AuthProperties authProperties;
+    private final ObjectMapper objectMapper;
 
     // 白名单路径（无需认证）
     private static final List<String> WHITELIST = Arrays.asList(
@@ -292,8 +306,12 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
     private void handleAuthenticationException(HttpServletResponse response, String message) throws IOException {
         log.warn("Authentication exception triggered: {}", message);
 
+        Result<Object> result = Result.error(CommonResultCodeEnum.UNAUTHORIZED);
+        
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"code\":401,\"message\":\"" + message + "\",\"data\":null}");
+        response.getWriter().write(objectMapper.writeValueAsString(result));
+        response.getWriter().flush();
     }
 }

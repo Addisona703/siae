@@ -9,7 +9,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.content.common.enums.status.CategoryStatusEnum;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
+import com.hngy.siae.content.enums.status.CategoryStatusEnum;
 import com.hngy.siae.content.dto.request.category.CategoryCreateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryUpdateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryQueryDTO;
@@ -44,11 +45,11 @@ public class CategoriesServiceImpl
                 .or()
                 .eq(Category::getCode, categoryCreateDTO.getCode())
                 .exists();
-        AssertUtils.isFalse(exists, "分类名称已存在");
+        AssertUtils.isFalse(exists, ContentResultCodeEnum.CATEGORY_NAME_EXISTS);
 
         // 插入分类
         Category category = BeanConvertUtil.to(categoryCreateDTO, Category.class);
-        AssertUtils.isTrue(baseMapper.insert(category) > 0, "新增分类失败");
+        AssertUtils.isTrue(baseMapper.insert(category) > 0, ContentResultCodeEnum.CATEGORY_CREATE_FAILED);
 
         // 返回VO对象
         return BeanConvertUtil.to(category, CategoryVO.class);
@@ -59,7 +60,7 @@ public class CategoriesServiceImpl
     public CategoryVO updateCategory(CategoryUpdateDTO categoryUpdateDTO) {
         // 查询分类是否存在
         Category existingCategory = this.getById(categoryUpdateDTO.getId());
-        AssertUtils.notNull(existingCategory, "分类不存在");
+        AssertUtils.notNull(existingCategory, ContentResultCodeEnum.CATEGORY_NOT_FOUND);
 
         // 检查名称是否重复（排除自身）
         boolean exists = lambdaQuery()
@@ -68,11 +69,11 @@ public class CategoriesServiceImpl
                 .eq(Category::getCode, categoryUpdateDTO.getCode())
                 .ne(Category::getId, categoryUpdateDTO.getId())
                 .exists();
-        AssertUtils.isFalse(exists, "分类名称或编码已存在");
+        AssertUtils.isFalse(exists, ContentResultCodeEnum.CATEGORY_NAME_OR_CODE_EXISTS);
 
         // 存在则更新分类
         Category category = BeanConvertUtil.to(categoryUpdateDTO, Category.class);
-        AssertUtils.isTrue(this.updateById(category), "更新分类失败");
+        AssertUtils.isTrue(this.updateById(category), ContentResultCodeEnum.CATEGORY_UPDATE_FAILED);
 
         // 返回VO对象
         return BeanConvertUtil.to(category, CategoryVO.class);
@@ -83,20 +84,20 @@ public class CategoriesServiceImpl
     public void deleteCategory(Integer categoryId) {
         // 查询分类是否存在
         Category existingCategory = this.getById(categoryId);
-        AssertUtils.notNull(existingCategory, "分类不存在");
+        AssertUtils.notNull(existingCategory, ContentResultCodeEnum.CATEGORY_NOT_FOUND);
 
         // 检查是否有子分类
         boolean hasChildren = lambdaQuery()
                 .eq(Category::getParentId, categoryId)
                 .ne(Category::getStatus, CategoryStatusEnum.DELETED)
                 .exists();
-        AssertUtils.isFalse(hasChildren, "该分类下存在子分类，无法删除");
+        AssertUtils.isFalse(hasChildren, ContentResultCodeEnum.CATEGORY_HAS_CHILDREN);
 
         // 逻辑删除
         Category category = new Category();
         category.setId(existingCategory.getId());
         category.setStatus(CategoryStatusEnum.DELETED);
-        AssertUtils.isTrue(this.updateById(category), "删除分类失败");
+        AssertUtils.isTrue(this.updateById(category), ContentResultCodeEnum.CATEGORY_DELETE_FAILED);
     }
 
 
@@ -174,7 +175,7 @@ public class CategoriesServiceImpl
         Category category = this.getById(categoryId);
         AssertUtils.isFalse(category == null
                 || category.getStatus() == CategoryStatusEnum.DELETED
-                ,"分类不存在");
+                , ContentResultCodeEnum.CATEGORY_NOT_FOUND);
 
         return BeanConvertUtil.to(category, CategoryVO.class);
     }
@@ -182,7 +183,7 @@ public class CategoriesServiceImpl
     @Override
     public void updateStatus(long categoryId, boolean enable) {
         Category category = this.getById(categoryId);
-        AssertUtils.notNull(category, "该分类不存在");
+        AssertUtils.notNull(category, ContentResultCodeEnum.CATEGORY_NOT_FOUND);
 
         // 如果已是目标状态，不进行更新
         CategoryStatusEnum targetStatus = enable ? CategoryStatusEnum.ENABLED : CategoryStatusEnum.DISABLED;
@@ -191,6 +192,6 @@ public class CategoriesServiceImpl
         }
 
         category.setStatus(enable ? CategoryStatusEnum.ENABLED : CategoryStatusEnum.DISABLED);
-        AssertUtils.isTrue(this.updateById(category), "分类状态更新失败");
+        AssertUtils.isTrue(this.updateById(category), ContentResultCodeEnum.CATEGORY_UPDATE_STATUS_FAILED);
     }
 }

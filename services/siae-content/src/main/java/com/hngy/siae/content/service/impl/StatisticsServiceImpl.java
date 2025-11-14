@@ -3,13 +3,14 @@ package com.hngy.siae.content.service.impl;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import com.hngy.siae.content.common.enums.ActionTypeEnum;
+import com.hngy.siae.content.enums.ActionTypeEnum;
 import com.hngy.siae.content.dto.request.StatisticsDTO;
 import com.hngy.siae.content.dto.response.StatisticsVO;
 import com.hngy.siae.content.entity.Statistics;
 import com.hngy.siae.content.mapper.StatisticsMapper;
 import com.hngy.siae.content.service.StatisticsService;
 import com.hngy.siae.core.utils.BeanConvertUtil;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -32,7 +33,7 @@ public class StatisticsServiceImpl
         Statistics statistics = new Statistics();
         statistics.setContentId(contentId);
 
-        AssertUtils.isTrue(this.save(statistics), "创建统计表失败");
+        AssertUtils.isTrue(this.save(statistics), ContentResultCodeEnum.STATISTICS_CREATE_FAILED);
     }
 
 
@@ -40,7 +41,7 @@ public class StatisticsServiceImpl
     public void incrementStatistics(Long contentId, ActionTypeEnum actionTypeEnum) {
         // 检查统计表是否存在
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, "统计表不存在");
+        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
 
         // 构建更新SQL
         UpdateWrapper<Statistics> updateWrapper = new UpdateWrapper<>();
@@ -61,7 +62,7 @@ public class StatisticsServiceImpl
     public void decrementStatistics(Long contentId, ActionTypeEnum actionTypeEnum) {
         // 检查统计表是否存在
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, "统计表不存在");
+        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
 
         // 构建更新SQL
         UpdateWrapper<Statistics> updateWrapper = new UpdateWrapper<>();
@@ -81,7 +82,7 @@ public class StatisticsServiceImpl
     @Override
     public StatisticsVO getStatistics(Long contentId) {
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, "统计表不存在");
+        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
 
         return BeanConvertUtil.to(statistics, StatisticsVO.class);
     }
@@ -90,10 +91,10 @@ public class StatisticsServiceImpl
     @Override
     public StatisticsVO updateStatistics(Long contentId, StatisticsDTO statisticsDTO) {
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, "统计表不存在");
+        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
 
         BeanConvertUtil.to(statisticsDTO, statistics);
-        AssertUtils.isTrue(this.updateById(statistics), "修改统计表信息失败");
+        AssertUtils.isTrue(this.updateById(statistics), ContentResultCodeEnum.STATISTICS_UPDATE_FAILED);
 
         return BeanConvertUtil.to(statistics, StatisticsVO.class);
     }

@@ -3,8 +3,8 @@ package com.hngy.siae.content.entity;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.hngy.siae.content.common.enums.TypeEnum;
-import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
+import com.hngy.siae.content.enums.TypeEnum;
+import com.hngy.siae.content.enums.status.AuditStatusEnum;
 import lombok.Data;
 
 /**
@@ -43,6 +43,12 @@ public class Audit {
      * 审核人用户ID
      */
     private Long auditBy;
+
+    /**
+     * 乐观锁版本号
+     */
+    @Version
+    private Integer version;
 
     /**
      * 创建时间

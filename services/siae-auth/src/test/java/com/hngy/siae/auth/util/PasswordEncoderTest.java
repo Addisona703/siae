@@ -22,7 +22,7 @@ public class PasswordEncoderTest {
         System.out.println("==================");
 
         // 验证现有SQL中的哈希值
-        String sqlHash = "$2a$10$fW.x.d.v.bIu2iZ8t.G2d.6tX3U.i7G8l.D05D.B.w.bC8v7fI3y2";
+        String sqlHash = "$2a$10$yQrPcv27mA7VUuB31ixewO5/OT.wy3ljOrohI3ezWgi9bBtb4G4Gi";
         System.out.println("SQL中的哈希验证: " + encoder.matches(password, sqlHash));
 
         // 生成多个哈希值供选择

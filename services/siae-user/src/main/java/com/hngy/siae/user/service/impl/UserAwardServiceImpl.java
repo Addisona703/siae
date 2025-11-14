@@ -1,6 +1,5 @@
 package com.hngy.siae.user.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -51,8 +50,8 @@ public class UserAwardServiceImpl
      */
     @Override
     public UserAwardVO createUserAward(UserAwardCreateDTO userAwardCreateDTO) {
-        // 检查用户是否存在
-        userService.assertUserExists(userAwardCreateDTO.getUserId());
+        // 批量检查团队成员是否存在
+        userService.assertUsersExist(userAwardCreateDTO.getTeamMembers());
 
         // 检查奖项类型是否存在
         AssertUtils.notNull(awardTypeService.getAwardTypeById(userAwardCreateDTO.getAwardTypeId()),
@@ -115,24 +114,24 @@ public class UserAwardServiceImpl
     }
 
     /**
-     * 根据用户ID获取用户获奖记录列表
+     * 根据用户ID分页获取用户获奖记录列表
      *
      * @param userId 用户ID
-     * @return 用户获奖记录列表，按获奖时间降序排列
+     * @param pageDTO 分页参数
+     * @return 分页用户获奖记录列表
      */
     @Override
-    public List<UserAwardVO> listUserAwardsByUserId(Long userId) {
-        // 检查用户是否存在
+    public PageVO<UserAwardVO> pageUserAwardsByUserId(Long userId, PageDTO<Void> pageDTO) {
         userService.assertUserExists(userId);
 
-        // 查询用户的获奖记录
-        List<UserAward> userAwards = lambdaQuery()
-            .eq(UserAward::getUserId, userId)
-            .eq(UserAward::getIsDeleted, 0)
-            .orderByDesc(UserAward::getAwardedAt)
-            .list();
+        Page<UserAward> page = PageConvertUtil.toPage(pageDTO);
+        Page<UserAward> resultPage = lambdaQuery()
+                .apply("JSON_CONTAINS(team_members, {0})", userId)
+                .eq(UserAward::getIsDeleted, 0)
+                .orderByDesc(UserAward::getAwardedAt)
+                .page(page);
 
-        return BeanConvertUtil.toList(userAwards, UserAwardVO.class);
+        return PageConvertUtil.convert(resultPage, UserAwardVO.class);
     }
 
     /**
@@ -143,26 +142,8 @@ public class UserAwardServiceImpl
      */
     @Override
     public PageVO<UserAwardVO> listUserAwardsByPage(PageDTO<UserAwardQueryDTO> pageDTO) {
-        UserAwardQueryDTO dto = pageDTO.getParams();
-        QueryWrapper<UserAward> wrapper = new QueryWrapper<>();
-
-        if (dto != null) {
-            wrapper.eq(dto.getId() != null, "id", dto.getId())
-                    .eq(dto.getUserId() != null, "user_id", dto.getUserId())
-                    .eq(dto.getAwardTypeId() != null, "award_type_id", dto.getAwardTypeId())
-                    .eq(dto.getAwardLevelId() != null, "award_level_id", dto.getAwardLevelId())
-                    .like(StrUtil.isNotBlank(dto.getAwardTitle()), "award_title", dto.getAwardTitle())
-                    .like(StrUtil.isNotBlank(dto.getAwardedBy()), "awarded_by", dto.getAwardedBy())
-                    .ge(dto.getAwardDateStart() != null, "awarded_at", dto.getAwardDateStart())
-                    .le(dto.getAwardDateEnd() != null, "awarded_at", dto.getAwardDateEnd());
-        }
-
-        wrapper.eq("is_deleted", 0);
-        wrapper.orderByDesc("awarded_at");
-
         Page<UserAward> page = PageConvertUtil.toPage(pageDTO);
-        Page<UserAward> resultPage = page(page, wrapper);
-
+        Page<UserAward> resultPage = baseMapper.selectUserAwardPage(page, pageDTO.getParams());
         return PageConvertUtil.convert(resultPage, UserAwardVO.class);
     }
 

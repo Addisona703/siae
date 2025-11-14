@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
 
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
@@ -46,11 +47,11 @@ public class TagsServiceImpl
                 .or()
                 .eq(Tag::getDescription, tagCreateDTO.getDescription())
                 .exists();
-        AssertUtils.isFalse(exists, "标签已存在");
+        AssertUtils.isFalse(exists, ContentResultCodeEnum.TAG_ALREADY_EXISTS);
 
         // 插入标签
         Tag tag = BeanConvertUtil.to(tagCreateDTO, Tag.class);
-        AssertUtils.isTrue(this.save(tag), "标签保存失败，请重试");
+        AssertUtils.isTrue(this.save(tag), ContentResultCodeEnum.TAG_SAVE_FAILED);
 
         // 返回VO对象
         return BeanConvertUtil.to(tag, TagVO.class);
@@ -61,7 +62,7 @@ public class TagsServiceImpl
     public TagVO updateTag(Long id, TagUpdateDTO tagUpdateDTO) {
         // 如果 ID 为空或查不到对应标签，则抛出异常
         Tag existingTag = ObjectUtil.isNull(id) ? null : this.getById(id);
-        AssertUtils.notNull(existingTag, "标签不存在");
+        AssertUtils.notNull(existingTag, ContentResultCodeEnum.TAG_NOT_FOUND);
 
         // 检查标签名称或描述是否和其他标签重复（排除自己）
         boolean exists = lambdaQuery()
@@ -70,12 +71,12 @@ public class TagsServiceImpl
                 .eq(Tag::getDescription, tagUpdateDTO.getDescription())
                 .ne(Tag::getId, id)
                 .exists();
-        AssertUtils.isFalse(exists, "标签已存在，不要重复更新");
+        AssertUtils.isFalse(exists, ContentResultCodeEnum.TAG_ALREADY_EXISTS);
 
         // 拷贝属性并更新
         Tag tag = BeanConvertUtil.to(tagUpdateDTO, Tag.class);
         tag.setId(id);
-        AssertUtils.isTrue(this.updateById(tag), "更新标签失败");
+        AssertUtils.isTrue(this.updateById(tag), ContentResultCodeEnum.TAG_UPDATE_FAILED);
 
         return BeanConvertUtil.to(tag, TagVO.class);
     }
@@ -86,13 +87,13 @@ public class TagsServiceImpl
     public void deleteTag(Long id) {
         // 检查标签是否存在
         Tag existingTag = this.getById(id);
-        AssertUtils.notNull(existingTag, "标签不存在");
+        AssertUtils.notNull(existingTag, ContentResultCodeEnum.TAG_NOT_FOUND);
 
         // 删除标签-内容关联表数据
         tagRelationService.deleteRelations(id);
 
         // 删除标签
-        AssertUtils.isTrue(this.removeById(id), "删除标签失败");
+        AssertUtils.isTrue(this.removeById(id), ContentResultCodeEnum.TAG_DELETE_FAILED);
     }
 
 

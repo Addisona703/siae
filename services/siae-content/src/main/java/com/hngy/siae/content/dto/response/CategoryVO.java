@@ -3,7 +3,7 @@ package com.hngy.siae.content.dto.response;
 import java.util.Date;
 
 
-import com.hngy.siae.content.common.enums.status.CategoryStatusEnum;
+import com.hngy.siae.content.enums.status.CategoryStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

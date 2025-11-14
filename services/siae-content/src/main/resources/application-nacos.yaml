@@ -1,0 +1,18 @@
+# ===================================================================
+# NACOS CONFIGURATION (使用 Nacos)
+# ===================================================================
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true  # 启用服务发现
+      config:
+        enabled: true  # 启用配置中心
+
+# 本地覆盖配置（可选）
+# 如果需要临时覆盖 Nacos 中的某些配置，可以在这里添加
+logging:
+  level:
+    root: INFO
+    com.hngy.siae: DEBUG

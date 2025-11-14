@@ -7,75 +7,77 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.Set;
-
 /**
  * 用户服务Feign客户端
  * <p>
- * 提供用户服务的远程调用接口，与用户服务的UserService接口保持一致。
+ * 提供用户服务的远程调用接口，与用户服务的UserFeignController接口保持一致。
  * 所有方法都通过Feign客户端进行远程服务调用。
  *
  * @author KEYKB
  */
-@FeignClient(name = "siae-user", path = "api/v1/user/internal")
+@FeignClient(name = "siae-user", path = "api/v1/user/feign")
 public interface UserClient {
-    // ==================== Feign专用内部服务调用接口 ====================
 
     /**
-     * 创建用户（Feign专用接口）
-     * <p>
-     * 专门用于服务间调用的用户创建接口，不包装Result返回值
+     * 用户注册（基础信息）
+     * 供认证服务调用，只需填写基础必要信息
      *
-     * @param userCreateDTO 用户创建参数
+     * @param registerDTO 用户注册参数
      * @return 用户信息
      */
-    @Operation(summary = "创建用户", description = "创建新用户（Feign专用接口）")
-    @PostMapping("/create")
-    UserVO createUserForFeign(
-            @Parameter(description = "用户创建参数") @Valid @RequestBody UserCreateDTO userCreateDTO);
+    @PostMapping("/register")
+    @Operation(summary = "用户注册", description = "用户注册接口，只需填写基础必要信息，供认证服务调用")
+    UserVO registerUser(
+            @Parameter(description = "用户注册参数") @Valid @RequestBody UserCreateDTO registerDTO);
 
     /**
-     * 根据用户名获取用户基本信息（Feign专用接口）
+     * 根据用户名获取用户信息
      * <p>
-     * 根据用户名查询用户的基本认证信息，包括用户ID、用户名和加密密码。
-     * 此接口专门用于内部服务间的身份验证和用户查找。
-     * <p>
-     * <strong>安全警告：</strong>此接口返回用户密码信息，仅限内部服务调用使用，
-     * 不得暴露给外部API，以防止敏感信息泄露。
+     * 根据用户名查询用户信息，供内部服务间调用。
+     * 返回的 UserVO 包含密码字段（使用 @JsonProperty(access = WRITE_ONLY) 标注）
      *
      * @param username 用户名，不能为空或空白字符串
-     * @return 用户基本信息，如果用户不存在则返回null
+     * @return 用户信息，如果用户不存在则返回null
      */
-    @Operation(summary = "根据用户名获取用户基本信息", description = "根据用户名查询用户基本认证信息（Feign专用接口）")
     @GetMapping("/username/{username}")
+    @Operation(summary = "根据用户名查询用户", description = "供认证服务调用，返回用户信息")
     UserBasicVO getUserByUsername(
             @Parameter(description = "用户名") @PathVariable("username") @NotBlank String username);
 
     /**
-     * 根据用户ID集合获取用户ID到用户名的映射
+     * 检查用户名是否存在
      *
-     * @param userIds 用户ID集合
-     * @return 用户ID到用户名的映射Map，key为用户ID，value为用户名
+     * @param username 用户名
+     * @return true表示用户名已存在，false表示用户名可用
      */
-    @Operation(summary = "批量获取用户名映射", description = "根据用户ID集合批量获取用户名映射")
-    @GetMapping("/batch/usernames")
-    Map<Long, String> getUserMapByIds(
-            @Parameter(description = "用户ID集合") @RequestParam("userIds") @NotEmpty Set<Long> userIds);
+    @GetMapping("/exists/username/{username}")
+    @Operation(summary = "检查用户名是否存在", description = "验证用户名是否已被使用")
+    Boolean checkUsernameExists(
+            @Parameter(description = "用户名") @PathVariable("username") @NotBlank String username);
 
     /**
-     * 检查用户是否存在
+     * 检查学号是否存在
+     *
+     * @param studentId 学号
+     * @return true表示学号已存在，false表示学号可用
+     */
+    @GetMapping("/exists/student-id/{studentId}")
+    @Operation(summary = "检查学号是否存在", description = "验证学号是否已被使用")
+    Boolean checkStudentIdExists(
+            @Parameter(description = "学号") @PathVariable("studentId") @NotBlank String studentId);
+
+    /**
+     * 检查用户ID是否存在
      *
      * @param userId 用户ID
-     * @return true表示用户存在，false表示用户不存在或已删除
+     * @return true表示用户存在，false表示用户不存在
      */
-    @Operation(summary = "检查用户是否存在", description = "根据用户ID检查用户是否存在")
-    @GetMapping("/exists/{userId}")
-    Boolean checkUserExists(
+    @GetMapping("/exists/user-id/{userId}")
+    @Operation(summary = "检查用户ID是否存在", description = "验证用户ID是否存在")
+    Boolean checkUserIdExists(
             @Parameter(description = "用户ID") @PathVariable("userId") @NotNull Long userId);
 }

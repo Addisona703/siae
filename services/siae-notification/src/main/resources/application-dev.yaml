@@ -1,16 +1,27 @@
 # ===================================================================
-# CENTRALIZED CONFIGURATION FOR SIAE-NOTIFICATION (DEV)
-# Managed entirely in Nacos
+# DEV CONFIGURATION (本地开发配置)
 # ===================================================================
 
-# 1. 服务端口
 server:
   port: 8030
   servlet:
     context-path: /api/v1/notification
 
-# 2. 核心业务配置
 spring:
+  # 禁用 Nacos
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+  
+  # 排除 Spring Security 自动配置（开发环境）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,20 +32,8 @@ spring:
       initial-size: 5
       min-idle: 5
       max-active: 20
-
-  # 启用Nacos服务发现
-  cloud:
-    nacos:
-      discovery:
-        enabled: true
-      config:
-        server-addr: localhost:8848
-        file-extension: yaml
-        shared-configs:
-          - dataId: siae-common.yaml
-            refresh: true
-
-  # Redis配置
+  
+  # Redis 配置
   data:
     redis:
       host: localhost
@@ -93,7 +92,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
-# 3. SpringDoc API文档配置
+# SpringDoc API 文档配置
 springdoc:
   api-docs:
     enabled: true
@@ -106,3 +105,72 @@ springdoc:
     - group: 'siae-notification'
       paths-to-match: '/api/**'
   packages-to-scan: com.hngy.siae.notification.controller
+
+# SIAE 安全配置
+siae:
+  auth:
+    enable-gateway-auth: false
+    enable-direct-access: true
+  security:
+    enabled: false
+  
+  # RabbitMQ 消息队列配置
+  messaging:
+    rabbit:
+      connection:
+        addresses: localhost:5672
+        username: guest
+        password: guest
+        virtual-host: /
+      publisher:
+        confirms: true
+        returns: true
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 500
+          multiplier: 2.0
+          max-interval: 5000
+      consumer:
+        concurrency: 3
+        max-concurrency: 10
+        prefetch: 50
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 2.0
+          max-interval: 10000
+      # 交换机配置
+      exchanges:
+        siae.notification.exchange:
+          type: topic
+          durable: true
+      # 队列配置
+      queues:
+        siae.notification.queue:
+          durable: true
+        siae.email.queue:
+          durable: true
+        siae.sms.queue:
+          durable: true
+      # 绑定配置
+      bindings:
+        notification-binding:
+          exchange: siae.notification.exchange
+          destination: siae.notification.queue
+          routing-key: notification.#
+        email-binding:
+          exchange: siae.notification.exchange
+          destination: siae.email.queue
+          routing-key: email.#
+        sms-binding:
+          exchange: siae.notification.exchange
+          destination: siae.sms.queue
+          routing-key: sms.#
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.hngy.siae: DEBUG

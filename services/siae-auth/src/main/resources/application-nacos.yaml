@@ -1,0 +1,19 @@
+# ===================================================================
+# NACOS CONFIGURATION (使用 Nacos)
+# ===================================================================
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true  # 启用服务发现
+      config:
+        enabled: true  # 启用配置中心
+
+# 本地覆盖配置（可选）
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.hngy.siae: DEBUG

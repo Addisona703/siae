@@ -1,469 +1,430 @@
-2025-11-08T10:54:25.937+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.f.ServiceAuthenticationFilter    : Auth filter invoked: POST /api/v1/media/uploads/init
-2025-11-08T10:54:25.938+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.f.ServiceAuthenticationFilter    : Request source identified: EXTERNAL_VIA_GATEWAY for path: /api/v1/media/uploads/init
-2025-11-08T10:54:25.938+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.f.ServiceAuthenticationFilter    : Gateway request user info received: userId=1, username=president
-2025-11-08T10:54:25.938+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.s.i.RedisPermissionServiceImpl   : 开始获取用户所有权限，用户ID: 1
-2025-11-08T10:54:25.938+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.s.i.RedisPermissionServiceImpl   : 获取用户权限完成，用户ID: 1, 权限列表: []
-2025-11-08T10:54:25.939+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.s.i.RedisPermissionServiceImpl   : 获取用户角色完成，用户ID: 1, 原始角色列表: [ROLE_ROOT]
-2025-11-08T10:54:25.939+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.s.i.RedisPermissionServiceImpl   : 角色前缀处理完成，用户ID: 1, 处理后角色列表: [ROLE_ROOT]
-2025-11-08T10:54:25.939+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.s.i.RedisPermissionServiceImpl   : 权限合并完成，用户ID: 1, 最终权限列表: [ROLE_ROOT]
-2025-11-08T10:54:25.939+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.f.ServiceAuthenticationFilter    : Security context set for user: president with 1 authorities
-2025-11-08T10:54:25.939+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.s.f.ServiceAuthenticationFilter    : Gateway request authenticated for user: president with 1 permissions
-2025-11-08T10:54:25.940+08:00 DEBUG 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.media.security.TenantInterceptor   : 租户上下文已设置: tenantId=tenant-001
-2025-11-08T10:54:25.940+08:00 DEBUG 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.media.security.TenantInterceptor   : 用户上下文已设置: userId=1
-2025-11-08T10:54:25.946+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.security.aop.SiaeAuthorizeAspect   : 用户权限检查开始 - 用户: president, 所有权限: [ROLE_ROOT]
-2025-11-08T10:54:25.946+08:00  WARN 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.security.aop.SiaeAuthorizeAspect   : 超级管理员访问，直接放行 - 用户: president
-2025-11-08T10:54:25.946+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.media.controller.UploadController  : Received upload init request: UploadInitRequest(filename=lol.mp4, size=250797068, mime=video/mp4, tenantId=tenant-001, ownerId=null, bizTags=[multipart], multipart=UploadInitRequest.MultipartConfig(enabled=true, partSize=10485760), checksum=null, acl=null, ext={filename=lol.mp4})
-2025-11-08T10:54:25.947+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.m.service.upload.UploadService     : Initializing upload for tenant: tenant-001, filename: lol.mp4, size: 250797068
-Creating a new SqlSession
-Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-JDBC Connection [com.alibaba.druid.pool.DruidStatementConnection@2fadaf18] will be managed by Spring
-==>  Preparing: SELECT tenant_id,bytes_used,objects_count,limits,reset_strategy,updated_at FROM quotas WHERE tenant_id=?
-==> Parameters: tenant-001(String)
-<==    Columns: tenant_id, bytes_used, objects_count, limits, reset_strategy, updated_at
-<==        Row: tenant-001, 147456, 1, <<BLOB>>, monthly, 2025-11-07 20:49:37.087
-<==      Total: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639] from current transaction
-JacksonTypeHandler(interface java.util.List)
-JacksonTypeHandler(interface java.util.Map)
-==>  Preparing: INSERT INTO files ( id, tenant_id, bucket, storage_key, size, mime, status, biz_tags, ext ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )
-==> Parameters: 3998cb913da9c8bf3baa07676b1fe207(String), tenant-001(String), siae-media(String), tenant-001/1762570465949/lol.mp4(String), 250797068(Long), video/mp4(String), init(String), ["multipart"](String), {"filename":"lol.mp4"}(String)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639] from current transaction
-==>  Preparing: INSERT INTO uploads ( upload_id, file_id, tenant_id, multipart, part_size, total_parts, completed_parts, expire_at, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 3998cb913da9c8bf3baa07676b1fe207(String), tenant-001(String), true(Boolean), 10485760(Integer), 24(Integer), 0(Integer), 2025-11-08T11:09:25.975472400(LocalDateTime), init(String)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-2025-11-08T10:54:26.006+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-7] c.h.s.m.service.upload.UploadService     : Upload initialized successfully: uploadId=e90122857b88e9f6d081abe8d1b5afd9, fileId=3998cb913da9c8bf3baa07676b1fe207
-Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76a83639]
-2025-11-08T10:54:28.510+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.f.ServiceAuthenticationFilter    : Auth filter invoked: POST /api/v1/media/uploads/e90122857b88e9f6d081abe8d1b5afd9/complete
-2025-11-08T10:54:28.511+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.f.ServiceAuthenticationFilter    : Request source identified: EXTERNAL_VIA_GATEWAY for path: /api/v1/media/uploads/e90122857b88e9f6d081abe8d1b5afd9/complete
-2025-11-08T10:54:28.511+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.f.ServiceAuthenticationFilter    : Gateway request user info received: userId=1, username=president
-2025-11-08T10:54:28.511+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.s.i.RedisPermissionServiceImpl   : 开始获取用户所有权限，用户ID: 1
-2025-11-08T10:54:28.512+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.s.i.RedisPermissionServiceImpl   : 获取用户权限完成，用户ID: 1, 权限列表: []
-2025-11-08T10:54:28.513+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.s.i.RedisPermissionServiceImpl   : 获取用户角色完成，用户ID: 1, 原始角色列表: [ROLE_ROOT]
-2025-11-08T10:54:28.513+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.s.i.RedisPermissionServiceImpl   : 角色前缀处理完成，用户ID: 1, 处理后角色列表: [ROLE_ROOT]
-2025-11-08T10:54:28.513+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.s.i.RedisPermissionServiceImpl   : 权限合并完成，用户ID: 1, 最终权限列表: [ROLE_ROOT]
-2025-11-08T10:54:28.514+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.f.ServiceAuthenticationFilter    : Security context set for user: president with 1 authorities
-2025-11-08T10:54:28.514+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.s.f.ServiceAuthenticationFilter    : Gateway request authenticated for user: president with 1 permissions
-2025-11-08T10:54:28.516+08:00 DEBUG 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.media.security.TenantInterceptor   : 租户上下文已设置: tenantId=tenant-001
-2025-11-08T10:54:28.516+08:00 DEBUG 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.media.security.TenantInterceptor   : 用户上下文已设置: userId=1
-2025-11-08T10:54:28.524+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.security.aop.SiaeAuthorizeAspect   : 用户权限检查开始 - 用户: president, 所有权限: [ROLE_ROOT]
-2025-11-08T10:54:28.524+08:00  WARN 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.security.aop.SiaeAuthorizeAspect   : 超级管理员访问，直接放行 - 用户: president
-2025-11-08T10:54:28.524+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.media.controller.UploadController  : Received upload complete request for uploadId: e90122857b88e9f6d081abe8d1b5afd9
-2025-11-08T10:54:28.524+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.m.service.upload.UploadService     : Completing upload for uploadId: e90122857b88e9f6d081abe8d1b5afd9
-Creating a new SqlSession
-Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-JDBC Connection [com.alibaba.druid.pool.DruidStatementConnection@2fadaf18] will be managed by Spring
-==>  Preparing: SELECT upload_id,file_id,tenant_id,multipart,part_size,total_parts,completed_parts,expire_at,status,callbacks,created_at,updated_at FROM uploads WHERE upload_id=?
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String)
-<==    Columns: upload_id, file_id, tenant_id, multipart, part_size, total_parts, completed_parts, expire_at, status, callbacks, created_at, updated_at
-<==        Row: e90122857b88e9f6d081abe8d1b5afd9, 3998cb913da9c8bf3baa07676b1fe207, tenant-001, 1, 10485760, 24, 0, 2025-11-08 11:09:25.975, init, <<BLOB>>, 2025-11-08 10:54:25.979, 2025-11-08 10:54:25.979
-<==      Total: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: SELECT id,tenant_id,owner_id,bucket,storage_key,size,mime,sha256,status,acl,biz_tags,ext,checksum,created_at,updated_at,deleted_at FROM files WHERE id=? AND deleted_at IS NULL
-==> Parameters: 3998cb913da9c8bf3baa07676b1fe207(String)
-<==    Columns: id, tenant_id, owner_id, bucket, storage_key, size, mime, sha256, status, acl, biz_tags, ext, checksum, created_at, updated_at, deleted_at
-<==        Row: 3998cb913da9c8bf3baa07676b1fe207, tenant-001, null, siae-media, tenant-001/1762570465949/lol.mp4, 250797068, video/mp4, null, init, <<BLOB>>, <<BLOB>>, <<BLOB>>, <<BLOB>>, 2025-11-08 10:54:25.972, 2025-11-08 10:54:25.972, null
-<==      Total: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 1(Integer), 663299c22baa16a468520689cab12184(String), 2025-11-08T10:54:28.534841400(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 2(Integer), 047758df6d46fef76afdfa2291682b3d(String), 2025-11-08T10:54:28.546775(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 3(Integer), c801e9a6e940d1193707be7f8beb49c0(String), 2025-11-08T10:54:28.547758600(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 4(Integer), 028ebc6a9da3f0bb6285306c77f3f5e5(String), 2025-11-08T10:54:28.549839800(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 5(Integer), 6fce095039cc194e58543d1033195f9c(String), 2025-11-08T10:54:28.551856(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 6(Integer), b45301776880addda96cdb7de5811dfd(String), 2025-11-08T10:54:28.553909600(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 7(Integer), c849a26d43d7156e2261ca544babf1a3(String), 2025-11-08T10:54:28.554763(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 8(Integer), e75ea3abc27b99e0efa0360a97dbcca8(String), 2025-11-08T10:54:28.556767900(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 9(Integer), 52b553fb6299b3e37c3ce3508963da61(String), 2025-11-08T10:54:28.560028700(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 10(Integer), 88c852ff3b6e53dc9d0f9864dd6de808(String), 2025-11-08T10:54:28.561029200(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 11(Integer), 7b1038859cad2c8daa017b18ff8b7b91(String), 2025-11-08T10:54:28.562029(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 12(Integer), 8a82fe092cd88badad992555756f99d5(String), 2025-11-08T10:54:28.563050200(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 13(Integer), 07ef5f974be0225f3fd2a3e23729ad15(String), 2025-11-08T10:54:28.563050200(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 14(Integer), c874928e0ad9835c84da1afe82af200a(String), 2025-11-08T10:54:28.565337500(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 15(Integer), a8cdd920c3932e9b9edaa94fc2897d58(String), 2025-11-08T10:54:28.566319(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 16(Integer), 58829568bcffe09a14528f6713561695(String), 2025-11-08T10:54:28.566319(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 17(Integer), d6263ce4bf8c92086c72440917bbd2b2(String), 2025-11-08T10:54:28.567822200(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 18(Integer), f519b502d6e28832007272a274fdf4f3(String), 2025-11-08T10:54:28.568826200(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 19(Integer), d7f7668a6d8220f7bac5d31a118853ce(String), 2025-11-08T10:54:28.569827700(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 20(Integer), 3e19f0561ce2ed15a80a851399e77e42(String), 2025-11-08T10:54:28.570864600(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 21(Integer), 4f42c4ba5795ef97ab4d4f9eaf17c950(String), 2025-11-08T10:54:28.571827400(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 22(Integer), 7fb4765da23e5b829b5b65552130ab37(String), 2025-11-08T10:54:28.572827400(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 23(Integer), f2bf523586ed3e6673e1761ac1a0bd25(String), 2025-11-08T10:54:28.574073700(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: INSERT INTO multipart_parts ( upload_id, part_number, etag, uploaded_at ) VALUES ( ?, ?, ?, ? )
-==> Parameters: e90122857b88e9f6d081abe8d1b5afd9(String), 24(Integer), f06a212d30ee480d05400bb2be6bc9a4(String), 2025-11-08T10:54:28.574838800(LocalDateTime)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-JacksonTypeHandler(class java.lang.Object)
-JacksonTypeHandler(class java.lang.Object)
-==>  Preparing: UPDATE files SET tenant_id=?, bucket=?, storage_key=?, size=?, mime=?, status=?, biz_tags=?, ext=?, created_at=?, updated_at=? WHERE id=? AND deleted_at IS NULL
-==> Parameters: tenant-001(String), siae-media(String), tenant-001/1762570465949/lol.mp4(String), 250797068(Long), video/mp4(String), completed(String), ["multipart"](String), {"filename":"lol.mp4"}(String), 2025-11-08T10:54:25.972(LocalDateTime), 2025-11-08T10:54:25.972(LocalDateTime), 3998cb913da9c8bf3baa07676b1fe207(String)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: UPDATE uploads SET file_id=?, tenant_id=?, multipart=?, part_size=?, total_parts=?, completed_parts=?, expire_at=?, status=?, created_at=?, updated_at=? WHERE upload_id=?
-==> Parameters: 3998cb913da9c8bf3baa07676b1fe207(String), tenant-001(String), true(Boolean), 10485760(Integer), 24(Integer), 0(Integer), 2025-11-08T11:09:25.975(LocalDateTime), completed(String), 2025-11-08T10:54:25.979(LocalDateTime), 2025-11-08T10:54:25.979(LocalDateTime), e90122857b88e9f6d081abe8d1b5afd9(String)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-==>  Preparing: SELECT tenant_id,bytes_used,objects_count,limits,reset_strategy,updated_at FROM quotas WHERE tenant_id=?
-==> Parameters: tenant-001(String)
-<==    Columns: tenant_id, bytes_used, objects_count, limits, reset_strategy, updated_at
-<==        Row: tenant-001, 147456, 1, <<BLOB>>, monthly, 2025-11-07 20:49:37.087
-<==      Total: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-JacksonTypeHandler(class java.lang.Object)
-==>  Preparing: UPDATE quotas SET bytes_used=?, objects_count=?, limits=?, reset_strategy=?, updated_at=? WHERE tenant_id=?
-==> Parameters: 250944524(Long), 2(Long), {"max_bytes":10737418240,"max_objects":5000,"daily_download":"unlimited"}(String), monthly(String), 2025-11-07T20:49:37.087(LocalDateTime), tenant-001(String)
-<==    Updates: 1
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09] from current transaction
-JacksonTypeHandler(interface java.util.Map)
-==>  Preparing: INSERT INTO audit_logs ( file_id, tenant_id, actor_type, action, metadata, occurred_at ) VALUES ( ?, ?, ?, ?, ?, ? )
-==> Parameters: 3998cb913da9c8bf3baa07676b1fe207(String), tenant-001(String), user(String), complete(String), {"uploadId":"e90122857b88e9f6d081abe8d1b5afd9","size":250797068}(String), 2025-11-08T10:54:28.616470300(LocalDateTime)
-Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-2025-11-08T10:54:28.733+08:00 ERROR 18256 --- [siae-media] [nio-8084-exec-9] c.hngy.siae.media.service.AuditService   : Failed to record audit log
+D:\Environments\Java\jdk-17\bin\java.exe -XX:TieredStopAtLevel=1 -Dspring.output.ansi.enabled=always -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true "-Dmanagement.endpoints.jmx.exposure.include=*" "-javaagent:D:\Program Files\JetBrains\IntelliJ IDEA 2025.2.2\lib\idea_rt.jar=38772" -Dfile.encoding=UTF-8 -classpath "C:\Users\31833\Desktop\Siae Studio\siae\services\siae-notification\target\classes;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus-boot-starter\3.5.6\mybatis-plus-boot-starter-3.5.6.jar;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus\3.5.6\mybatis-plus-3.5.6.jar;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus-core\3.5.6\mybatis-plus-core-3.5.6.jar;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus-annotation\3.5.6\mybatis-plus-annotation-3.5.6.jar;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus-extension\3.5.6\mybatis-plus-extension-3.5.6.jar;C:\Users\31833\.m2\repository\org\mybatis\mybatis\3.5.16\mybatis-3.5.16.jar;C:\Users\31833\.m2\repository\com\github\jsqlparser\jsqlparser\4.9\jsqlparser-4.9.jar;C:\Users\31833\.m2\repository\org\mybatis\mybatis-spring\3.0.3\mybatis-spring-3.0.3.jar;C:\Users\31833\.m2\repository\com\baomidou\mybatis-plus-spring-boot-autoconfigure\3.5.6\mybatis-plus-spring-boot-autoconfigure-3.5.6.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;C:\Users\31833\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\31833\.m2\repository\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar;C:\Users\31833\.m2\repository\com\mysql\mysql-connector-j\8.0.33\mysql-connector-j-8.0.33.jar;C:\Users\31833\.m2\repository\com\google\protobuf\protobuf-java\3.21.9\protobuf-java-3.21.9.jar;C:\Users\31833\.m2\repository\com\alibaba\druid-spring-boot-starter\1.2.22\druid-spring-boot-starter-1.2.22.jar;C:\Users\31833\.m2\repository\com\alibaba\druid\1.2.22\druid-1.2.22.jar;C:\Users\31833\.m2\repository\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;C:\Users\31833\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\31833\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\31833\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\31833\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\31833\Desktop\Siae Studio\siae\siae-core\target\classes;C:\Users\31833\.m2\repository\cn\hutool\hutool-all\5.8.27\hutool-all-5.8.27.jar;C:\Users\31833\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;C:\Users\31833\.m2\repository\io\jsonwebtoken\jjwt-api\0.11.5\jjwt-api-0.11.5.jar;C:\Users\31833\.m2\repository\io\jsonwebtoken\jjwt-impl\0.11.5\jjwt-impl-0.11.5.jar;C:\Users\31833\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.11.5\jjwt-jackson-0.11.5.jar;C:\Users\31833\.m2\repository\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;C:\Users\31833\.m2\repository\org\reflections\reflections\0.10.2\reflections-0.10.2.jar;C:\Users\31833\.m2\repository\org\javassist\javassist\3.28.0-GA\javassist-3.28.0-GA.jar;C:\Users\31833\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\31833\Desktop\Siae Studio\siae\siae-web-starter\target\classes;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.5\spring-boot-starter-validation-3.2.5.jar;C:\Users\31833\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;C:\Users\31833\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\31833\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\31833\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-starter-openfeign\4.1.1\spring-cloud-starter-openfeign-4.1.1.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-openfeign-core\4.1.1\spring-cloud-openfeign-core-4.1.1.jar;C:\Users\31833\.m2\repository\io\github\openfeign\form\feign-form-spring\3.8.0\feign-form-spring-3.8.0.jar;C:\Users\31833\.m2\repository\io\github\openfeign\form\feign-form\3.8.0\feign-form-3.8.0.jar;C:\Users\31833\.m2\repository\commons-fileupload\commons-fileupload\1.5\commons-fileupload-1.5.jar;C:\Users\31833\.m2\repository\commons-io\commons-io\2.11.0\commons-io-2.11.0.jar;C:\Users\31833\.m2\repository\io\github\openfeign\feign-core\13.2.1\feign-core-13.2.1.jar;C:\Users\31833\.m2\repository\io\github\openfeign\feign-slf4j\13.2.1\feign-slf4j-13.2.1.jar;C:\Users\31833\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.5.0\springdoc-openapi-starter-webmvc-ui-2.5.0.jar;C:\Users\31833\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.5.0\springdoc-openapi-starter-webmvc-api-2.5.0.jar;C:\Users\31833\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.5.0\springdoc-openapi-starter-common-2.5.0.jar;C:\Users\31833\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.21\swagger-core-jakarta-2.2.21.jar;C:\Users\31833\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\31833\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.21\swagger-annotations-jakarta-2.2.21.jar;C:\Users\31833\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.21\swagger-models-jakarta-2.2.21.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.4\jackson-dataformat-yaml-2.15.4.jar;C:\Users\31833\.m2\repository\org\webjars\swagger-ui\5.13.0\swagger-ui-5.13.0.jar;C:\Users\31833\.m2\repository\org\springframework\security\spring-security-core\6.2.4\spring-security-core-6.2.4.jar;C:\Users\31833\.m2\repository\org\springframework\security\spring-security-crypto\6.2.4\spring-security-crypto-6.2.4.jar;C:\Users\31833\Desktop\Siae Studio\siae\siae-security-starter\target\classes;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.2.5\spring-boot-starter-security-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\security\spring-security-config\6.2.4\spring-security-config-6.2.4.jar;C:\Users\31833\.m2\repository\org\springframework\security\spring-security-web\6.2.4\spring-security-web-6.2.4.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.5\spring-boot-starter-aop-3.2.5.jar;C:\Users\31833\.m2\repository\org\aspectj\aspectjweaver\1.9.22\aspectjweaver-1.9.22.jar;C:\Users\31833\.m2\repository\org\jetbrains\annotations\24.0.1\annotations-24.0.1.jar;C:\Users\31833\Desktop\Siae Studio\siae\siae-messaging-starter\target\classes;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-amqp\3.2.5\spring-boot-starter-amqp-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\spring-messaging\6.1.6\spring-messaging-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\amqp\spring-rabbit\3.1.4\spring-rabbit-3.1.4.jar;C:\Users\31833\.m2\repository\org\springframework\amqp\spring-amqp\3.1.4\spring-amqp-3.1.4.jar;C:\Users\31833\.m2\repository\org\springframework\retry\spring-retry\2.0.5\spring-retry-2.0.5.jar;C:\Users\31833\.m2\repository\com\rabbitmq\amqp-client\5.19.0\amqp-client-5.19.0.jar;C:\Users\31833\.m2\repository\io\micrometer\micrometer-core\1.12.5\micrometer-core-1.12.5.jar;C:\Users\31833\.m2\repository\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;C:\Users\31833\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\31833\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-mail\3.2.5\spring-boot-starter-mail-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;C:\Users\31833\.m2\repository\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;C:\Users\31833\.m2\repository\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;C:\Users\31833\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\31833\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\31833\.m2\repository\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;C:\Users\31833\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\31833\.m2\repository\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;C:\Users\31833\.m2\repository\org\eclipse\angus\jakarta.mail\2.0.3\jakarta.mail-2.0.3.jar;C:\Users\31833\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\31833\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-freemarker\3.2.5\spring-boot-starter-freemarker-3.2.5.jar;C:\Users\31833\.m2\repository\org\freemarker\freemarker\2.3.32\freemarker-2.3.32.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;C:\Users\31833\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;C:\Users\31833\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;C:\Users\31833\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;C:\Users\31833\.m2\repository\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;C:\Users\31833\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-configuration-processor\3.2.5\spring-boot-configuration-processor-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;C:\Users\31833\.m2\repository\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;C:\Users\31833\.m2\repository\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;C:\Users\31833\.m2\repository\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;C:\Users\31833\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\31833\.m2\repository\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.5\spring-boot-starter-actuator-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.5\spring-boot-actuator-autoconfigure-3.2.5.jar;C:\Users\31833\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.5\spring-boot-actuator-3.2.5.jar;C:\Users\31833\.m2\repository\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;C:\Users\31833\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.5\micrometer-jakarta9-1.12.5.jar;C:\Users\31833\.m2\repository\com\alibaba\cloud\spring-cloud-starter-alibaba-nacos-discovery\2023.0.1.0\spring-cloud-starter-alibaba-nacos-discovery-2023.0.1.0.jar;C:\Users\31833\.m2\repository\com\alibaba\cloud\spring-cloud-alibaba-commons\2023.0.1.0\spring-cloud-alibaba-commons-2023.0.1.0.jar;C:\Users\31833\.m2\repository\com\alibaba\nacos\nacos-client\2.3.2\nacos-client-2.3.2.jar;C:\Users\31833\.m2\repository\com\alibaba\nacos\nacos-auth-plugin\2.3.2\nacos-auth-plugin-2.3.2.jar;C:\Users\31833\.m2\repository\com\alibaba\nacos\nacos-encryption-plugin\2.3.2\nacos-encryption-plugin-2.3.2.jar;C:\Users\31833\.m2\repository\commons-codec\commons-codec\1.16.1\commons-codec-1.16.1.jar;C:\Users\31833\.m2\repository\org\apache\httpcomponents\httpasyncclient\4.1.5\httpasyncclient-4.1.5.jar;C:\Users\31833\.m2\repository\org\apache\httpcomponents\httpcore-nio\4.4.16\httpcore-nio-4.4.16.jar;C:\Users\31833\.m2\repository\org\apache\httpcomponents\httpclient\4.5.13\httpclient-4.5.13.jar;C:\Users\31833\.m2\repository\org\apache\httpcomponents\httpcore\4.4.16\httpcore-4.4.16.jar;C:\Users\31833\.m2\repository\io\prometheus\simpleclient\0.16.0\simpleclient-0.16.0.jar;C:\Users\31833\.m2\repository\io\prometheus\simpleclient_tracer_otel\0.16.0\simpleclient_tracer_otel-0.16.0.jar;C:\Users\31833\.m2\repository\io\prometheus\simpleclient_tracer_common\0.16.0\simpleclient_tracer_common-0.16.0.jar;C:\Users\31833\.m2\repository\io\prometheus\simpleclient_tracer_otel_agent\0.16.0\simpleclient_tracer_otel_agent-0.16.0.jar;C:\Users\31833\.m2\repository\com\alibaba\spring\spring-context-support\1.0.11\spring-context-support-1.0.11.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-commons\4.1.2\spring-cloud-commons-4.1.2.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-context\4.1.2\spring-cloud-context-4.1.2.jar;C:\Users\31833\.m2\repository\com\alibaba\cloud\spring-cloud-starter-alibaba-nacos-config\2023.0.1.0\spring-cloud-starter-alibaba-nacos-config-2023.0.1.0.jar;C:\Users\31833\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-starter-bootstrap\4.1.2\spring-cloud-starter-bootstrap-4.1.2.jar;C:\Users\31833\.m2\repository\org\springframework\cloud\spring-cloud-starter\4.1.2\spring-cloud-starter-4.1.2.jar;C:\Users\31833\.m2\repository\org\springframework\security\spring-security-rsa\1.1.2\spring-security-rsa-1.1.2.jar;C:\Users\31833\.m2\repository\org\bouncycastle\bcprov-jdk18on\1.77\bcprov-jdk18on-1.77.jar;C:\Users\31833\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar" com.hngy.siae.notification.SiaeNotificationApplication
 
-org.springframework.dao.DataIntegrityViolationException:
-### Error updating database.  Cause: java.sql.SQLException: Field 'actor_id' doesn't have a default value
-### The error may exist in com/hngy/siae/media/repository/AuditLogRepository.java (best guess)
-### The error may involve com.hngy.siae.media.repository.AuditLogRepository.insert-Inline
-### The error occurred while setting parameters
-### SQL: INSERT INTO audit_logs  ( file_id, tenant_id, actor_type,  action,   metadata, occurred_at )  VALUES (  ?, ?, ?,  ?,   ?, ?  )
-### Cause: java.sql.SQLException: Field 'actor_id' doesn't have a default value
-; Field 'actor_id' doesn't have a default value
-	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:258) ~[spring-jdbc-6.1.6.jar:6.1.6]
-	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.1.6.jar:6.1.6]
-	at org.mybatis.spring.MyBatisExceptionTranslator.translateExceptionIfPossible(MyBatisExceptionTranslator.java:92) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:439) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	at jdk.proxy2/jdk.proxy2.$Proxy141.insert(Unknown Source) ~[na:na]
-	at org.mybatis.spring.SqlSessionTemplate.insert(SqlSessionTemplate.java:272) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperMethod.execute(MybatisMapperMethod.java:59) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy$PlainMethodInvoker.invoke(MybatisMapperProxy.java:149) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy.invoke(MybatisMapperProxy.java:90) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at jdk.proxy2/jdk.proxy2.$Proxy146.insert(Unknown Source) ~[na:na]
-	at com.hngy.siae.media.service.AuditService.log(AuditService.java:45) ~[classes/:na]
-	at com.hngy.siae.media.service.AuditService.logUploadComplete(AuditService.java:63) ~[classes/:na]
-	at com.hngy.siae.media.service.upload.UploadService.completeUpload(UploadService.java:402) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.6.jar:6.1.6]
-	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392) ~[spring-tx-6.1.6.jar:6.1.6]
-	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.6.jar:6.1.6]
-	at com.hngy.siae.media.service.upload.UploadService$$SpringCGLIB$$0.completeUpload(<generated>) ~[classes/:na]
-	at com.hngy.siae.media.controller.UploadController.completeUpload(UploadController.java:69) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.1.6.jar:6.1.6]
-	at com.hngy.siae.security.aop.SiaeAuthorizeAspect.checkPermission(SiaeAuthorizeAspect.java:46) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:637) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:627) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.6.jar:6.1.6]
-	at com.hngy.siae.media.controller.UploadController$$SpringCGLIB$$0.completeUpload(<generated>) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.20.jar:6.0]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.20.jar:6.0]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:206) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at com.hngy.siae.security.filter.ServiceAuthenticationFilter.doFilterInternal(ServiceAuthenticationFilter.java:81) ~[classes/:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:716) ~[spring-aop-6.1.6.jar:6.1.6]
-	at com.hngy.siae.security.filter.ServiceAuthenticationFilter$$SpringCGLIB$$0.doFilterInternal(<generated>) ~[classes/:na]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230) ~[spring-security-config-6.2.4.jar:6.2.4]
-	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1736) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2025-11-14T14:34:40.157+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.n.SiaeNotificationApplication      : The following 1 profile is active: "dev"
+2025-11-14T14:34:41.184+08:00  INFO 27348 --- [siae-notification] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-14T14:34:41.188+08:00  INFO 27348 --- [siae-notification] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-11-14T14:34:41.217+08:00  INFO 27348 --- [siae-notification] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 Redis repository interfaces.
+2025-11-14T14:34:41.462+08:00  INFO 27348 --- [siae-notification] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ca37436f-fa60-3af9-b2c9-0a96a8b9f287
+2025-11-14T14:34:42.062+08:00  INFO 27348 --- [siae-notification] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8030 (http)
+2025-11-14T14:34:42.074+08:00  INFO 27348 --- [siae-notification] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-11-14T14:34:42.074+08:00  INFO 27348 --- [siae-notification] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2025-11-14T14:34:42.151+08:00  INFO 27348 --- [siae-notification] [           main] o.a.c.c.C.[.[.[/api/v1/notification]     : Initializing Spring embedded WebApplicationContext
+2025-11-14T14:34:42.151+08:00  INFO 27348 --- [siae-notification] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1981 ms
+2025-11-14T14:34:42.540+08:00  INFO 27348 --- [siae-notification] [           main] c.hngy.siae.security.config.RedisConfig  : 配置RedisTemplate for SIAE Security
+2025-11-14T14:34:42.548+08:00  INFO 27348 --- [siae-notification] [           main] c.hngy.siae.security.config.RedisConfig  : ✅ RedisTemplate配置完成
+2025-11-14T14:34:42.554+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.s.s.i.RedisPermissionServiceImpl   : RedisPermissionService已初始化，支持权限和token验证，集成JWT工具类
+2025-11-14T14:34:42.675+08:00 DEBUG 27348 --- [siae-notification] [           main] c.h.s.s.f.ServiceAuthenticationFilter    : Filter 'serviceAuthenticationFilter' configured for use
+2025-11-14T14:34:42.729+08:00  INFO 27348 --- [siae-notification] [           main] org.reflections.Reflections              : Reflections took 29 ms to scan 1 urls, producing 1 keys and 2 values
+2025-11-14T14:34:42.846+08:00  INFO 27348 --- [siae-notification] [           main] c.h.siae.web.config.MybatisPlusConfig    : MyBatis Plus 分页插件已启用，最大限制：1000
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Use localhost address 
+Get KEYKB-LAPTOP/192.168.146.96 network interface 
+Get network interface info: name:wlan0 (Intel(R) Wi-Fi 6 AX201 160MHz)
+Initialization Sequence datacenterId:25 workerId:15
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.6 
+2025-11-14T14:34:43.244+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.m.a.SiaeRabbitAutoConfiguration    : [SIAE-MQ] RabbitMQ connection initialized: addresses=localhost:5672, vhost=/, confirms=true, returns=true
+2025-11-14T14:34:43.286+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.m.a.SiaeRabbitAutoConfiguration    : [SIAE-MQ] Listener container configured: concurrency=3~10, prefetch=50, ackMode=MANUAL
+2025-11-14T14:34:43.927+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.w.a.WebAutoConfiguration           : SIAE Web Starter 自动配置已启用
+2025-11-14T14:34:43.928+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.w.a.WebAutoConfiguration           : 统一响应处理: 启用
+2025-11-14T14:34:43.928+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.w.a.WebAutoConfiguration           : 全局异常处理: 启用
+2025-11-14T14:34:43.928+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.w.a.WebAutoConfiguration           : Jackson配置: 启用
+2025-11-14T14:34:43.928+08:00  INFO 27348 --- [siae-notification] [           main] c.h.s.w.a.WebAutoConfiguration           : MyBatis Plus配置: 启用
+2025-11-14T14:34:44.768+08:00  INFO 27348 --- [siae-notification] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-11-14T14:34:44.887+08:00  INFO 27348 --- [siae-notification] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8030 (http) with context path '/api/v1/notification'
+2025-11-14T14:34:45.117+08:00  INFO 27348 --- [siae-notification] [           main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-11-14T14:34:45.166+08:00  INFO 27348 --- [siae-notification] [           main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: siae-messaging/SimpleConnection@2c8469fe [delegate=amqp://guest@127.0.0.1:5672/, localPort=38780]
+2025-11-14T14:34:45.191+08:00 ERROR 27348 --- [siae-notification] [ 127.0.0.1:5672] o.s.a.r.c.CachingConnectionFactory       : Shutdown Signal: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.192+08:00  WARN 27348 --- [siae-notification] [           main] o.s.amqp.rabbit.core.RabbitAdmin         : Failed to declare binding: Binding [destination=siae.notification.queue, exchange=siae.notification.exchange, routingKey=notification.#, arguments={}], continuing... com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.194+08:00 ERROR 27348 --- [siae-notification] [ 127.0.0.1:5672] o.s.a.r.c.CachingConnectionFactory       : Shutdown Signal: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.196+08:00  WARN 27348 --- [siae-notification] [           main] o.s.amqp.rabbit.core.RabbitAdmin         : Failed to declare binding: Binding [destination=siae.email.queue, exchange=siae.notification.exchange, routingKey=email.#, arguments={}], continuing... com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.197+08:00 ERROR 27348 --- [siae-notification] [ 127.0.0.1:5672] o.s.a.r.c.CachingConnectionFactory       : Shutdown Signal: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.198+08:00  WARN 27348 --- [siae-notification] [           main] o.s.amqp.rabbit.core.RabbitAdmin         : Failed to declare binding: Binding [destination=siae.sms.queue, exchange=siae.notification.exchange, routingKey=sms.#, arguments={}], continuing... com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'siae.notification.exchange' in vhost '/', class-id=50, method-id=20)
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=3
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
 	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: java.sql.SQLException: Field 'actor_id' doesn't have a default value
-	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:130) ~[mysql-connector-j-8.0.33.jar:8.0.33]
-	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122) ~[mysql-connector-j-8.0.33.jar:8.0.33]
-	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:916) ~[mysql-connector-j-8.0.33.jar:8.0.33]
-	at com.mysql.cj.jdbc.ClientPreparedStatement.execute(ClientPreparedStatement.java:354) ~[mysql-connector-j-8.0.33.jar:8.0.33]
-	at com.alibaba.druid.pool.DruidPooledPreparedStatement.execute(DruidPooledPreparedStatement.java:483) ~[druid-1.2.22.jar:na]
-	at jdk.internal.reflect.GeneratedMethodAccessor99.invoke(Unknown Source) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
 	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.apache.ibatis.logging.jdbc.PreparedStatementLogger.invoke(PreparedStatementLogger.java:58) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy3/jdk.proxy3.$Proxy224.execute(Unknown Source) ~[na:na]
-	at org.apache.ibatis.executor.statement.PreparedStatementHandler.update(PreparedStatementHandler.java:48) ~[mybatis-3.5.16.jar:3.5.16]
-	at org.apache.ibatis.executor.statement.RoutingStatementHandler.update(RoutingStatementHandler.java:75) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.internal.reflect.GeneratedMethodAccessor106.invoke(Unknown Source) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:61) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy2/jdk.proxy2.$Proxy222.update(Unknown Source) ~[na:na]
-	at org.apache.ibatis.executor.SimpleExecutor.doUpdate(SimpleExecutor.java:50) ~[mybatis-3.5.16.jar:3.5.16]
-	at org.apache.ibatis.executor.BaseExecutor.update(BaseExecutor.java:117) ~[mybatis-3.5.16.jar:3.5.16]
-	at org.apache.ibatis.executor.CachingExecutor.update(CachingExecutor.java:76) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.internal.reflect.GeneratedMethodAccessor105.invoke(Unknown Source) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.apache.ibatis.plugin.Invocation.proceed(Invocation.java:61) ~[mybatis-3.5.16.jar:3.5.16]
-	at com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor.intercept(MybatisPlusInterceptor.java:106) ~[mybatis-plus-extension-3.5.6.jar:3.5.6]
-	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:59) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy2/jdk.proxy2.$Proxy221.update(Unknown Source) ~[na:na]
-	at org.apache.ibatis.session.defaults.DefaultSqlSession.update(DefaultSqlSession.java:197) ~[mybatis-3.5.16.jar:3.5.16]
-	at org.apache.ibatis.session.defaults.DefaultSqlSession.insert(DefaultSqlSession.java:184) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.internal.reflect.GeneratedMethodAccessor104.invoke(Unknown Source) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:425) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	... 188 common frames omitted
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
 
-2025-11-08T10:54:28.761+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.m.i.messaging.EventPublisher       : Published event: type=file.uploaded, fileId=3998cb913da9c8bf3baa07676b1fe207, exchange=media.file.events, routingKey=file.uploaded
-2025-11-08T10:54:28.761+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.m.service.upload.UploadService     : Published file.uploaded event: fileId=3998cb913da9c8bf3baa07676b1fe207
-2025-11-08T10:54:28.761+08:00  INFO 18256 --- [siae-media] [nio-8084-exec-9] c.h.s.m.service.upload.UploadService     : Upload completed successfully: uploadId=e90122857b88e9f6d081abe8d1b5afd9, fileId=3998cb913da9c8bf3baa07676b1fe207
-Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19402f09]
-2025-11-08T10:54:28.776+08:00 ERROR 18256 --- [siae-media] [ 127.0.0.1:5672] o.s.a.r.c.CachingConnectionFactory       : Shutdown Signal: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'media.file.events' in vhost '/', class-id=60, method-id=40)
-2025-11-08T10:54:28.779+08:00  WARN 18256 --- [siae-media] [nectionFactory3] c.h.s.m.a.RabbitTemplateConfigurer       : [SIAE-MQ] Confirm failed (instance=default, messageId=5229a0ca-1c94-43cd-85d0-e13ce88cecfe, cause=channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no exchange 'media.file.events' in vhost '/', class-id=60, method-id=40))
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=3
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:45.213+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=3
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=2
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=2
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:50.221+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=2
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:55.227+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:55.227+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:55.229+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Failed to declare queue: siae.email.queue
+2025-11-14T14:34:55.227+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-3] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=1
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:55.227+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-2] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=1
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+
+2025-11-14T14:34:55.229+08:00  WARN 27348 --- [siae-notification] [ntContainer#0-1] o.s.a.r.listener.BlockingQueueConsumer   : Queue declaration failed; retries left=1
+
+org.springframework.amqp.rabbit.listener.BlockingQueueConsumer$DeclarationException: Failed to declare queue(s):[siae.email.queue]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:773) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.passiveDeclarations(BlockingQueueConsumer.java:650) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.start(BlockingQueueConsumer.java:637) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.initialize(SimpleMessageListenerContainer.java:1479) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1320) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+Caused by: java.io.IOException: null
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:140) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.wrap(AMQChannel.java:136) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:158) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:1033) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.queueDeclarePassive(ChannelN.java:47) ~[amqp-client-5.19.0.jar:5.19.0]
+	at org.springframework.amqp.rabbit.connection.PublisherCallbackChannelImpl.queueDeclarePassive(PublisherCallbackChannelImpl.java:368) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.amqp.rabbit.connection.CachingConnectionFactory$CachedChannelInvocationHandler.invoke(CachingConnectionFactory.java:1204) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	at jdk.proxy2/jdk.proxy2.$Proxy163.queueDeclarePassive(Unknown Source) ~[na:na]
+	at org.springframework.amqp.rabbit.listener.BlockingQueueConsumer.attemptPassiveDeclarations(BlockingQueueConsumer.java:751) ~[spring-rabbit-3.1.4.jar:3.1.4]
+	... 5 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.utility.ValueOrException.getValue(ValueOrException.java:66) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.utility.BlockingValueOrException.uninterruptibleGetValue(BlockingValueOrException.java:36) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel$BlockingRpcContinuation.getReply(AMQChannel.java:552) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.privateRpc(AMQChannel.java:316) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.exnWrappingRpc(AMQChannel.java:152) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 15 common frames omitted
+Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol method: #method<channel.close>(reply-code=404, reply-text=NOT_FOUND - no queue 'siae.email.queue' in vhost '/', class-id=50, method-id=10)
+	at com.rabbitmq.client.impl.ChannelN.asyncShutdown(ChannelN.java:528) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.ChannelN.processAsync(ChannelN.java:349) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleCompleteInboundCommand(AMQChannel.java:193) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQChannel.handleFrame(AMQChannel.java:125) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.readFrame(AMQConnection.java:761) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection.access$400(AMQConnection.java:48) ~[amqp-client-5.19.0.jar:5.19.0]
+	at com.rabbitmq.client.impl.AMQConnection$MainLoop.run(AMQConnection.java:688) ~[amqp-client-5.19.0.jar:5.19.0]
+	... 1 common frames omitted
+

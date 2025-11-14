@@ -3,6 +3,7 @@ package com.hngy.siae.media.controller;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
+import com.hngy.siae.media.domain.dto.file.BatchUrlResponse;
 import com.hngy.siae.media.domain.dto.file.FileInfoResponse;
 import com.hngy.siae.media.domain.dto.file.FileQueryRequest;
 import com.hngy.siae.media.domain.dto.file.FileUpdateRequest;
@@ -17,6 +18,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static com.hngy.siae.media.constant.MediaPermissions.*;
 
@@ -118,6 +121,58 @@ public class FileController {
             HttpServletResponse response) {
         log.info("Received preview file request: fileId={}", fileId);
         previewService.preview(fileId, response);
+    }
+
+    /**
+     * 获取单个文件访问URL
+     */
+    @GetMapping("/{fileId}/url")
+    @Operation(summary = "获取文件URL", description = "获取单个文件的预签名访问URL，支持缓存")
+    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
+    public Result<String> getFileUrl(
+            @Parameter(description = "文件ID")
+            @PathVariable String fileId,
+            @Parameter(description = "URL过期时间（秒），默认24小时")
+            @RequestParam(defaultValue = "86400") Integer expirySeconds) {
+        log.info("Received get file URL request: fileId={}, expirySeconds={}", fileId, expirySeconds);
+        
+        Map<String, String> urls = fileService.batchGetFileUrls(
+                java.util.Collections.singletonList(fileId), 
+                expirySeconds
+        );
+        
+        String url = urls.get(fileId);
+        if (url == null) {
+            return Result.error("文件不存在或不可访问");
+        }
+        
+        return Result.success(url);
+    }
+
+    /**
+     * 批量获取文件访问URL
+     */
+    @PostMapping("/urls/batch")
+    @Operation(summary = "批量获取文件URL", description = "批量获取文件的预签名访问URL，支持缓存")
+    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
+    public Result<BatchUrlResponse> batchGetFileUrls(
+            @Parameter(description = "批量URL请求")
+            @Valid @RequestBody com.hngy.siae.media.domain.dto.file.BatchUrlRequest request) {
+        log.info("Received batch get file URLs request: fileIds count={}", request.getFileIds().size());
+        
+        Map<String, String> urls = fileService.batchGetFileUrls(
+                request.getFileIds(), 
+                request.getExpirySeconds()
+        );
+        
+        com.hngy.siae.media.domain.dto.file.BatchUrlResponse response = com.hngy.siae.media.domain.dto.file.BatchUrlResponse.builder()
+                .urls(urls)
+                .expiresAt(java.time.LocalDateTime.now().plusSeconds(request.getExpirySeconds()))
+                .successCount(urls.size())
+                .failedCount(request.getFileIds().size() - urls.size())
+                .build();
+        
+        return Result.success(response);
     }
 
 }

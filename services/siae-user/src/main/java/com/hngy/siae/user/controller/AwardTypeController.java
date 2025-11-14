@@ -1,11 +1,8 @@
 package com.hngy.siae.user.controller;
 
-import com.hngy.siae.core.dto.PageDTO;
-import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.core.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.user.dto.request.AwardTypeCreateDTO;
-import com.hngy.siae.user.dto.request.AwardTypeQueryDTO;
-import com.hngy.siae.user.dto.request.AwardTypeUpdateDTO;
 import com.hngy.siae.user.dto.response.AwardTypeVO;
 import com.hngy.siae.user.service.AwardTypeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,15 +53,19 @@ public class AwardTypeController {
     /**
      * 更新奖项类型信息
      *
-     * @param awardTypeUpdateDTO 奖项类型更新参数
+     * @param id 奖项类型ID
+     * @param name 奖项类型名称
+     * @param orderId 排序ID
      * @return 更新后的奖项类型信息
      */
-    @PutMapping
+    @PutMapping("/{id}")
     @Operation(summary = "更新奖项类型", description = "更新一个已存在的奖项类型")
     @SiaeAuthorize("hasAuthority('" + USER_AWARD_TYPE_UPDATE + "')")
     public Result<AwardTypeVO> updateAwardType(
-            @Parameter(description = "奖项类型更新参数") @Valid @RequestBody AwardTypeUpdateDTO awardTypeUpdateDTO) {
-        return Result.success(awardTypeService.updateAwardType(awardTypeUpdateDTO));
+            @Parameter(description = "奖项类型ID") @PathVariable("id") @NotNull Long id,
+            @Parameter(description = "奖项类型名称") @RequestParam @NotBlank String name,
+            @Parameter(description = "排序ID") @RequestParam(required = false) Integer orderId) {
+        return Result.success(awardTypeService.updateAwardType(id, name, orderId));
     }
 
     /**
@@ -75,50 +76,22 @@ public class AwardTypeController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID获取奖项类型", description = "获取指定ID的奖项类型详细信息")
-    @SiaeAuthorize("hasAuthority('" + USER_AWARD_TYPE_VIEW + "')")
+    @SiaeAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public Result<AwardTypeVO> getAwardTypeById(
             @Parameter(description = "奖项类型ID") @PathVariable("id") @NotNull Long id) {
         return Result.success(awardTypeService.getAwardTypeById(id));
     }
 
     /**
-     * 根据名称获取奖项类型信息
+     * 查询奖项类型列表（字典数据）
      *
-     * @param name 奖项类型名称
-     * @return 奖项类型详细信息
-     */
-    @GetMapping("/name/{name}")
-    @Operation(summary = "根据名称获取奖项类型", description = "通过奖项类型名称查询详细信息")
-    @SiaeAuthorize("hasAuthority('" + USER_AWARD_TYPE_VIEW + "')")
-    public Result<AwardTypeVO> getAwardTypeByName(
-            @Parameter(description = "奖项类型名称") @PathVariable("name") @NotBlank String name) {
-        return Result.success(awardTypeService.getAwardTypeByName(name));
-    }
-
-    /**
-     * 获取所有奖项类型列表
-     *
-     * @return 所有奖项类型列表
+     * @return 所有奖项类型列表，按orderId排序
      */
     @GetMapping
-    @Operation(summary = "获取所有奖项类型", description = "获取系统中所有奖项类型列表")
-    @SiaeAuthorize("hasAuthority('" + USER_AWARD_TYPE_LIST + "')")
+    @Operation(summary = "查询奖项类型列表", description = "查询所有奖项类型（字典数据，按orderId排序）")
+    @SiaeAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public Result<List<AwardTypeVO>> listAllAwardTypes() {
         return Result.success(awardTypeService.listAllAwardTypes());
-    }
-
-    /**
-     * 分页查询奖项类型列表
-     *
-     * @param pageDTO 分页查询参数
-     * @return 分页奖项类型列表
-     */
-    @PostMapping("/page")
-    @Operation(summary = "分页查询奖项类型", description = "根据条件分页获取奖项类型列表")
-    @SiaeAuthorize("hasAuthority('" + USER_AWARD_TYPE_LIST + "')")
-    public Result<PageVO<AwardTypeVO>> listAwardTypesByPage(
-            @Parameter(description = "分页查询参数") @Valid @RequestBody PageDTO<AwardTypeQueryDTO> pageDTO) {
-        return Result.success(awardTypeService.listAwardTypesByPage(pageDTO));
     }
 
     /**

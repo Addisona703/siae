@@ -100,7 +100,6 @@ public class TagsController {
     @SiaeAuthorize("hasAuthority('" + CONTENT_TAG_VIEW + "')")
     public Result<PageVO<TagVO>> listTags(
             @Parameter(description = "分页查询参数，包含查询条件") @Valid @RequestBody PageDTO<TagQueryDTO> pageDTO) {
-        log.info("pageDTO={}", pageDTO);
         PageVO<TagVO> pageVO = tagsService.listTags(pageDTO);
         return Result.success(pageVO);
     }

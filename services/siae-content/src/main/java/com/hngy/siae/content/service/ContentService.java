@@ -1,10 +1,10 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.content.dto.request.content.ContentDTO;
+import com.hngy.siae.content.dto.request.content.ContentCreateDTO;
+import com.hngy.siae.content.dto.request.content.ContentUpdateDTO;
 import com.hngy.siae.content.dto.request.content.ContentPageDTO;
 import com.hngy.siae.content.dto.response.ContentVO;
 import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
@@ -22,27 +22,36 @@ public interface ContentService extends IService<Content> {
     /**
      * 发布内容
      *
-     * @param contentDTO 内容dto
+     * @param contentCreateDTO 内容创建dto
      * @return {@link Content }
      */
-    Content createContent(ContentDTO contentDTO);
+    Content createContent(ContentCreateDTO contentCreateDTO);
 
     /**
      * 更新内容
      *
-     * @param contentDTO 内容dto
+     * @param contentUpdateDTO 内容更新dto
      * @return {@link Content }
      */
-    Content updateContent(ContentDTO contentDTO);
+    Content updateContent(ContentUpdateDTO contentUpdateDTO);
 
     /**
      * 删除内容
      *
      * @param id      内容id
      * @param isTrash 是否放入回收站
-     * @return {@link Result }<{@link Void }>
      */
-    Result<Void> deleteContent(Integer id, Integer isTrash);
+    void deleteContent(Integer id, Integer isTrash);
+
+    /**
+     * 删除内容（带权限校验）
+     *
+     * @param id            内容id
+     * @param isTrash       是否放入回收站
+     * @param currentUserId 当前用户ID
+     * @param isAdmin       是否为管理员
+     */
+    void deleteContent(Integer id, Integer isTrash, Long currentUserId, boolean isAdmin);
 
     /**
      * 获取内容列表
@@ -50,5 +59,5 @@ public interface ContentService extends IService<Content> {
      * @param dto 分页查询参数
      * @return {@link PageVO }<{@link ContentVO }<{@link EmptyDetailVO }>>
      */
-    Result<PageVO<ContentVO<EmptyDetailVO>>> getContentPage(PageDTO<ContentPageDTO> dto);
+    PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentPageDTO> dto);
 }

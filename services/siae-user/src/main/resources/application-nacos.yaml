@@ -1,0 +1,29 @@
+# ===================================================================
+# DEV CONFIGURATION FOR SIAE-USER (使用 Nacos)
+# 开发环境配置，从 Nacos 配置中心读取
+# ===================================================================
+
+# 注意：此配置文件启用 Nacos，大部分配置从 Nacos 读取
+# 需要在 Nacos 中创建 Data ID: siae-user.yaml, Group: SIAE_GROUP
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true  # 启用服务发现
+      config:
+        enabled: true  # 启用配置中心
+        server-addr: localhost:8948
+        shared-configs:
+          - dataId: siae-common.yaml
+            refresh: true
+
+# ===================================================================
+# 本地覆盖配置（可选，会覆盖 Nacos 中的配置）
+# ===================================================================
+
+# 日志配置（临时修复 Nacos 配置格式问题）
+#logging:
+#  level:
+#    root: INFO
+#    com.hngy.siae: DEBUG

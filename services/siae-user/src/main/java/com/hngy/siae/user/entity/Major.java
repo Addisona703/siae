@@ -27,11 +27,6 @@ public class Major implements Serializable {
     private Long id;
 
     /**
-     * 所属学院ID
-     */
-    private Long collegeId;
-
-    /**
      * 专业名称
      */
     private String name;
@@ -45,4 +40,9 @@ public class Major implements Serializable {
      * 专业简称
      */
     private String abbr;
+
+    /**
+     * 所属学院名称
+     */
+    private String collegeName;
 } 

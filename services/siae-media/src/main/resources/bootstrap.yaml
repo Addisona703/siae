@@ -1,0 +1,24 @@
+# ===================================================================
+# BOOTSTRAP CONFIGURATION
+# ===================================================================
+
+spring:
+  application:
+    name: siae-media
+  
+  profiles:
+    # 切换环境：
+    # - dev: 本地开发，不依赖 Nacos
+    # - nacos: 使用 Nacos 配置
+    # 可通过环境变量 ENV 切换：export ENV=nacos
+    active: ${ENV:dev}
+  
+  cloud:
+    nacos:
+      server-addr: localhost:8948
+      config:
+        group: SIAE_GROUP
+  
+  config:
+    # ⚠️ 重要：必须加 .yaml 扩展名
+    import: optional:nacos:siae-media.yaml

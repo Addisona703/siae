@@ -1,10 +1,6 @@
 package com.hngy.siae.user.service;
 
-import com.hngy.siae.core.dto.PageDTO;
-import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.user.dto.request.AwardTypeCreateDTO;
-import com.hngy.siae.user.dto.request.AwardTypeQueryDTO;
-import com.hngy.siae.user.dto.request.AwardTypeUpdateDTO;
 import com.hngy.siae.user.dto.response.AwardTypeVO;
 
 import java.util.List;
@@ -30,10 +26,12 @@ public interface AwardTypeService {
     /**
      * 更新奖项类型
      *
-     * @param awardTypeUpdateDTO 奖项类型更新参数
+     * @param id 奖项类型ID
+     * @param name 奖项类型名称
+     * @param orderId 排序ID
      * @return 奖项类型实体
      */
-    AwardTypeVO updateAwardType(AwardTypeUpdateDTO awardTypeUpdateDTO);
+    AwardTypeVO updateAwardType(Long id, String name, Integer orderId);
 
     /**
      * 根据ID获取奖项类型
@@ -44,27 +42,11 @@ public interface AwardTypeService {
     AwardTypeVO getAwardTypeById(Long id);
 
     /**
-     * 根据名称获取奖项类型
+     * 获取所有奖项类型（字典数据）
      *
-     * @param name 奖项类型名称
-     * @return 奖项类型实体
-     */
-    AwardTypeVO getAwardTypeByName(String name);
-
-    /**
-     * 获取所有奖项类型
-     *
-     * @return 奖项类型实体列表
+     * @return 奖项类型实体列表，按orderId排序
      */
     List<AwardTypeVO> listAllAwardTypes();
-
-    /**
-     * 分页查询奖项类型
-     *
-     * @param pageDTO 分页查询参数
-     * @return 分页奖项类型实体
-     */
-    PageVO<AwardTypeVO> listAwardTypesByPage(PageDTO<AwardTypeQueryDTO> pageDTO);
 
     /**
      * 根据ID删除奖项类型

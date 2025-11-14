@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.content.mapper.StatisticsMapper">
+
+    <!-- 热门内容结果映射 -->
+    <resultMap id="HotContentResultMap" type="com.hngy.siae.content.dto.response.HotContentVO">
+        <result property="contentId" column="content_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="commentCount" column="comment_count"/>
+    </resultMap>
+
+    <!-- 分页查询热门内容 -->
+    <select id="selectHotContentPage" resultMap="HotContentResultMap">
+        SELECT
+            c.id AS content_id,
+            c.title AS title,
+            c.description AS description,
+            COALESCE(art.cover_url, vid.cover_url) AS cover_url,
+            s.view_count AS view_count,
+            s.like_count AS like_count,
+            s.favorite_count AS favorite_count,
+            s.comment_count AS comment_count
+        FROM content c
+        INNER JOIN statistics s ON s.content_id = c.id
+        LEFT JOIN article art ON art.content_id = c.id
+        LEFT JOIN video vid ON vid.content_id = c.id
+        WHERE c.status = #{publishedStatus}
+        <if test="categoryId != null">
+            AND c.category_id = #{categoryId}
+        </if>
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        <choose>
+            <when test='sortBy == "likeCount"'>
+                ORDER BY s.like_count DESC
+            </when>
+            <when test='sortBy == "favoriteCount"'>
+                ORDER BY s.favorite_count DESC
+            </when>
+            <when test='sortBy == "commentCount"'>
+                ORDER BY s.comment_count DESC
+            </when>
+            <when test='sortBy == "createTime"'>
+                ORDER BY c.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY s.view_count DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

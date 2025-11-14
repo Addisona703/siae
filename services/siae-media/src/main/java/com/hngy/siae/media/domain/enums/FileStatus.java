@@ -14,6 +14,7 @@ public enum FileStatus {
     
     INIT("init", "初始化"),
     UPLOADING("uploading", "上传中"),
+    PROCESSING("processing", "处理中"),
     COMPLETED("completed", "已完成"),
     FAILED("failed", "失败"),
     DELETED("deleted", "已删除");

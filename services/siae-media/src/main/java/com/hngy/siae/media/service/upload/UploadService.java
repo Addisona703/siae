@@ -21,6 +21,8 @@ import com.hngy.siae.media.security.TenantContext;
 import com.hngy.siae.media.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.IntStream;
 
 /**
@@ -50,6 +54,9 @@ public class UploadService {
     private final MediaProperties mediaProperties;
     private final AuditService auditService;
     private final EventPublisher eventPublisher;
+    
+    @Qualifier("fileProcessExecutor")
+    private final Executor fileProcessExecutor;
 
     /**
      * 初始化上传
@@ -174,7 +181,7 @@ public class UploadService {
     }
 
     /**
-     * 生成预签名 URL
+     * 生成预签名 URL（优化：批量并行生成）
      */
     private UploadInitResponse generatePresignedUrls(Upload upload, FileEntity fileEntity, UploadInitRequest request) {
         UploadInitResponse response = new UploadInitResponse();
@@ -189,18 +196,20 @@ public class UploadService {
         List<UploadInitResponse.PartInfo> parts = new ArrayList<>();
         
         if (upload.getMultipart()) {
-            // 分片上传：为每个分片生成预签名 URL
-            for (int i = 1; i <= upload.getTotalParts(); i++) {
-                String url = storageService.generatePartUploadUrl(
-                        fileEntity.getBucket(),
-                        fileEntity.getStorageKey(),
-                        i,
-                        mediaProperties.getUpload().getPresignedUrlExpiry()
-                );
-                
+            // 分片上传：批量并行生成预签名 URL（性能优化）
+            log.info("Generating {} presigned URLs for multipart upload", upload.getTotalParts());
+            
+            List<String> urls = storageService.batchGeneratePartUploadUrls(
+                    fileEntity.getBucket(),
+                    fileEntity.getStorageKey(),
+                    upload.getTotalParts(),
+                    mediaProperties.getUpload().getPresignedUrlExpiry()
+            );
+            
+            for (int i = 0; i < urls.size(); i++) {
                 UploadInitResponse.PartInfo partInfo = new UploadInitResponse.PartInfo();
-                partInfo.setPartNumber(i);
-                partInfo.setUrl(url);
+                partInfo.setPartNumber(i + 1);
+                partInfo.setUrl(urls.get(i));
                 partInfo.setExpiresAt(upload.getExpireAt());
                 parts.add(partInfo);
             }
@@ -363,7 +372,7 @@ public class UploadService {
     }
 
     /**
-     * 完成上传
+     * 完成上传（优化：异步合并分片）
      */
     @Transactional(rollbackFor = Exception.class)
     public UploadCompleteResponse completeUpload(String uploadId, UploadCompleteRequest request) {
@@ -387,33 +396,39 @@ public class UploadService {
         // 4. 验证文件完整性
         validateFileIntegrity(fileEntity, request);
 
-        // 5. 合并分片
+        // 5. 更新状态为"处理中"
         if (upload.getMultipart()) {
-            mergeMultipartObject(fileEntity, upload);
+            fileEntity.setStatus(FileStatus.PROCESSING);
+            upload.setStatus(UploadStatus.PROCESSING);
+        } else {
+            // 单文件上传直接完成
+            fileEntity.setStatus(FileStatus.COMPLETED);
+            upload.setStatus(UploadStatus.COMPLETED);
         }
-
-        // 5. 更新文件状态
-        fileEntity.setStatus(FileStatus.COMPLETED);
+        
         fileRepository.updateById(fileEntity);
-
-        // 6. 更新上传会话状态
-        upload.setStatus(UploadStatus.COMPLETED);
         uploadRepository.updateById(upload);
 
-        // 7. 更新租户配额
-        updateQuotaUsage(fileEntity.getTenantId(), fileEntity.getSize(), 1);
+        // 6. 异步合并分片（不阻塞请求）
+        if (upload.getMultipart()) {
+            log.info("Starting async merge for uploadId: {}", uploadId);
+            asyncMergeMultipartObject(fileEntity, upload);
+        } else {
+            // 单文件上传立即更新配额和发布事件
+            updateQuotaUsage(fileEntity.getTenantId(), fileEntity.getSize(), 1);
+            
+            // 记录审计日志
+            Map<String, Object> auditMetadata = new HashMap<>();
+            auditMetadata.put("uploadId", uploadId);
+            auditMetadata.put("size", fileEntity.getSize());
+            auditService.logUploadComplete(fileEntity.getId(), fileEntity.getTenantId(), 
+                    fileEntity.getOwnerId(), auditMetadata);
+            
+            publishFileUploadedEvent(fileEntity);
+        }
 
-        // 8. 记录审计日志
-        Map<String, Object> auditMetadata = new HashMap<>();
-        auditMetadata.put("uploadId", uploadId);
-        auditMetadata.put("size", fileEntity.getSize());
-        auditService.logUploadComplete(fileEntity.getId(), fileEntity.getTenantId(), 
-                fileEntity.getOwnerId(), auditMetadata);
-
-        // 9. 发布文件上传完成事件
-        publishFileUploadedEvent(fileEntity);
-
-        log.info("Upload completed successfully: uploadId={}, fileId={}", uploadId, fileEntity.getId());
+        log.info("Upload request completed: uploadId={}, fileId={}, status={}", 
+                uploadId, fileEntity.getId(), fileEntity.getStatus());
 
         UploadCompleteResponse response = new UploadCompleteResponse();
         response.setFileId(fileEntity.getId());
@@ -524,6 +539,62 @@ public class UploadService {
         log.info("Upload aborted successfully: uploadId={}, fileId={}", uploadId, fileEntity.getId());
     }
 
+    /**
+     * 异步合并分片（性能优化：不阻塞请求）
+     */
+    private void asyncMergeMultipartObject(FileEntity fileEntity, Upload upload) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                log.info("Starting merge for fileId: {}, uploadId: {}", 
+                        fileEntity.getId(), upload.getUploadId());
+                
+                // 合并分片
+                List<String> partKeys = buildPartObjectKeys(fileEntity, upload);
+                storageService.composeObject(fileEntity.getBucket(), partKeys, fileEntity.getStorageKey());
+                
+                // 删除临时分片
+                storageService.deleteObjects(fileEntity.getBucket(), partKeys);
+                
+                log.info("Merge completed for fileId: {}", fileEntity.getId());
+                
+                // 更新状态为"完成"
+                fileEntity.setStatus(FileStatus.COMPLETED);
+                fileRepository.updateById(fileEntity);
+                
+                upload.setStatus(UploadStatus.COMPLETED);
+                uploadRepository.updateById(upload);
+                
+                // 更新租户配额
+                updateQuotaUsage(fileEntity.getTenantId(), fileEntity.getSize(), 1);
+                
+                // 记录审计日志
+                Map<String, Object> auditMetadata = new HashMap<>();
+                auditMetadata.put("uploadId", upload.getUploadId());
+                auditMetadata.put("size", fileEntity.getSize());
+                auditService.logUploadComplete(fileEntity.getId(), fileEntity.getTenantId(), 
+                        fileEntity.getOwnerId(), auditMetadata);
+                
+                // 发布文件上传完成事件
+                publishFileUploadedEvent(fileEntity);
+                
+                log.info("File processing completed: fileId={}", fileEntity.getId());
+                
+            } catch (Exception e) {
+                log.error("Failed to merge multipart object for fileId: {}", fileEntity.getId(), e);
+                
+                // 更新状态为"失败"
+                fileEntity.setStatus(FileStatus.FAILED);
+                fileRepository.updateById(fileEntity);
+                
+                upload.setStatus(UploadStatus.FAILED);
+                uploadRepository.updateById(upload);
+            }
+        }, fileProcessExecutor);
+    }
+
+    /**
+     * 同步合并分片（保留用于单元测试或特殊场景）
+     */
     private void mergeMultipartObject(FileEntity fileEntity, Upload upload) {
         List<String> partKeys = buildPartObjectKeys(fileEntity, upload);
         storageService.composeObject(fileEntity.getBucket(), partKeys, fileEntity.getStorageKey());

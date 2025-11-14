@@ -124,19 +124,18 @@ public class SiaeRabbitAutoConfiguration {
     public RabbitAdmin siaeRabbitAdmin(CachingConnectionFactory connectionFactory) {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         rabbitAdmin.setAutoStartup(true);
+        rabbitAdmin.setIgnoreDeclarationExceptions(true);
         return rabbitAdmin;
     }
 
     @Bean(name = "siaeRabbitDeclarables")
     @ConditionalOnMissingBean(name = "siaeRabbitDeclarables")
-    public Declarables siaeRabbitDeclarables(RabbitAdmin rabbitAdmin) {
-        Declarables declarables = RabbitTopologyUtils.buildDeclarables(
+    public Declarables siaeRabbitDeclarables() {
+        return RabbitTopologyUtils.buildDeclarables(
                 properties.getExchanges(),
                 properties.getQueues(),
                 properties.getBindings()
         );
-        RabbitTopologyUtils.declareTopology(rabbitAdmin, declarables);
-        return declarables;
     }
 
     @Bean

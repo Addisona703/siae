@@ -1,7 +1,6 @@
 package com.hngy.siae.user.dto.request;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -12,8 +11,8 @@ import java.io.Serializable;
 /**
  * 用户更新数据传输对象
  * <p>
- * 用于用户更新操作的数据传输，包含ID字段和可更新的字段。
- * ID字段必须提供，用于标识要更新的记录。
+ * 用于用户更新操作的数据传输。
+ * ID 字段可选，由 Controller 从路径参数设置。
  *
  * @author KEYKB
  */
@@ -24,9 +23,8 @@ public class UserUpdateDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     
     /**
-     * 用户ID
+     * 用户ID（可选，由Controller从路径参数设置）
      */
-    @NotNull(message = "用户ID不能为空")
     private Long id;
 
     /**
@@ -41,6 +39,12 @@ public class UserUpdateDTO implements Serializable {
      */
     @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
     private String password;
+
+    /**
+     * 学号
+     */
+    @Size(max = 32, message = "学号长度不能超过32个字符")
+    private String studentId;
 
     /**
      * 邮箱
@@ -65,14 +69,24 @@ public class UserUpdateDTO implements Serializable {
     private String realName;
 
     /**
-     * 头像URL
+     * 头像文件ID
      */
-    private String avatar;
+    private String avatarFileId;
 
     /**
-     * 班级ID，关联ClassInfo实体
+     * 专业ID
      */
-    private Long classId;
+    private Long majorId;
+
+    /**
+     * 入学年份
+     */
+    private Integer entryYear;
+
+    /**
+     * 班号
+     */
+    private Integer classNo;
 
     /**
      * 状态：0禁用，1启用

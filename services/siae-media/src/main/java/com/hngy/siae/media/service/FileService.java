@@ -7,20 +7,25 @@ import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.MediaResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
+import com.hngy.siae.media.config.MediaProperties;
 import com.hngy.siae.media.domain.dto.file.FileInfoResponse;
 import com.hngy.siae.media.domain.dto.file.FileQueryRequest;
 import com.hngy.siae.media.domain.dto.file.FileUpdateRequest;
 import com.hngy.siae.media.domain.entity.FileEntity;
 import com.hngy.siae.media.domain.enums.FileStatus;
+import com.hngy.siae.media.infrastructure.storage.StorageService;
 import com.hngy.siae.media.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 文件服务
@@ -34,6 +39,9 @@ public class FileService {
 
     private final FileRepository fileRepository;
     private final AuditService auditService;
+    private final StorageService storageService;
+    private final MediaProperties mediaProperties;
+    private final RedisTemplate<String, String> redisTemplate;
 
     /**
      * 查询文件列表
@@ -233,6 +241,87 @@ public class FileService {
         FileInfoResponse response = BeanConvertUtil.to(fileEntity, FileInfoResponse.class);
         response.setFileId(fileEntity.getId());
         return response;
+    }
+
+    /**
+     * 批量获取文件访问URL
+     * 
+     * @param fileIds 文件ID列表
+     * @param expirySeconds URL过期时间（秒）
+     * @return 文件ID到URL的映射
+     */
+    public Map<String, String> batchGetFileUrls(List<String> fileIds, Integer expirySeconds) {
+        log.info("Batch getting file URLs for {} files", fileIds.size());
+        
+        Map<String, String> result = new HashMap<>();
+        List<String> missedIds = new ArrayList<>();
+        
+        // 如果启用了缓存，先从Redis批量查询
+        if (Boolean.TRUE.equals(mediaProperties.getUrl().getCacheEnabled())) {
+            for (String fileId : fileIds) {
+                String cacheKey = buildUrlCacheKey(fileId);
+                String cachedUrl = redisTemplate.opsForValue().get(cacheKey);
+                if (cachedUrl != null) {
+                    result.put(fileId, cachedUrl);
+                    log.debug("Cache hit for fileId: {}", fileId);
+                } else {
+                    missedIds.add(fileId);
+                }
+            }
+            log.info("Cache hit: {}/{}, missed: {}", result.size(), fileIds.size(), missedIds.size());
+        } else {
+            missedIds.addAll(fileIds);
+        }
+        
+        // 为未命中的文件生成URL
+        if (!missedIds.isEmpty()) {
+            List<FileEntity> files = fileRepository.selectBatchIds(missedIds);
+            
+            for (FileEntity file : files) {
+                // 验证文件状态
+                if (file.getStatus() != FileStatus.COMPLETED || file.getDeletedAt() != null) {
+                    log.warn("File is not available for URL generation: fileId={}, status={}", 
+                            file.getId(), file.getStatus());
+                    continue;
+                }
+                
+                try {
+                    // 生成预签名URL
+                    String url = storageService.generatePresignedDownloadUrl(
+                            file.getBucket(),
+                            file.getStorageKey(),
+                            expirySeconds
+                    );
+                    
+                    result.put(file.getId(), url);
+                    
+                    // 缓存URL（缓存时间比URL过期时间短，避免返回即将失效的URL）
+                    if (Boolean.TRUE.equals(mediaProperties.getUrl().getCacheEnabled())) {
+                        String cacheKey = buildUrlCacheKey(file.getId());
+                        int cacheTtl = Math.min(
+                                mediaProperties.getUrl().getCacheTtl(),
+                                expirySeconds - 3600 // 至少提前1小时过期
+                        );
+                        redisTemplate.opsForValue().set(cacheKey, url, cacheTtl, TimeUnit.SECONDS);
+                        log.debug("Cached URL for fileId: {}, ttl: {}s", file.getId(), cacheTtl);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to generate URL for fileId: {}", file.getId(), e);
+                }
+            }
+        }
+        
+        log.info("Batch get file URLs completed: success={}, failed={}", 
+                result.size(), fileIds.size() - result.size());
+        
+        return result;
+    }
+
+    /**
+     * 构建URL缓存Key
+     */
+    private String buildUrlCacheKey(String fileId) {
+        return "media:url:" + fileId;
     }
 
 }

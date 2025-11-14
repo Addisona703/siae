@@ -1,6 +1,6 @@
 package com.hngy.siae.content.strategy;
 
-import com.hngy.siae.content.common.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.ContentTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;

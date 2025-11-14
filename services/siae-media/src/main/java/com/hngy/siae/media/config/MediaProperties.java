@@ -20,6 +20,7 @@ public class MediaProperties {
     private Download download = new Download();
     private Quota quota = new Quota();
     private Cdn cdn = new Cdn();
+    private Url url = new Url();
 
     @Data
     public static class Upload {
@@ -52,6 +53,24 @@ public class MediaProperties {
     public static class Cdn {
         private Boolean enabled = false;
         private String baseUrl;
+    }
+
+    @Data
+    public static class Url {
+        /**
+         * URL默认过期时间（秒），默认24小时
+         */
+        private Integer expiration = 86400;
+        
+        /**
+         * 是否启用缓存
+         */
+        private Boolean cacheEnabled = true;
+        
+        /**
+         * 缓存TTL（秒），默认23小时（比URL过期时间短1小时）
+         */
+        private Integer cacheTtl = 82800;
     }
 
 }

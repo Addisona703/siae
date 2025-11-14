@@ -1,15 +1,18 @@
 package com.hngy.siae.content.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.common.enums.status.CommentStatusEnum;
-import com.hngy.siae.content.dto.request.CommentDTO;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
+import com.hngy.siae.core.utils.BeanConvertUtil;
+import com.hngy.siae.content.enums.status.CommentStatusEnum;
+import com.hngy.siae.content.dto.request.CommentCreateDTO;
+import com.hngy.siae.content.dto.request.CommentUpdateDTO;
+import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.entity.Comment;
 import com.hngy.siae.content.mapper.CommentMapper;
@@ -17,7 +20,6 @@ import com.hngy.siae.content.service.CommentsService;
 import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.hngy.siae.core.asserts.AssertUtils;
 
 /**
  * 内容评论服务impl
@@ -33,50 +35,63 @@ public class CommentsServiceImpl
 
 
     @Override
-    public Comment createComment(Long contentId, CommentDTO commentDTO) {
-        Comment comment = BeanUtil.copyProperties(commentDTO, Comment.class);
+    public Comment createComment(Long contentId, CommentCreateDTO commentCreateDTO) {
+        Comment comment = BeanConvertUtil.to(commentCreateDTO, Comment.class);
         comment.setStatus(CommentStatusEnum.APPROVED);
         comment.setContentId(contentId);
-        AssertUtils.isTrue(this.save(comment), "评论创建失败");
+        AssertUtils.isTrue(this.save(comment), ContentResultCodeEnum.COMMENT_CREATE_FAILED);
         return comment;
     }
 
     @Override
-    public Result<CommentVO> updateComment(Long commentId, CommentDTO commentDTO) {
+    public CommentVO updateComment(Long commentId, CommentUpdateDTO commentUpdateDTO) {
         Comment comment = this.getById(commentId);
-        AssertUtils.notNull(comment, "该评论不存在");
+        AssertUtils.notNull(comment, ContentResultCodeEnum.COMMENT_NOT_FOUND);
 
-        comment.setContent(commentDTO.getContent());
-        AssertUtils.isTrue(this.updateById(comment), "评论更新失败");
+        // 从Security上下文获取当前用户信息
+        org.springframework.security.core.Authentication authentication = 
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        
+        // 获取用户ID（从Details中获取，由ServiceAuthenticationFilter设置）
+        Long currentUserId = (Long) authentication.getDetails();
+        
+        // 判断是否为管理员（检查是否有ROLE_ADMIN或ROLE_ROOT角色）
+        boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN") || auth.getAuthority().equals("ROLE_ROOT"));
+        
+        // 权限检查：非管理员只能更新自己的评论
+        if (!isAdmin) {
+            AssertUtils.isTrue(comment.getUserId().equals(currentUserId), 
+                ContentResultCodeEnum.COMMENT_UPDATE_NO_PERMISSION);
+        }
 
-        CommentVO commentVO = BeanUtil.copyProperties(comment, CommentVO.class);
-        return Result.success(commentVO);
+        comment.setContent(commentUpdateDTO.getContent());
+        AssertUtils.isTrue(this.updateById(comment), ContentResultCodeEnum.COMMENT_UPDATE_FAILED);
+
+        return BeanConvertUtil.to(comment, CommentVO.class);
     }
 
     @Override
-    public Result<Void> deleteComment(Long id) {
-        AssertUtils.notNull(this.getById(id), "评论不存在");
-        AssertUtils.isTrue(this.removeById(id), "删除评论失败");
-        return Result.success();
+    public void deleteComment(Long id) {
+        AssertUtils.notNull(this.getById(id), ContentResultCodeEnum.COMMENT_NOT_FOUND);
+        AssertUtils.isTrue(this.removeById(id), ContentResultCodeEnum.COMMENT_DELETE_FAILED);
     }
 
 
     @Override
-    public Result<PageVO<CommentVO>> listComments(Long contentId, Integer page, Integer size) {
+    public PageVO<CommentVO> listComments(Long contentId, PageDTO<Void> pageDTO) {
         // 构建分页查询条件
-        Page<Comment> pageParam = new Page<>(page, size);
+        Page<Comment> page = PageConvertUtil.toPage(pageDTO);
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<Comment>()
                 .eq(Comment::getContentId, contentId)
                 .eq(Comment::getStatus, CommentStatusEnum.APPROVED)
                 .orderByDesc(Comment::getCreateTime);
 
         // 执行分页查询
-        IPage<Comment> commentPage = baseMapper.selectPage(pageParam, queryWrapper);
+        IPage<Comment> commentPage = baseMapper.selectPage(page, queryWrapper);
 
         // 使用 PageConvertUtil 转换分页结果
-        PageVO<CommentVO> pageVO = PageConvertUtil.convert(commentPage, CommentVO.class);
-
-        return Result.success(pageVO);
+        return PageConvertUtil.convert(commentPage, CommentVO.class);
     }
 
     /**
@@ -85,20 +100,19 @@ public class CommentsServiceImpl
      * @param pageDTO 分页查询参数
      * @return 分页评论结果
      */
-    public Result<PageVO<CommentVO>> listComments(PageDTO<CommentDTO> pageDTO) {
+    public PageVO<CommentVO> listComments(PageDTO<CommentQueryDTO> pageDTO) {
         // 构建分页查询条件
         Page<Comment> page = PageConvertUtil.toPage(pageDTO);
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.isNotNull(Comment::getId);
 
         // 添加查询条件
-        CommentDTO params = pageDTO.getParams();
+        CommentQueryDTO params = pageDTO.getParams();
         if (params != null) {
             queryWrapper
-//                    .eq(params.getContentId() != null, Comment::getContentId, params.getContentId())
-//                       .eq(params.getStatus() != null, Comment::getStatus, params.getStatus())
-                       .eq(params.getUserId() != null, Comment::getUserId, params.getUserId())
-                       .eq(params.getParentId() != null, Comment::getParentId, params.getParentId());
+                    .eq(params.getContentId() != null, Comment::getContentId, params.getContentId())
+                    .eq(params.getUserId() != null, Comment::getUserId, params.getUserId())
+                    .eq(params.getParentId() != null, Comment::getParentId, params.getParentId());
         }
 
         // 默认按创建时间倒序排列
@@ -108,8 +122,6 @@ public class CommentsServiceImpl
         IPage<Comment> commentPage = baseMapper.selectPage(page, queryWrapper);
 
         // 使用 PageConvertUtil 转换分页结果
-        PageVO<CommentVO> pageVO = PageConvertUtil.convert(commentPage, CommentVO.class);
-
-        return Result.success(pageVO);
+        return PageConvertUtil.convert(commentPage, CommentVO.class);
     }
 }

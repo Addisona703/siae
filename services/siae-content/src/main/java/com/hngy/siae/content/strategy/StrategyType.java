@@ -1,7 +1,7 @@
 package com.hngy.siae.content.strategy;
 
 
-import com.hngy.siae.content.common.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.ContentTypeEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

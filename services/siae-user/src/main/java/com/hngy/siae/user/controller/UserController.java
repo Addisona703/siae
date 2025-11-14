@@ -1,7 +1,9 @@
 package com.hngy.siae.user.controller;
 
+import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.core.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import static com.hngy.siae.core.permissions.UserPermissions.*;
@@ -61,42 +63,41 @@ public class UserController {
      */
     @PutMapping("/{id}")
     @Operation(summary = "更新用户", description = "更新用户信息")
-    @SiaeAuthorize("hasAuthority('" + USER_UPDATE + "')")
+    @SiaeAuthorize(RoleConstants.ADMIN_LEVEL + " and hasAuthority('" + USER_UPDATE + "')")
     public Result<UserVO> updateUser(
             @Parameter(description = "用户ID") @PathVariable("id") @NotNull Long id,
             @Parameter(description = "用户更新参数") @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
-        userUpdateDTO.setId(id); // 确保ID一致性
+        userUpdateDTO.setId(id);
         UserVO result = userService.updateUser(userUpdateDTO);
         return Result.success(result);
     }
 
     /**
-     * 根据ID获取用户信息
+     * 查询用户（支持按ID、用户名、学号查询）
+     * 优先级：id > username > studentId
      *
      * @param id 用户ID
-     * @return 用户详细信息
-     */
-    @GetMapping("/{id}")
-    @Operation(summary = "根据ID获取用户", description = "根据用户ID查询用户详细信息")
-    @SiaeAuthorize("hasAuthority('" + USER_VIEW + "')")
-    public Result<UserVO> getUserById(
-            @Parameter(description = "用户ID") @PathVariable("id") @NotNull Long id) {
-        UserVO result = userService.getUserById(id);
-        return Result.success(result);
-    }
-
-    /**
-     * 根据用户名获取用户信息
-     *
      * @param username 用户名
+     * @param studentId 学号
      * @return 用户详细信息
      */
-    @GetMapping("/username/{username}")
-    @Operation(summary = "根据用户名获取用户", description = "根据用户名查询用户详细信息")
-    @SiaeAuthorize("hasAuthority('" + USER_VIEW + "')")
-    public Result<UserVO> getUserByUsername(
-            @Parameter(description = "用户名") @PathVariable("username") @NotBlank String username) {
-        UserVO result = userService.getUserByUsername(username);
+    @GetMapping
+    @Operation(summary = "查询用户", description = "根据不同条件查询用户详细信息（支持按ID、用户名、学号查询）")
+    @SiaeAuthorize(RoleConstants.ANY_AUTHENTICATED)
+    public Result<UserVO> getUser(
+            @Parameter(description = "用户ID") @RequestParam(required = false) Long id,
+            @Parameter(description = "用户名") @RequestParam(required = false) String username,
+            @Parameter(description = "学号") @RequestParam(required = false) String studentId) {
+        UserVO result = null;
+        if (id != null) {
+            result = userService.getUserById(id);
+        } else if (username != null && !username.isBlank()) {
+            result = userService.getUserByUsername(username);
+        } else if (studentId != null && !studentId.isBlank()) {
+            result = userService.getUserByStudentId(studentId);
+        } else {
+            AssertUtils.fail("必须提供id、username或studentId中的一个参数");
+        }
         return Result.success(result);
     }
 
@@ -108,7 +109,7 @@ public class UserController {
      */
     @PostMapping("/page")
     @Operation(summary = "分页查询用户列表", description = "根据条件分页查询用户列表")
-    @SiaeAuthorize("hasAuthority('" + USER_LIST + "')")
+    @SiaeAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public Result<PageVO<UserVO>> listUsersByPage(
             @Parameter(description = "分页查询参数") @Valid @RequestBody PageDTO<UserQueryDTO> pageDTO) {
         PageVO<UserVO> result = userService.listUsersByPage(pageDTO);
@@ -128,5 +129,19 @@ public class UserController {
             @Parameter(description = "用户ID") @PathVariable("id") @NotNull Long id) {
         Boolean result = userService.deleteUser(id);
         return Result.success(result);
+    }
+
+    /**
+     * 检查学号是否存在
+     *
+     * @param studentId 学号
+     * @return 是否存在
+     */
+    @GetMapping("/check-student-id/{studentId}")
+    @Operation(summary = "检查学号是否存在", description = "验证学号是否已被使用")
+    public Result<Boolean> checkStudentIdExists(
+            @Parameter(description = "学号") @PathVariable("studentId") @NotBlank String studentId) {
+        Boolean exists = userService.isStudentIdExists(studentId);
+        return Result.success(exists);
     }
 }

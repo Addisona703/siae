@@ -1,0 +1,178 @@
+{
+  "groups": [
+    {
+      "name": "siae.messaging.rabbit",
+      "type": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties",
+      "sourceType": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties",
+      "description": "SIAE RabbitMQ 配置属性"
+    },
+    {
+      "name": "siae.messaging.rabbit.connection",
+      "type": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$Connection",
+      "sourceType": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties",
+      "description": "RabbitMQ 连接配置"
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher",
+      "type": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$Publisher",
+      "sourceType": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties",
+      "description": "消息发布者配置"
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer",
+      "type": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$Consumer",
+      "sourceType": "com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties",
+      "description": "消息消费者配置"
+    }
+  ],
+  "properties": [
+    {
+      "name": "siae.messaging.rabbit.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用 SIAE RabbitMQ Starter",
+      "defaultValue": true
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.addresses",
+      "type": "java.lang.String",
+      "description": "RabbitMQ 服务器地址，支持多个地址用逗号分隔",
+      "defaultValue": "localhost:5672"
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.username",
+      "type": "java.lang.String",
+      "description": "RabbitMQ 用户名",
+      "defaultValue": "guest"
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.password",
+      "type": "java.lang.String",
+      "description": "RabbitMQ 密码",
+      "defaultValue": "guest"
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.virtual-host",
+      "type": "java.lang.String",
+      "description": "RabbitMQ 虚拟主机",
+      "defaultValue": "/"
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.requested-heartbeat",
+      "type": "java.lang.Integer",
+      "description": "心跳间隔（秒）",
+      "defaultValue": 30
+    },
+    {
+      "name": "siae.messaging.rabbit.connection.ssl-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用 SSL",
+      "defaultValue": false
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.confirms",
+      "type": "java.lang.Boolean",
+      "description": "是否启用发布者确认",
+      "defaultValue": true
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.returns",
+      "type": "java.lang.Boolean",
+      "description": "是否启用发布者返回",
+      "defaultValue": true
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.retry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用发布者重试",
+      "defaultValue": true
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.retry.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "发布者最大重试次数",
+      "defaultValue": 3
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.retry.initial-interval",
+      "type": "java.lang.Long",
+      "description": "发布者初始重试间隔（毫秒）",
+      "defaultValue": 500
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.retry.multiplier",
+      "type": "java.lang.Double",
+      "description": "发布者重试间隔倍数",
+      "defaultValue": 2.0
+    },
+    {
+      "name": "siae.messaging.rabbit.publisher.retry.max-interval",
+      "type": "java.lang.Long",
+      "description": "发布者最大重试间隔（毫秒）",
+      "defaultValue": 5000
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.concurrency",
+      "type": "java.lang.Integer",
+      "description": "消费者并发数",
+      "defaultValue": 3
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.max-concurrency",
+      "type": "java.lang.Integer",
+      "description": "消费者最大并发数",
+      "defaultValue": 10
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.prefetch",
+      "type": "java.lang.Integer",
+      "description": "消费者预取数量",
+      "defaultValue": 50
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.retry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用消费者重试",
+      "defaultValue": true
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.retry.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "消费者最大重试次数",
+      "defaultValue": 3
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.retry.initial-interval",
+      "type": "java.lang.Long",
+      "description": "消费者初始重试间隔（毫秒）",
+      "defaultValue": 1000
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.retry.multiplier",
+      "type": "java.lang.Double",
+      "description": "消费者重试间隔倍数",
+      "defaultValue": 2.0
+    },
+    {
+      "name": "siae.messaging.rabbit.consumer.retry.max-interval",
+      "type": "java.lang.Long",
+      "description": "消费者最大重试间隔（毫秒）",
+      "defaultValue": 10000
+    },
+    {
+      "name": "siae.messaging.rabbit.exchanges",
+      "type": "java.util.Map<java.lang.String,com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$Exchange>",
+      "description": "交换机配置映射"
+    },
+    {
+      "name": "siae.messaging.rabbit.queues",
+      "type": "java.util.Map<java.lang.String,com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$Queue>",
+      "description": "队列配置映射"
+    },
+    {
+      "name": "siae.messaging.rabbit.bindings",
+      "type": "java.util.Map<java.lang.String,com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties$BindingProperties>",
+      "description": "绑定配置映射"
+    }
+  ],
+  "hints": []
+}

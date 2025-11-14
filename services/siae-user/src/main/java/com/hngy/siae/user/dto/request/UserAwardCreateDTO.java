@@ -8,12 +8,15 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 用户获奖记录创建数据传输对象
  * <p>
  * 用于用户获奖记录创建操作的数据传输，包含创建时必需的字段和相应的校验注解。
  * 不包含ID字段，因为创建时ID由系统自动生成。
+ * <p>
+ * 团队获奖只需创建一条记录，所有成员ID存储在 teamMembers 数组中
  *
  * @author KEYKB
  */
@@ -22,12 +25,6 @@ public class UserAwardCreateDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    /**
-     * 用户ID
-     */
-    @NotNull(message = "用户ID不能为空")
-    private Long userId;
 
     /**
      * 奖项名称
@@ -62,18 +59,21 @@ public class UserAwardCreateDTO implements Serializable {
     private LocalDate awardedAt;
 
     /**
-     * 证书图片URL
-     */
-    @Size(max = 512, message = "证书图片URL长度不能超过512个字符")
-    private String certificateUrl;
-
-    /**
      * 获奖描述（选填）
      */
     private String description;
 
     /**
-     * 团队成员信息
+     * 证书文件ID
      */
-    private String teamMembers;
+    @Size(max = 64, message = "证书文件ID长度不能超过64个字符")
+    private String certificateFileId;
+
+    /**
+     * 团队成员ID列表（包括个人或团队所有成员）
+     * 个人获奖：只包含一个用户ID，如 [1]
+     * 团队获奖：包含所有成员ID，如 [1,2,3,5]
+     */
+    @NotNull(message = "团队成员列表不能为空")
+    private java.util.List<Long> teamMembers;
 }

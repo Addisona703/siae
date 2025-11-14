@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 @EnableFeignClients(basePackages = "com.hngy.siae.content", defaultConfiguration = DefaultFeignConfig.class)
 @EnableScheduling
-@EnableMethodSecurity(prePostEnabled = true)
+// @EnableMethodSecurity(prePostEnabled = true)  // 开发环境禁用，由 siae.security.enabled 控制
 @SpringBootApplication(scanBasePackages = "com.hngy.siae")
 public class SiaeContentApplication {
 

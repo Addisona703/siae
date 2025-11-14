@@ -1,8 +1,8 @@
 package com.hngy.siae.content.dto.request;
 
 
-import com.hngy.siae.content.common.enums.TypeEnum;
-import com.hngy.siae.content.common.enums.status.AuditStatusEnum;
+import com.hngy.siae.content.enums.TypeEnum;
+import com.hngy.siae.content.enums.status.AuditStatusEnum;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,4 +22,5 @@ public class AuditDTO {
     private String auditReason;
     @NotNull
     private Long auditBy;
+    private Integer version;
 }

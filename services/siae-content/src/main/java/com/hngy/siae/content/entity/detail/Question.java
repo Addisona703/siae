@@ -3,7 +3,7 @@ package com.hngy.siae.content.entity.detail;
 import java.time.LocalDateTime;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.hngy.siae.content.common.enums.status.QuestionStatusEnum;
+import com.hngy.siae.content.enums.status.QuestionStatusEnum;
 import lombok.Data;
 
 /**

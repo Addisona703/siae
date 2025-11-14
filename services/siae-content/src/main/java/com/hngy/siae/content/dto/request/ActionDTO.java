@@ -1,7 +1,7 @@
 package com.hngy.siae.content.dto.request;
 
-import com.hngy.siae.content.common.enums.ActionTypeEnum;
-import com.hngy.siae.content.common.enums.TypeEnum;
+import com.hngy.siae.content.enums.ActionTypeEnum;
+import com.hngy.siae.content.enums.TypeEnum;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

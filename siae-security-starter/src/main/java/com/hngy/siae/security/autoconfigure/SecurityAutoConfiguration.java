@@ -1,6 +1,7 @@
 package com.hngy.siae.security.autoconfigure;
 
 import com.hngy.siae.security.aop.SiaeAuthorizeAspect;
+import com.hngy.siae.security.config.SimpleEnhancedPermissionConfig;
 import com.hngy.siae.security.filter.ServiceAuthenticationFilter;
 // import com.hngy.siae.security.filter.JwtAuthenticationFilter; // 旧版本，已废弃
 // import com.hngy.siae.security.filter.ServiceInterCallFilter; // 旧版本，已废弃
@@ -45,14 +46,14 @@ import org.springframework.context.ApplicationContext;
 @Slf4j
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnProperty(prefix = "siae.security", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "siae.security", name = "enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SecurityProperties.class)
 @EnableWebSecurity
 @Import({
     RedisPermissionServiceImpl.class,
     FallbackPermissionServiceImpl.class,
     ServiceAuthenticationFilter.class, // 新版本：优化的认证过滤器
-//    SimpleEnhancedPermissionConfig.class,
+    SimpleEnhancedPermissionConfig.class, // 方法级安全控制，根据 siae.security.enabled 自动启用
     SiaeAuthorizeAspect.class
 })
 public class SecurityAutoConfiguration {

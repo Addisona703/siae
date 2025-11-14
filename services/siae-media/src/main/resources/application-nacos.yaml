@@ -1,0 +1,20 @@
+# ===================================================================
+# NACOS CONFIGURATION (使用 Nacos)
+# ===================================================================
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true  # 启用服务发现
+        metadata:
+          version: 0.0.1-SNAPSHOT
+          management.context-path: /actuator
+      config:
+        enabled: true  # 启用配置中心
+
+# 本地覆盖配置（可选）
+logging:
+  level:
+    root: INFO
+    com.hngy.siae.media: DEBUG

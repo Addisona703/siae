@@ -8,6 +8,7 @@ import com.hngy.siae.content.entity.TagRelation;
 import com.hngy.siae.content.mapper.TagMapper;
 import com.hngy.siae.content.mapper.TagRelationMapper;
 import com.hngy.siae.content.service.TagRelationService;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,7 @@ public class TagRelationServiceImpl
         // 验证标签是否存在
         Set<Long> validTagIds = tagMapper.selectBatchIds(tagIds)
                 .stream().map(Tag::getId).collect(Collectors.toSet());
-        AssertUtils.isTrue(validTagIds.size() == tagIds.size(), "部分标签不存在");
+        AssertUtils.isTrue(validTagIds.size() == tagIds.size(), ContentResultCodeEnum.TAG_PARTIAL_NOT_EXISTS);
 
         // 查出已存在的关系，避免重复插入
         Set<Long> existingTagIds = this.lambdaQuery()
@@ -63,7 +64,7 @@ public class TagRelationServiceImpl
 
         if (CollUtil.isNotEmpty(toInsert)) {
             boolean success = this.saveBatch(toInsert);
-            AssertUtils.isTrue(success, "批量插入标签关系失败");
+            AssertUtils.isTrue(success, ContentResultCodeEnum.TAG_RELATION_INSERT_FAILED);
         }
     }
 
@@ -71,7 +72,7 @@ public class TagRelationServiceImpl
     public void deleteRelations(Long contentId) {
         boolean success = this.remove(new LambdaQueryWrapper<TagRelation>()
                 .eq(TagRelation::getContentId, contentId));
-        AssertUtils.isTrue(success, "标签-内容关联删除错误");
+        AssertUtils.isTrue(success, ContentResultCodeEnum.TAG_RELATION_DELETE_FAILED);
     }
 
     @Override

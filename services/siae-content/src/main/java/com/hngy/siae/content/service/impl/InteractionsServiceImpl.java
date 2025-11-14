@@ -1,10 +1,11 @@
 package com.hngy.siae.content.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-import com.hngy.siae.content.common.enums.ActionTypeEnum;
-import com.hngy.siae.content.common.enums.status.ActionStatusEnum;
+import com.hngy.siae.core.asserts.AssertUtils;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
+import com.hngy.siae.core.utils.BeanConvertUtil;
+import com.hngy.siae.content.enums.ActionTypeEnum;
+import com.hngy.siae.content.enums.status.ActionStatusEnum;
 import com.hngy.siae.content.dto.request.ActionDTO;
 import com.hngy.siae.content.entity.UserAction;
 import com.hngy.siae.content.mapper.UserActionMapper;
@@ -13,7 +14,6 @@ import com.hngy.siae.content.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.hngy.siae.core.asserts.AssertUtils;
 
 /**
  * 交互服务实现类
@@ -88,7 +88,7 @@ public class InteractionsServiceImpl
      * 创建新的行为记录
      */
     private void createUserAction(ActionDTO actionDTO) {
-        UserAction userAction = BeanUtil.copyProperties(actionDTO, UserAction.class);
+        UserAction userAction = BeanConvertUtil.to(actionDTO, UserAction.class);
         userAction.setStatus(ActionStatusEnum.ACTIVATED);
         AssertUtils.isTrue(this.save(userAction),
                 ActionStatusEnum.ACTIVATED.getDescription() +
@@ -100,6 +100,6 @@ public class InteractionsServiceImpl
      */
     private void updateStatus(UserAction userAction, ActionStatusEnum newStatus) {
         userAction.setStatus(newStatus);
-        AssertUtils.isTrue(this.updateById(userAction), "更新状态失败");
+        AssertUtils.isTrue(this.updateById(userAction), ContentResultCodeEnum.INTERACTION_UPDATE_STATUS_FAILED);
     }
 }

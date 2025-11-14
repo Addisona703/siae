@@ -7,8 +7,6 @@ import com.hngy.siae.user.dto.request.UserAwardQueryDTO;
 import com.hngy.siae.user.dto.request.UserAwardUpdateDTO;
 import com.hngy.siae.user.dto.response.UserAwardVO;
 
-import java.util.List;
-
 /**
  * 用户获奖记录服务接口
  * <p>
@@ -30,7 +28,7 @@ public interface UserAwardService {
     /**
      * 更新用户获奖记录
      *
-     * @param userAwardUpdateDTO 用户获奖记录数据传输对象
+     * @param userAwardUpdateDTO 用户获奖记录数据传输对象（不含id）
      * @return 用户获奖记录视图对象
      */
     UserAwardVO updateUserAward(UserAwardUpdateDTO userAwardUpdateDTO);
@@ -44,12 +42,13 @@ public interface UserAwardService {
     UserAwardVO getUserAwardById(Long id);
 
     /**
-     * 根据用户ID获取用户获奖记录列表
+     * 根据用户ID分页获取用户获奖记录列表
      *
      * @param userId 用户ID
-     * @return 用户获奖记录视图对象列表
+     * @param pageDTO 分页参数
+     * @return 分页用户获奖记录视图对象
      */
-    List<UserAwardVO> listUserAwardsByUserId(Long userId);
+    PageVO<UserAwardVO> pageUserAwardsByUserId(Long userId, PageDTO<Void> pageDTO);
 
     /**
      * 分页查询用户获奖记录

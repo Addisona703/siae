@@ -1,7 +1,7 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.content.common.enums.ActionTypeEnum;
+import com.hngy.siae.content.enums.ActionTypeEnum;
 import com.hngy.siae.content.dto.request.StatisticsDTO;
 import com.hngy.siae.content.dto.response.StatisticsVO;
 import com.hngy.siae.content.entity.Statistics;

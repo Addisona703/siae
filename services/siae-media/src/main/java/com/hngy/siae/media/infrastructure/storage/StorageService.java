@@ -18,10 +18,15 @@ import io.minio.StatObjectArgs;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 对象存储服务
@@ -37,6 +42,9 @@ public class StorageService {
     private final MinioClient minioClient;
     private final MinioConfig minioConfig;
     private final MediaProperties mediaProperties;
+    
+    @Qualifier("urlGenerationExecutor")
+    private final Executor urlGenerationExecutor;
 
     /**
      * 确保存储桶存在
@@ -129,6 +137,64 @@ public class StorageService {
             );
         } catch (Exception e) {
             log.error("Failed to generate part upload URL for {}/{} part {}", bucketName, objectKey, partNumber, e);
+            AssertUtils.fail(MediaResultCodeEnum.STORAGE_OPERATION_FAILED);
+            return null;
+        }
+    }
+
+    /**
+     * 批量生成分片上传 URL（并行优化）
+     * 
+     * @param bucketName 存储桶名称
+     * @param objectKey 对象键
+     * @param totalParts 总分片数
+     * @param expirySeconds 过期时间（秒）
+     * @return 预签名URL列表
+     */
+    public List<String> batchGeneratePartUploadUrls(String bucketName, String objectKey, 
+                                                     int totalParts, int expirySeconds) {
+        log.info("Batch generating {} part upload URLs for {}/{}", totalParts, bucketName, objectKey);
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            List<CompletableFuture<String>> futures = new ArrayList<>(totalParts);
+            
+            // 并行生成所有分片的预签名URL
+            for (int i = 1; i <= totalParts; i++) {
+                final int partNumber = i;
+                CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        String partObjectKey = buildPartObjectKey(objectKey, partNumber);
+                        return minioClient.getPresignedObjectUrl(
+                                GetPresignedObjectUrlArgs.builder()
+                                        .method(Method.PUT)
+                                        .bucket(bucketName)
+                                        .object(partObjectKey)
+                                        .expiry(expirySeconds, TimeUnit.SECONDS)
+                                        .build()
+                        );
+                    } catch (Exception e) {
+                        log.error("Failed to generate part upload URL for part {}", partNumber, e);
+                        throw new RuntimeException("Failed to generate URL for part " + partNumber, e);
+                    }
+                }, urlGenerationExecutor);
+                
+                futures.add(future);
+            }
+            
+            // 等待所有URL生成完成
+            List<String> urls = futures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+            
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("Batch generated {} URLs in {}ms (avg: {}ms per URL)", 
+                    totalParts, duration, duration / totalParts);
+            
+            return urls;
+            
+        } catch (Exception e) {
+            log.error("Failed to batch generate part upload URLs", e);
             AssertUtils.fail(MediaResultCodeEnum.STORAGE_OPERATION_FAILED);
             return null;
         }

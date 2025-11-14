@@ -7,10 +7,11 @@ import com.hngy.siae.user.dto.request.UserCreateDTO;
 
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
-import com.hngy.siae.user.dto.response.UserBasicVO;
+import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.User;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public interface UserService extends IService<User> {
      * 实现用户、用户详情、班级关联的三阶段一体化创建流程：
      * 1. 第一阶段：创建用户基本信息（user表）
      * 2. 第二阶段：创建用户详情信息（user_profile表）
-     * 3. 第三阶段：创建班级关联信息（class_user表，可选）
+     * 3. 第三阶段：创建班级关联信息（major_class_enrollment表，可选）
      *
      * @param userCreateDTO 用户创建数据传输对象，包含用户基本信息、详情信息和班级关联信息
      * @return 用户视图对象
@@ -39,7 +40,12 @@ public interface UserService extends IService<User> {
     UserVO createUser(UserCreateDTO userCreateDTO);
 
     /**
-     * 更新用户信息
+     * 更新用户信息（一体化更新流程）
+     * <p>
+     * 实现用户、用户详情、班级关联的三阶段一体化更新流程：
+     * 1. 第一阶段：更新用户基本信息（user表）
+     * 2. 第二阶段：更新用户详情信息（user_profile表）
+     * 3. 第三阶段：更新班级关联信息（major_class_enrollment表，可选）
      *
      * @param userDTO 用户更新数据传输对象
      * @return 更新后的用户视图对象
@@ -55,6 +61,14 @@ public interface UserService extends IService<User> {
     UserVO getUserById(Long id);
 
     /**
+     * 根据ID获取用户详细信息（包含用户基本信息、详情信息和班级关联信息）
+     *
+     * @param id 用户ID
+     * @return 用户详细信息（三表联查结果）
+     */
+    UserDetailVO getUserDetailById(Long id);
+
+    /**
      * 根据用户名获取用户信息
      *
      * @param username 用户名
@@ -62,19 +76,7 @@ public interface UserService extends IService<User> {
      */
     UserVO getUserByUsername(String username);
 
-    /**
-     * 根据用户名获取用户信息（Feign客户端专用）
-     * <p>
-     * 专门用于Feign客户端调用的用户查询方法，返回包含密码字段的完整用户信息。
-     * 此方法主要用于内部服务间的身份验证和用户查找场景。
-     * <p>
-     * <strong>安全警告：</strong>此方法返回包含用户密码的完整信息，仅限内部服务调用使用，
-     * 不得暴露给外部API接口，以防止敏感信息泄露。
-     *
-     * @param username 用户名
-     * @return 完整的用户信息（包含密码字段），如果用户不存在则返回null
-     */
-    UserBasicVO getUserByUsernameClient(String username);
+
 
     /**
      * 分页查询用户列表
@@ -103,18 +105,36 @@ public interface UserService extends IService<User> {
     void assertUserExists(Long userId);
 
     /**
-     * 根据用户ID集合获取用户ID到用户名的映射
+     * 根据学号查询用户
      *
-     * @param userIds 用户ID集合
-     * @return 用户ID到用户名的映射Map，key为用户ID，value为用户名
+     * @param studentId 学号
+     * @return 用户信息，如果不存在则返回null
      */
-    Map<Long, String> getUserMapByIds(Set<Long> userIds);
+    UserVO getUserByStudentId(String studentId);
 
     /**
-     * 检查用户是否存在
+     * 验证学号是否已存在
      *
-     * @param userId 用户ID
-     * @return true表示用户存在，false表示用户不存在或已删除
+     * @param studentId 学号
+     * @return true表示学号已存在，false表示学号不存在
      */
-    Boolean checkUserExists(Long userId);
+    boolean isStudentIdExists(String studentId);
+
+    /**
+     * 检查用户名是否存在
+     *
+     * @param username 用户名
+     * @return true表示用户名已存在，false表示用户名可用
+     */
+    boolean isUsernameExists(String username);
+
+    /**
+     * 批量断言用户存在
+     * <p>
+     * 检查指定ID列表中的所有用户是否存在，如果有任何用户不存在则抛出异常
+     *
+     * @param userIds 用户ID列表
+     * @throws RuntimeException 如果有用户不存在
+     */
+    void assertUsersExist(List<Long> userIds);
 } 

@@ -86,6 +86,7 @@ public class AuthServiceImpl
         try {
             // 1. 远程调用userClient接口获取用户信息
             UserBasicVO user = userClient.getUserByUsername(loginDTO.getUsername());
+            log.info(user.toString());
 
             // 验证用户存在性并记录失败日志
             assertUserExists(user, loginDTO.getUsername(), clientIp, browser, os);
@@ -175,7 +176,7 @@ public class AuthServiceImpl
             userDTO.setStatus(1); // 默认启用
             
             // 4. 调用用户服务创建用户
-            UserVO createdUser = userClient.createUserForFeign(userDTO);
+            UserVO createdUser = userClient.registerUser(userDTO);
             AssertUtils.notNull(createdUser, AuthResultCodeEnum.USER_CREATION_FAILED);
 
             // 5. 分配默认角色到数据库

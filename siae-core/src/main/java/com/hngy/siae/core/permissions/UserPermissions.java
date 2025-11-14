@@ -135,4 +135,52 @@ public class UserPermissions {
 
     /** 分页查询用户获奖记录列表 */
     public static final String USER_AWARD_LIST = "user:award:list";
+
+    // ==================== 专业管理权限 ====================
+    /** 创建专业 */
+    public static final String USER_MAJOR_CREATE = "user:major:create";
+
+    /** 更新专业 */
+    public static final String USER_MAJOR_UPDATE = "user:major:update";
+
+    /** 删除专业 */
+    public static final String USER_MAJOR_DELETE = "user:major:delete";
+
+    /** 查询专业 */
+    public static final String USER_MAJOR_VIEW = "user:major:view";
+
+    /** 查询专业列表 */
+    public static final String USER_MAJOR_LIST = "user:major:list";
+
+    // ==================== 部门管理权限 ====================
+    /** 创建部门 */
+    public static final String USER_DEPARTMENT_CREATE = "user:department:create";
+
+    /** 更新部门 */
+    public static final String USER_DEPARTMENT_UPDATE = "user:department:update";
+
+    /** 删除部门 */
+    public static final String USER_DEPARTMENT_DELETE = "user:department:delete";
+
+    /** 查询部门 */
+    public static final String USER_DEPARTMENT_VIEW = "user:department:view";
+
+    /** 查询部门列表 */
+    public static final String USER_DEPARTMENT_LIST = "user:department:list";
+
+    // ==================== 职位管理权限 ====================
+    /** 创建职位 */
+    public static final String USER_POSITION_CREATE = "user:position:create";
+
+    /** 更新职位 */
+    public static final String USER_POSITION_UPDATE = "user:position:update";
+
+    /** 删除职位 */
+    public static final String USER_POSITION_DELETE = "user:position:delete";
+
+    /** 查询职位 */
+    public static final String USER_POSITION_VIEW = "user:position:view";
+
+    /** 查询职位列表 */
+    public static final String USER_POSITION_LIST = "user:position:list";
 }

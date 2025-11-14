@@ -6,10 +6,9 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 用户详情表 Mapper 接口
- * 
- * @author AI开发助手
+ *
+ * @author KEYKB
  */
 @Mapper
 public interface UserProfileMapper extends BaseMapper<UserProfile> {
-
-} 
+}

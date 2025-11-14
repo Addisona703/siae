@@ -3,8 +3,9 @@ package com.hngy.siae.content.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.dto.request.CommentDTO;
+import com.hngy.siae.content.dto.request.CommentCreateDTO;
+import com.hngy.siae.content.dto.request.CommentUpdateDTO;
+import com.hngy.siae.content.dto.request.CommentQueryDTO;
 import com.hngy.siae.content.dto.response.CommentVO;
 import com.hngy.siae.content.entity.Comment;
 
@@ -20,45 +21,43 @@ public interface CommentsService extends IService<Comment> {
      * 创建评论
      *
      * @param contentId  内容ID
-     * @param commentDTO 评论dto
-     * @return {@link Result }<{@link CommentVO }>
+     * @param commentCreateDTO 评论创建dto
+     * @return {@link Comment }
      */
-    Comment createComment(Long contentId, CommentDTO commentDTO);
+    Comment createComment(Long contentId, CommentCreateDTO commentCreateDTO);
 
 
     /**
      * 更新评论
      *
      * @param commentId  评论id
-     * @param commentDTO 评论dto
-     * @return {@link Result }<{@link CommentVO }>
+     * @param commentUpdateDTO 评论更新dto
+     * @return {@link CommentVO }
      */
-    Result<CommentVO> updateComment(Long commentId, CommentDTO commentDTO);
+    CommentVO updateComment(Long commentId, CommentUpdateDTO commentUpdateDTO);
 
     /**
      * 删除评论
      *
      * @param id 评论id
-     * @return {@link Result }<{@link Void }>
      */
-    Result<Void> deleteComment(Long id);
+    void deleteComment(Long id);
 
 
     /**
      * 列出评论
      *
      * @param contentId 内容ID
-     * @param page      页
-     * @param size      大小
-     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
+     * @param pageDTO   分页参数
+     * @return {@link PageVO }<{@link CommentVO }>
      */
-    Result<PageVO<CommentVO>> listComments(Long contentId, Integer page, Integer size);
+    PageVO<CommentVO> listComments(Long contentId, PageDTO<Void> pageDTO);
 
     /**
      * 分页查询评论（标准化分页）
      *
      * @param pageDTO 分页查询参数
-     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
+     * @return {@link PageVO }<{@link CommentVO }>
      */
-    Result<PageVO<CommentVO>> listComments(PageDTO<CommentDTO> pageDTO);
+    PageVO<CommentVO> listComments(PageDTO<CommentQueryDTO> pageDTO);
 }

@@ -117,12 +117,26 @@ public class RegisterDTO implements Serializable {
     @Size(max = 512, message = "背景图片URL长度不能超过512个字符")
     private String bgUrl;
 
-    // ==================== 班级关联字段（可选，存储到 class_user 表） ====================
+    // ==================== 班级关联字段（可选，存储到 major_class_enrollment 表） ====================
 
     /**
-     * 班级ID（可选）
+     * 专业ID（可选）
      */
-    private Long classId;
+    private Long majorId;
+
+    /**
+     * 入学年份（可选）
+     */
+    @Min(value = 2000, message = "入学年份不能早于2000年")
+    @Max(value = 2099, message = "入学年份不能超过2099年")
+    private Integer entryYear;
+
+    /**
+     * 班号（可选）
+     */
+    @Min(value = 1, message = "班号不能小于1")
+    @Max(value = 99, message = "班号不能大于99")
+    private Integer classNo;
 
     /**
      * 成员类型：0非协会成员，1预备成员，2正式成员（默认值0）

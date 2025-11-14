@@ -8,12 +8,13 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 用户获奖记录更新数据传输对象
  * <p>
- * 用于用户获奖记录更新操作的数据传输，包含ID字段和可更新的字段。
- * ID字段必须提供，用于标识要更新的记录。
+ * 用于用户获奖记录更新操作的数据传输。
+ * ID 字段可选，由 Controller 从路径参数设置。
  *
  * @author KEYKB
  */
@@ -24,9 +25,8 @@ public class UserAwardUpdateDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 获奖记录ID
+     * 获奖记录ID（可选，由Controller从路径参数设置）
      */
-    @NotNull(message = "获奖记录ID不能为空")
     private Long id;
 
     /**
@@ -62,18 +62,19 @@ public class UserAwardUpdateDTO implements Serializable {
     private LocalDate awardedAt;
 
     /**
-     * 证书图片URL
-     */
-    @Size(max = 512, message = "证书图片URL长度不能超过512个字符")
-    private String certificateUrl;
-
-    /**
      * 获奖描述
      */
     private String description;
 
     /**
-     * 团队成员信息
+     * 证书文件ID
      */
-    private String teamMembers;
+    @Size(max = 64, message = "证书文件ID长度不能超过64个字符")
+    private String certificateFileId;
+
+    /**
+     * 团队成员ID列表（包括个人或团队所有成员）
+     */
+    @NotNull(message = "团队成员列表不能为空")
+    private java.util.List<Long> teamMembers;
 }

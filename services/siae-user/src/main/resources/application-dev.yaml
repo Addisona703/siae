@@ -1,49 +1,53 @@
 # ===================================================================
-# CENTRALIZED CONFIGURATION FOR SIAE-USER (DEV)
-# Managed entirely in Nacos
+# LOCAL CONFIGURATION FOR SIAE-USER
+# 本地开发配置，不使用 Nacos
 # ===================================================================
 
-# 1. 服务端口 (为用户服务分配端口，如8081)
 server:
   port: 8020
   servlet:
     context-path: /api/v1/user
 
 spring:
-  # 2. 启用Nacos服务发现
+  # 禁用 Nacos
   cloud:
     nacos:
       discovery:
-        enabled: true
+        enabled: false
       config:
-        server-addr: localhost:8848
-        file-extension: yaml
-        shared-configs:
-          - dataId: siae-common.yaml
-            refresh: true
-  # 4. 数据库连接配置 (假设用户服务的数据库名为 user_db)
-  # 密码等敏感信息被安全地存放在Nacos中
+        enabled: false
+  
+  # 排除 Spring Security 自动配置（开发环境）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+  
+  # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/user_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456 # 生产环境请使用更强的密码
+    password: 123456
     hikari:
-      maximum-pool-size: 10        # 最大连接数
-      minimum-idle: 2              # 最小空闲连接数
-      idle-timeout: 60000          # 连接最大空闲时间（ms）
-      max-lifetime: 1800000        # 最大连接存活时间（ms）
-      connection-timeout: 30000    # 获取连接超时（ms）
-  # 5. Jackson JSON序列化配置
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 60000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  
+  # Jackson 配置
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
+  
+  # Redis 配置
   data:
     redis:
       host: localhost
       port: 6379
-      password: 123456 # Set if Redis has password
+      password: 123456
       database: 0
       timeout: 5000ms
       lettuce:
@@ -53,7 +57,7 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
-# 6. MyBatis Plus 配置
+# MyBatis Plus 配置
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -61,11 +65,10 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
-  # 路径修改为指向user模块的mapper和entity
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.hngy.siae.user.entity
 
-# 7. SpringDoc API文档配置
+# SpringDoc API 文档配置
 springdoc:
   api-docs:
     enabled: true
@@ -75,15 +78,32 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
   group-configs:
-    # 分组名修改为siae-user
     - group: 'siae-user'
       paths-to-match: '/api/**'
-  # 包路径修改为user模块的controller
   packages-to-scan: com.hngy.siae.user.controller
 
-  logging:
-    level:
-      root: TRACE
-      # org.springframework.web: DEBUG
-      # org.springframework.security: DEBUG
-      # com.hngy.siae: DEBUG
+# SIAE 安全配置（开发环境 - 快速测试）
+siae:
+  auth:
+    enable-gateway-auth: false
+    enable-direct-access: true
+  security:
+    enabled: false
+
+# Feign 配置
+feign:
+  media:
+    url: http://localhost:8040  # Media服务地址
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.hngy.siae: DEBUG
+    com.hngy.siae.user.feign: DEBUG

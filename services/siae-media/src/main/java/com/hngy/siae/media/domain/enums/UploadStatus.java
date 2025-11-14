@@ -14,7 +14,9 @@ public enum UploadStatus {
     
     INIT("init", "初始化"),
     IN_PROGRESS("in_progress", "进行中"),
+    PROCESSING("processing", "处理中"),
     COMPLETED("completed", "已完成"),
+    FAILED("failed", "失败"),
     EXPIRED("expired", "已过期"),
     ABORTED("aborted", "已中止");
 

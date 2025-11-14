@@ -47,6 +47,11 @@
             <artifactId>siae-security-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-messaging-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Spring Boot 邮件支持 -->
         <dependency>
@@ -84,6 +89,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator (required by messaging-starter) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- ✅ 注册中心与配置中心（Nacos） -->

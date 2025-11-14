@@ -1,9 +1,8 @@
 package com.hngy.siae.content.strategy.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hngy.siae.content.common.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.ContentTypeEnum;
 import com.hngy.siae.content.dto.request.content.ContentDetailDTO;
 import com.hngy.siae.content.dto.response.ContentDetailVO;
 import com.hngy.siae.content.dto.response.detail.NoteVO;
@@ -11,9 +10,11 @@ import com.hngy.siae.content.entity.detail.Note;
 import com.hngy.siae.content.mapper.NoteMapper;
 import com.hngy.siae.content.strategy.ContentStrategy;
 import com.hngy.siae.content.strategy.StrategyType;
+import com.hngy.siae.core.asserts.AssertUtils;
+import com.hngy.siae.core.result.ContentResultCodeEnum;
+import com.hngy.siae.core.utils.BeanConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import com.hngy.siae.core.asserts.AssertUtils;
 
 import java.util.List;
 
@@ -33,18 +34,18 @@ public class NoteContentStrategy
 
     @Override
     public ContentDetailVO insert(Long contentId, ContentDetailDTO dto) {
-        Note note = BeanUtil.copyProperties(dto, Note.class);
+        Note note = BeanConvertUtil.to(dto, Note.class);
         note.setContentId(contentId);
-        AssertUtils.isTrue(this.save(note), "笔记详情插入失败");
-        return BeanUtil.copyProperties(note, NoteVO.class);
+        AssertUtils.isTrue(this.save(note), ContentResultCodeEnum.NOTE_DETAIL_INSERT_FAILED);
+        return BeanConvertUtil.to(note, NoteVO.class);
     }
 
     @Override
     public ContentDetailVO update(Long contentId, ContentDetailDTO dto) {
-        Note note = BeanUtil.copyProperties(dto, Note.class);
+        Note note = BeanConvertUtil.to(dto, Note.class);
         note.setContentId(contentId);
-        AssertUtils.isTrue(this.updateById(note), "笔记详情更新失败");
-        return BeanUtil.copyProperties(note, NoteVO.class);
+        AssertUtils.isTrue(this.updateById(note), ContentResultCodeEnum.NOTE_DETAIL_UPDATE_FAILED);
+        return BeanConvertUtil.to(note, NoteVO.class);
     }
 
     @Override
@@ -60,7 +61,7 @@ public class NoteContentStrategy
     @Override
     public ContentDetailVO getDetail(Long contentId) {
         Note note = this.getOne(new LambdaQueryWrapper<Note>().eq(Note::getContentId, contentId));
-        AssertUtils.notNull(note, "获取详情失败，该内容详情不存在");
-        return BeanUtil.copyProperties(note, NoteVO.class);
+        AssertUtils.notNull(note, ContentResultCodeEnum.CONTENT_DETAIL_NOT_FOUND);
+        return BeanConvertUtil.to(note, NoteVO.class);
     }
 }

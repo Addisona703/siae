@@ -52,7 +52,7 @@ public class AuthController {
         String os = WebUtils.getOs(request);
 
         LoginVO loginResponse = authService.login(loginDTO, clientIp, browser, os);
-        return Result.success(loginResponse);
+        return Result.success("登录成功", loginResponse);
     }
 
     /**
@@ -71,7 +71,7 @@ public class AuthController {
         String os = WebUtils.getOs(request);
         
         RegisterVO registerResponse = authService.register(registerDTO, clientIp, browser, os);
-        return Result.success(registerResponse);
+        return Result.success("注册成功", registerResponse);
     }
 
     /**
@@ -100,7 +100,7 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         String token = resolveAccessToken(request);
         authService.logout(token);
-        return Result.success(true);
+        return Result.success("成功登出", true);
     }
 
     /**

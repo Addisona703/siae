@@ -31,11 +31,6 @@ public class UserAward implements Serializable {
     private Long id;
 
     /**
-     * 用户ID
-     */
-    private Long userId;
-
-    /**
      * 奖项名称
      */
     private String awardTitle;
@@ -66,12 +61,13 @@ public class UserAward implements Serializable {
     private String description;
 
     /**
-     * 奖状或证明材料的URL
+     * 奖状或证明材料文件ID
      */
-    private String certificateUrl;
+    private String certificateFileId;
 
     /**
-     * 团队成员信息
+     * 团队成员用户ID数组（JSON格式，包含所有获奖成员）
+     * 示例：[1,2,3,5]
      */
     private String teamMembers;
 

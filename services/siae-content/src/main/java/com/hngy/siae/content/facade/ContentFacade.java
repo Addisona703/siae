@@ -2,9 +2,9 @@ package com.hngy.siae.content.facade;
 
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
+import com.hngy.siae.content.dto.request.content.ContentCreateDTO;
+import com.hngy.siae.content.dto.request.content.ContentUpdateDTO;
 import com.hngy.siae.content.dto.response.HotContentVO;
-import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.dto.request.content.ContentDTO;
 import com.hngy.siae.content.dto.response.ContentDetailVO;
 import com.hngy.siae.content.dto.response.ContentVO;
 import jakarta.validation.constraints.NotNull;
@@ -20,32 +20,32 @@ public interface ContentFacade {
     /**
      * 发布内容
      *
-     * @param contentDTO 内容dto
-     * @return {@link Result }<{@link ContentVO }<{@link ContentDetailVO }>>
+     * @param contentCreateDTO 内容创建dto
+     * @return {@link ContentVO }<{@link ContentDetailVO }>
      */
-    Result<ContentVO<ContentDetailVO>> publishContent(ContentDTO contentDTO);
+    ContentVO<ContentDetailVO> publishContent(ContentCreateDTO contentCreateDTO);
 
     /**
      * 编辑内容
      *
-     * @param contentDTO 内容dto
-     * @return {@link Result }<{@link ContentVO }<{@link ContentDetailVO }>>
+     * @param contentUpdateDTO 内容更新dto
+     * @return {@link ContentVO }<{@link ContentDetailVO }>
      */
-    Result<ContentVO<ContentDetailVO>> editContent(ContentDTO contentDTO);
+    ContentVO<ContentDetailVO> editContent(ContentUpdateDTO contentUpdateDTO);
 
     /**
      * 查询内容
      *
      * @param contentId 内容ID
-     * @return {@link Result }<{@link ContentVO }<{@link ContentDetailVO }>>
+     * @return {@link ContentVO }<{@link ContentDetailVO }>
      */
-    Result<ContentVO<ContentDetailVO>> queryContent(@NotNull Long contentId);
+    ContentVO<ContentDetailVO> queryContent(@NotNull Long contentId);
 
     /**
      * 查询热门内容
      *
      * @param contentHotPageDTO 内容热点页面dto
-     * @return {@link Result }<{@link PageVO }<{@link HotContentVO }>>
+     * @return {@link PageVO }<{@link HotContentVO }>
      */
-    Result<PageVO<HotContentVO>> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO);
+    PageVO<HotContentVO> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO);
 }

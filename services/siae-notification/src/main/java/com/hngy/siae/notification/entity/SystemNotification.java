@@ -1,6 +1,7 @@
 package com.hngy.siae.notification.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.hngy.siae.notification.enums.NotificationType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -26,9 +27,9 @@ public class SystemNotification {
     private Long userId;
 
     /**
-     * 通知类型：SYSTEM=系统通知,ANNOUNCEMENT=公告,REMIND=提醒
+     * 通知类型：1=系统通知,2=公告,3=提醒
      */
-    private String type;
+    private NotificationType type;
 
     /**
      * 通知标题
