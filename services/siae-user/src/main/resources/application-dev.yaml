@@ -13,7 +13,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        enabled: false
+        enabled: true
       config:
         enabled: false
   

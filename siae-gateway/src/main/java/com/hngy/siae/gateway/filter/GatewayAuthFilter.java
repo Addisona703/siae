@@ -40,10 +40,18 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private static final String ACCESS_TOKEN_COOKIE = "ACCESS_TOKEN";
 
     // 无需认证的路径白名单
+    // OAuth认证说明：
+    // - /api/v1/auth/oauth/login - OAuth登录入口（无需认证）
+    // - /api/v1/auth/oauth/callback/** - OAuth回调处理（无需认证）
+    // - /api/v1/auth/oauth/bind - 绑定第三方账号（需要认证）
+    // - /api/v1/auth/oauth/unbind - 解绑第三方账号（需要认证）
+    // - /api/v1/auth/oauth/accounts - 查询绑定账号（需要认证）
     private static final List<String> WHITELIST = Arrays.asList(
         "/api/v1/auth/login",
         "/api/v1/auth/register",
         "/api/v1/notification/email/code/send",
+        "/api/v1/auth/oauth/login",           // OAuth登录入口
+        "/api/v1/auth/oauth/callback/",       // OAuth回调处理
         "/swagger-ui",
         "/v3/api-docs",
         "/actuator/health"

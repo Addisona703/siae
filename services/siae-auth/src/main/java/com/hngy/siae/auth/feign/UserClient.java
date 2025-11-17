@@ -80,4 +80,16 @@ public interface UserClient {
     @Operation(summary = "检查用户ID是否存在", description = "验证用户ID是否存在")
     Boolean checkUserIdExists(
             @Parameter(description = "用户ID") @PathVariable("userId") @NotNull Long userId);
+
+    /**
+     * 根据用户ID获取用户信息
+     * 调用 UserController 的 getUser 接口
+     *
+     * @param userId 用户ID
+     * @return 用户信息，如果用户不存在则返回null
+     */
+    @GetMapping("?id={userId}")
+    @Operation(summary = "根据用户ID查询用户", description = "供认证服务调用，返回用户基本信息")
+    UserVO getUserById(
+            @Parameter(description = "用户ID") @RequestParam("id") @NotNull Long userId);
 }

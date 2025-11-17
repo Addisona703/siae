@@ -122,6 +122,26 @@ CREATE TABLE `login_log` (
   INDEX `idx_status_login_time` (`status`, `login_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统访问记录';
 
+-- =================================================================
+-- 表：oauth_account (第三方账号绑定表)
+-- 描述：存储用户与第三方账号的绑定关系（QQ、微信、GitHub等）
+-- =================================================================
+CREATE TABLE `oauth_account` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+  `user_id` BIGINT NOT NULL COMMENT '用户ID，关联user_db.user.id',
+  `provider` VARCHAR(20) NOT NULL COMMENT '第三方平台标识：qq/wx/github',
+  `provider_user_id` VARCHAR(200) NOT NULL COMMENT '第三方平台用户唯一ID（QQ的openid、微信的unionid、GitHub的id）',
+  `nickname` VARCHAR(200) COMMENT '第三方平台昵称',
+  `avatar` VARCHAR(500) COMMENT '第三方平台头像URL',
+  `access_token` TEXT COMMENT '第三方平台访问令牌（可选存储，用于后续调用第三方API）',
+  `refresh_token` TEXT COMMENT '第三方平台刷新令牌（可选存储）',
+  `expires_at` DATETIME COMMENT '令牌过期时间',
+  `raw_json` TEXT COMMENT '第三方平台返回的完整用户信息JSON',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  UNIQUE KEY `uk_provider_user` (`provider`, `provider_user_id`) COMMENT '确保同一第三方账号只能绑定一个本地账号',
+  INDEX `idx_user_id` (`user_id`) COMMENT '优化根据用户ID查询绑定账号的性能'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='第三方账号绑定表';
+
 
 
 -- =================================================================

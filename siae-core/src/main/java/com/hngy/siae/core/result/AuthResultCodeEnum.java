@@ -36,7 +36,17 @@ public enum AuthResultCodeEnum implements IResultCode {
     ROLE_HAS_USERS(2207, "角色已分配给用户，无法删除"),
     ROLE_CREATE_FAILED(2208, "角色创建失败"),
     PERMISSION_NOT_EXISTS(2209, "权限不存在"),
-    ROLE_NOT_EXISTS(2210, "角色不存在");
+    ROLE_NOT_EXISTS(2210, "角色不存在"),
+
+    // OAuth相关错误码 (40001-40099)
+    OAUTH_PROVIDER_NOT_SUPPORTED(40001, "不支持的第三方登录平台"),
+    OAUTH_STATE_INVALID(40002, "无效的state参数"),
+    OAUTH_CODE_INVALID(40003, "无效的授权码"),
+    OAUTH_ACCESS_TOKEN_FAILED(40004, "获取访问令牌失败"),
+    OAUTH_USER_INFO_FAILED(40005, "获取用户信息失败"),
+    OAUTH_ACCOUNT_ALREADY_BOUND(40006, "该第三方账号已绑定其他用户"),
+    OAUTH_UNBIND_LAST_ACCOUNT(40007, "无法解绑，至少保留一种登录方式"),
+    OAUTH_ACCOUNT_NOT_FOUND(40008, "未找到绑定的第三方账号");
 
     private final int code;
     private final String message;

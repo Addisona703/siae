@@ -13,6 +13,7 @@ import com.hngy.siae.web.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.UserCreateDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
+import com.hngy.siae.user.dto.response.UserAuthVO;
 import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.MajorClassEnrollment;
@@ -251,6 +252,23 @@ public class UserServiceImpl
                 .one();
         log.info(user.toString());
         return BeanConvertUtil.to(user, UserVO.class);
+    }
+
+    /**
+     * 根据用户名获取用户认证信息（包含密码）
+     * <p>
+     * <strong>警告：此方法返回包含加密密码的用户信息，仅限内部服务调用使用！</strong>
+     *
+     * @param username 用户名
+     * @return 用户认证信息（包含密码），如果不存在则返回null
+     */
+    @Override
+    public UserAuthVO getUserAuthByUsername(String username) {
+        User user = lambdaQuery()
+                .eq(User::getUsername, username)
+                .eq(User::getIsDeleted, 0)
+                .one();
+        return BeanConvertUtil.to(user, UserAuthVO.class);
     }
 
     /**

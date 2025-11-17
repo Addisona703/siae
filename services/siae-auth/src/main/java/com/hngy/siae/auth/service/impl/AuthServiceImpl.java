@@ -146,7 +146,8 @@ public class AuthServiceImpl
             if (e instanceof ServiceException || e instanceof UsernameNotFoundException || e instanceof BadCredentialsException) {
                 throw e;
             }
-            throw new ServiceException("登录失败: " + e.getMessage());
+            AssertUtils.fail("登录失败: " + e.getMessage());
+            return null; // 永远不会执行到这里
         }
     }
     
@@ -226,7 +227,8 @@ public class AuthServiceImpl
             if (e instanceof ServiceException) {
                 throw e;
             }
-            throw new ServiceException(AuthResultCodeEnum.REGISTER_FAILED);
+            AssertUtils.fail(AuthResultCodeEnum.REGISTER_FAILED);
+            return null; // 永远不会执行到这里
         }
     }
     
@@ -243,9 +245,7 @@ public class AuthServiceImpl
         String refreshToken = request.getRefreshToken();
         
         // 验证刷新令牌是否有效
-        if (!jwtUtils.validateToken(refreshToken)) {
-            throw new ServiceException("刷新令牌已过期或无效");
-        }
+        AssertUtils.isTrue(jwtUtils.validateToken(refreshToken), "刷新令牌已过期或无效");
         
         // 从刷新令牌中获取用户ID和用户名
         Long userId = jwtUtils.getUserId(refreshToken);
@@ -258,9 +258,7 @@ public class AuthServiceImpl
                         .eq(UserAuth::getRefreshToken, refreshToken)
         );
         
-        if (userAuth == null) {
-            throw new ServiceException("刷新令牌不存在");
-        }
+        AssertUtils.notNull(userAuth, "刷新令牌不存在");
         
         // 查询用户权限和角色
         List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(userId);
@@ -496,7 +494,7 @@ public class AuthServiceImpl
     private void assertUserEnabled(UserBasicVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
-            throw new ServiceException(AuthResultCodeEnum.ACCOUNT_DISABLED);
+            AssertUtils.fail(AuthResultCodeEnum.ACCOUNT_DISABLED);
         }
     }
 
@@ -516,7 +514,7 @@ public class AuthServiceImpl
     private void assertPasswordMatches(String inputPassword, UserBasicVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
-            throw new BadCredentialsException(AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
+            AssertUtils.fail(AuthResultCodeEnum.PASSWORD_ERROR);
         }
     }
 

@@ -7,6 +7,7 @@ import com.hngy.siae.user.dto.request.UserCreateDTO;
 
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
+import com.hngy.siae.user.dto.response.UserAuthVO;
 import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.User;
@@ -75,6 +76,16 @@ public interface UserService extends IService<User> {
      * @return 用户详细信息，如果不存在则返回null
      */
     UserVO getUserByUsername(String username);
+
+    /**
+     * 根据用户名获取用户认证信息（包含密码）
+     * <p>
+     * <strong>警告：此方法返回包含加密密码的用户信息，仅限内部服务调用使用！</strong>
+     *
+     * @param username 用户名
+     * @return 用户认证信息（包含密码），如果不存在则返回null
+     */
+    UserAuthVO getUserAuthByUsername(String username);
 
 
 

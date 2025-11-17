@@ -18,7 +18,10 @@ spring:
       server-addr: localhost:8948
       config:
         group: SIAE_GROUP
+        enabled: false
   
   config:
     # ⚠️ 重要：必须加 .yaml 扩展名
-    import: optional:nacos:siae-auth.yaml
+    import:
+      - optional:nacos:siae-auth.yaml
+      - optional:nacos:siae-auth-oauth.yaml

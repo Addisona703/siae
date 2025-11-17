@@ -1,6 +1,7 @@
 package com.hngy.siae.user.controller;
 
 import com.hngy.siae.user.dto.request.UserCreateDTO;
+import com.hngy.siae.user.dto.response.UserAuthVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,18 +45,19 @@ public class UserFeignController {
     }
 
     /**
-     * 根据用户名获取用户信息
+     * 根据用户名获取用户认证信息（包含密码）
      * <p>
-     * 根据用户名查询用户信息，供内部服务间调用。
+     * 根据用户名查询用户认证信息，供内部服务间调用。
+     * <strong>警告：返回的信息包含加密密码，仅限内部Feign调用使用！</strong>
      *
      * @param username 用户名，不能为空或空白字符串
-     * @return 用户信息，如果用户不存在则返回null
+     * @return 用户认证信息，如果用户不存在则返回null
      */
     @GetMapping("/username/{username}")
-    @Operation(summary = "根据用户名查询用户", description = "供认证服务调用，返回用户信息")
-    public UserVO getUserByUsername(
+    @Operation(summary = "根据用户名查询用户认证信息", description = "供认证服务调用，返回包含密码的用户信息")
+    public UserAuthVO getUserByUsername(
             @Parameter(description = "用户名") @PathVariable("username") @NotBlank String username) {
-        return userService.getUserByUsername(username);
+        return userService.getUserAuthByUsername(username);
     }
 
     /**

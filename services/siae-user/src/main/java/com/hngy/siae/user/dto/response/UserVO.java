@@ -1,6 +1,5 @@
 package com.hngy.siae.user.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serial;
@@ -27,13 +26,6 @@ public class UserVO implements Serializable {
      * 登录名/用户名
      */
     private String username;
-
-    /**
-     * 密码（加密后）
-     * 仅用于内部服务间调用（如认证服务），不会序列化到 JSON 响应中
-     */
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
 
     /**
      * 学号
