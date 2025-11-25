@@ -5,13 +5,18 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.user.dto.request.UserAwardCreateDTO;
 import com.hngy.siae.user.dto.request.UserAwardQueryDTO;
 import com.hngy.siae.user.dto.request.UserAwardUpdateDTO;
 import com.hngy.siae.user.dto.response.UserAwardVO;
+import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.UserAward;
+import com.hngy.siae.user.feign.MediaFeignClient;
+import com.hngy.siae.user.feign.dto.BatchUrlRequest;
+import com.hngy.siae.user.feign.dto.BatchUrlResponse;
 import com.hngy.siae.user.mapper.UserAwardMapper;
 import com.hngy.siae.user.service.AwardLevelService;
 import com.hngy.siae.user.service.AwardTypeService;
@@ -19,10 +24,13 @@ import com.hngy.siae.user.service.UserAwardService;
 import com.hngy.siae.user.service.UserService;
 import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import cn.hutool.core.util.StrUtil;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户获奖记录服务实现类
@@ -32,6 +40,7 @@ import java.util.List;
  *
  * @author KEYKB
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserAwardServiceImpl 
@@ -41,6 +50,7 @@ public class UserAwardServiceImpl
     private final UserService userService;
     private final AwardTypeService awardTypeService;
     private final AwardLevelService awardLevelService;
+    private final MediaFeignClient mediaFeignClient;
 
     /**
      * 创建用户获奖记录
@@ -110,7 +120,73 @@ public class UserAwardServiceImpl
     public UserAwardVO getUserAwardById(Long id) {
         UserAward userAward = getById(id);
         AssertUtils.notNull(userAward, UserResultCodeEnum.AWARD_NOT_FOUND);
-        return BeanConvertUtil.to(userAward, UserAwardVO.class);
+        
+        UserAwardVO vo = BeanConvertUtil.to(userAward, UserAwardVO.class);
+        
+        // 填充团队成员信息
+        if (StrUtil.isNotBlank(vo.getTeamMembers())) {
+            try {
+                // 解析团队成员ID列表
+                List<Long> memberIds = cn.hutool.json.JSONUtil.parseArray(vo.getTeamMembers())
+                        .stream()
+                        .map(obj -> Long.valueOf(obj.toString()))
+                        .collect(Collectors.toList());
+                
+                if (!memberIds.isEmpty()) {
+                    // 批量查询用户信息
+                    List<UserVO> members = baseMapper.selectUsersByIds(memberIds);
+                    
+                    // 批量获取头像URL
+                    List<String> avatarFileIds = members.stream()
+                            .map(UserVO::getAvatarFileId)
+                            .filter(StrUtil::isNotBlank)
+                            .distinct()
+                            .collect(Collectors.toList());
+                    
+                    if (!avatarFileIds.isEmpty()) {
+                        try {
+                            BatchUrlRequest request = BatchUrlRequest.builder()
+                                    .fileIds(avatarFileIds)
+                                    .expirySeconds(86400) // 24小时
+                                    .build();
+                            Result<BatchUrlResponse> urlResult = mediaFeignClient.batchGetFileUrls(request);
+                            
+                            if (urlResult != null && urlResult.getCode() == 200 && urlResult.getData() != null) {
+                                Map<String, String> urlMap = urlResult.getData().getUrls();
+                                // 将URL设置到用户对象中
+                                for (UserVO user : members) {
+                                    if (StrUtil.isNotBlank(user.getAvatarFileId())) {
+                                        user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("批量获取头像URL失败: {}", e.getMessage());
+                        }
+                    }
+                    
+                    // 按照原始ID顺序排列成员
+                    List<UserVO> orderedMembers = new java.util.ArrayList<>();
+                    Map<Long, UserVO> userMap = members.stream()
+                            .collect(Collectors.toMap(UserVO::getId, user -> user));
+                    for (Long memberId : memberIds) {
+                        UserVO user = userMap.get(memberId);
+                        if (user != null) {
+                            orderedMembers.add(user);
+                        }
+                    }
+                    
+                    vo.setTeamMemberList(orderedMembers);
+                }
+            } catch (Exception e) {
+                log.error("填充团队成员信息失败: {}", e.getMessage(), e);
+                vo.setTeamMemberList(new java.util.ArrayList<>());
+            }
+        } else {
+            vo.setTeamMemberList(new java.util.ArrayList<>());
+        }
+        
+        return vo;
     }
 
     /**
@@ -126,12 +202,107 @@ public class UserAwardServiceImpl
 
         Page<UserAward> page = PageConvertUtil.toPage(pageDTO);
         Page<UserAward> resultPage = lambdaQuery()
-                .apply("JSON_CONTAINS(team_members, {0})", userId)
+                .apply("JSON_CONTAINS(team_members, CAST({0} AS JSON))", userId)
                 .eq(UserAward::getIsDeleted, 0)
                 .orderByDesc(UserAward::getAwardedAt)
                 .page(page);
 
-        return PageConvertUtil.convert(resultPage, UserAwardVO.class);
+        PageVO<UserAwardVO> pageVO = PageConvertUtil.convert(resultPage, UserAwardVO.class);
+        
+        // 填充团队成员信息
+        fillTeamMemberInfo(pageVO.getRecords());
+        
+        return pageVO;
+    }
+    
+    /**
+     * 填充团队成员信息（包含头像URL）
+     *
+     * @param awards 获奖记录列表
+     */
+    private void fillTeamMemberInfo(List<UserAwardVO> awards) {
+        if (awards == null || awards.isEmpty()) {
+            return;
+        }
+        
+        // 1. 收集所有需要查询的用户ID
+        List<Long> allUserIds = awards.stream()
+                .filter(award -> StrUtil.isNotBlank(award.getTeamMembers()))
+                .flatMap(award -> {
+                    try {
+                        return cn.hutool.json.JSONUtil.parseArray(award.getTeamMembers())
+                                .stream()
+                                .map(obj -> Long.valueOf(obj.toString()));
+                    } catch (Exception e) {
+                        return java.util.stream.Stream.empty();
+                    }
+                })
+                .distinct()
+                .collect(Collectors.toList());
+        
+        if (allUserIds.isEmpty()) {
+            awards.forEach(award -> award.setTeamMemberList(new java.util.ArrayList<>()));
+            return;
+        }
+        
+        // 2. 批量查询用户信息
+        List<UserVO> users = baseMapper.selectUsersByIds(allUserIds);
+        Map<Long, UserVO> userMap = users.stream()
+                .collect(Collectors.toMap(UserVO::getId, user -> user));
+        
+        // 3. 批量获取头像URL
+        List<String> avatarFileIds = users.stream()
+                .map(UserVO::getAvatarFileId)
+                .filter(StrUtil::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        if (!avatarFileIds.isEmpty()) {
+            try {
+                BatchUrlRequest request = BatchUrlRequest.builder()
+                        .fileIds(avatarFileIds)
+                        .expirySeconds(86400) // 24小时
+                        .build();
+                Result<BatchUrlResponse> urlResult = mediaFeignClient.batchGetFileUrls(request);
+                
+                if (urlResult != null && urlResult.getCode() == 200 && urlResult.getData() != null) {
+                    Map<String, String> urlMap = urlResult.getData().getUrls();
+                    // 将URL设置到用户对象中
+                    for (UserVO user : users) {
+                        if (StrUtil.isNotBlank(user.getAvatarFileId())) {
+                            user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("批量获取头像URL失败: {}", e.getMessage());
+            }
+        }
+        
+        // 4. 组装团队成员信息到每个奖项
+        for (UserAwardVO award : awards) {
+            if (StrUtil.isNotBlank(award.getTeamMembers())) {
+                try {
+                    List<Long> memberIds = cn.hutool.json.JSONUtil.parseArray(award.getTeamMembers())
+                            .stream()
+                            .map(obj -> Long.valueOf(obj.toString()))
+                            .collect(Collectors.toList());
+                    
+                    List<UserVO> members = new java.util.ArrayList<>();
+                    for (Long memberId : memberIds) {
+                        UserVO user = userMap.get(memberId);
+                        if (user != null) {
+                            members.add(user);
+                        }
+                    }
+                    award.setTeamMemberList(members);
+                } catch (Exception e) {
+                    award.setTeamMemberList(new java.util.ArrayList<>());
+                }
+            } else {
+                award.setTeamMemberList(new java.util.ArrayList<>());
+            }
+        }
     }
 
     /**
@@ -142,9 +313,14 @@ public class UserAwardServiceImpl
      */
     @Override
     public PageVO<UserAwardVO> listUserAwardsByPage(PageDTO<UserAwardQueryDTO> pageDTO) {
-        Page<UserAward> page = PageConvertUtil.toPage(pageDTO);
-        Page<UserAward> resultPage = baseMapper.selectUserAwardPage(page, pageDTO.getParams());
-        return PageConvertUtil.convert(resultPage, UserAwardVO.class);
+        // 1. 先分页查询奖项基本信息（包含等级和类型名称）
+        Page<UserAwardVO> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
+        Page<UserAwardVO> resultPage = baseMapper.selectUserAwardPageWithDetails(page, pageDTO.getParams());
+        
+        // 2. 填充团队成员信息
+        fillTeamMemberInfo(resultPage.getRecords());
+        
+        return PageConvertUtil.convert(resultPage);
     }
 
     /**

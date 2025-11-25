@@ -33,14 +33,7 @@ public class AuditsController {
 
     private final AuditsService auditsService;
 
-    /**
-     * 处理审核
-     * 权限说明：需要审核处理权限，且必须是管理员
-     *
-     * @param id 审核记录ID
-     * @param auditDTO 审核处理请求DTO
-     * @return 处理结果
-     */
+
     @Operation(summary = "处理审核", description = "处理内容审核，包括审核通过、拒绝等操作")
     @PutMapping("/{id}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_HANDLE + "')")
@@ -54,13 +47,6 @@ public class AuditsController {
     }
 
 
-    /**
-     * 获取审核列表
-     * 权限说明：需要审核查看权限，且必须是管理员
-     *
-     * @param pageDTO 分页查询参数
-     * @return 审核列表
-     */
     @Operation(summary = "获取审核列表", description = "分页获取审核列表，支持按目标类型和审核状态筛选")
     @PostMapping("/page")
     @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")
@@ -70,13 +56,7 @@ public class AuditsController {
         return Result.success(auditsService.getAuditPage(pageDTO));
     }
 
-    /**
-     * 获取审核记录
-     * 权限说明：需要审核查看权限，非管理员只能查看自己的审核记录
-     *
-     * @param queryDTO 查询参数
-     * @return 审核记录信息
-     */
+
     @Operation(summary = "获取审核记录", description = "根据目标对象ID和类型获取审核记录详情")
     @PostMapping("/record")
     @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")

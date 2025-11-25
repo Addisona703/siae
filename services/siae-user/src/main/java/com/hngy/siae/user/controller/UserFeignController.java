@@ -92,4 +92,17 @@ public class UserFeignController {
             @Parameter(description = "用户ID") @PathVariable("userId") @NotNull Long userId) {
         userService.assertUserExists(userId);
     }
+
+    /**
+     * 批量查询用户信息
+     *
+     * @param userIds 用户ID列表
+     * @return 用户ID -> 用户信息的映射
+     */
+    @GetMapping("/batch")
+    @Operation(summary = "批量查询用户信息", description = "根据用户ID列表批量查询用户基本信息和昵称")
+    public java.util.Map<Long, com.hngy.siae.user.dto.response.UserProfileSimpleVO> batchGetUserProfiles(
+            @Parameter(description = "用户ID列表") @RequestParam("userIds") java.util.List<Long> userIds) {
+        return userService.batchGetUserProfiles(userIds);
+    }
 }

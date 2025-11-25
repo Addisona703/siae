@@ -37,12 +37,7 @@ public class TagsController {
 
     private final TagsService tagsService;
 
-    /**
-     * 创建标签
-     *
-     * @param tagCreateDTO 标签创建请求DTO
-     * @return 创建的标签信息
-     */
+
     @Operation(summary = "创建标签", description = "创建新的内容标签")
     @PostMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_TAG_CREATE + "')")
@@ -53,13 +48,7 @@ public class TagsController {
         return Result.success(tagVO);
     }
 
-    /**
-     * 更新标签
-     *
-     * @param id 标签ID
-     * @param tagUpdateDTO 标签更新请求DTO
-     * @return 更新后的标签信息
-     */
+
     @Operation(summary = "更新标签", description = "修改已存在的标签信息")
     @PutMapping("/{id}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_TAG_EDIT + "')")
@@ -72,12 +61,7 @@ public class TagsController {
         return Result.success(tagVO);
     }
 
-    /**
-     * 删除标签
-     *
-     * @param id 标签ID
-     * @return 删除结果
-     */
+
     @Operation(summary = "删除标签", description = "删除指定的标签")
     @DeleteMapping("/{id}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_TAG_DELETE + "')")
@@ -89,12 +73,6 @@ public class TagsController {
     }
 
 
-    /**
-     * 分页查询标签列表
-     *
-     * @param pageDTO 分页查询参数
-     * @return 标签分页列表
-     */
     @Operation(summary = "分页查询标签列表", description = "获取标签的分页列表，支持关键词搜索和条件筛选")
     @PostMapping("/page")
     @SiaeAuthorize("hasAuthority('" + CONTENT_TAG_VIEW + "')")

@@ -33,10 +33,13 @@ public class ContentVO<T extends ContentDetailVO> {
     private String description;
     @NotNull(message = "上传者ID不能为空")
     private Long uploadedBy;
+    private String authorNickname;
     @NotNull(message = "分类ID不能为空")
     private Long categoryId;
+    private String categoryName;
     @NotNull(message = "状态不能为空")
     private ContentStatusEnum status;
+    private StatisticsVO statistics;
     private List<Long> tagIds;
     private T detail;
     private LocalDateTime createTime;

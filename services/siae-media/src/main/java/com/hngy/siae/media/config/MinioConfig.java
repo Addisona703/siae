@@ -21,11 +21,30 @@ public class MinioConfig {
     private String secretKey;
     private String bucketName;
     private String region;
+    private String externalEndpoint;
 
+    /**
+     * 内部操作客户端（用于上传、删除等实际操作）
+     */
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
                 .endpoint(endpoint)
+                .credentials(accessKey, secretKey)
+                .region(region)
+                .build();
+    }
+
+    /**
+     * URL生成客户端（用于生成外部可访问的预签名URL）
+     */
+    @Bean
+    public MinioClient minioClientForUrl() {
+        String urlEndpoint = (externalEndpoint != null && !externalEndpoint.isEmpty()) 
+                ? externalEndpoint : endpoint;
+        
+        return MinioClient.builder()
+                .endpoint(urlEndpoint)
                 .credentials(accessKey, secretKey)
                 .region(region)
                 .build();

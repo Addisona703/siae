@@ -36,12 +36,7 @@ public class CategoriesController {
 
     private final CategoriesService categoriesService;
 
-    /**
-     * 创建分类
-     *
-     * @param categoryCreateDTO 分类创建请求DTO
-     * @return 创建的分类信息
-     */
+
     @Operation(summary = "创建分类", description = "创建新的内容分类")
     @PostMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_CREATE + "')")
@@ -52,12 +47,7 @@ public class CategoriesController {
         return Result.success(categoryVO);
     }
 
-    /**
-     * 更新分类
-     *
-     * @param categoryUpdateDTO 分类更新请求DTO
-     * @return 更新后的分类信息
-     */
+
     @Operation(summary = "更新分类", description = "修改已存在的分类信息")
     @PutMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_EDIT + "')")
@@ -68,12 +58,6 @@ public class CategoriesController {
         return Result.success(categoryVO);
     }
 
-    /**
-     * 删除分类
-     *
-     * @param categoryId 分类ID
-     * @return 删除结果
-     */
     @Operation(summary = "删除分类", description = "删除指定的分类")
     @DeleteMapping("/{categoryId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_DELETE + "')")
@@ -85,28 +69,6 @@ public class CategoriesController {
     }
 
 
-    /**
-     * 分页查询分类列表
-     *
-     * @param pageDTO 分页查询参数
-     * @return 分类分页列表
-     */
-    @Operation(summary = "分页查询分类列表", description = "获取分类的分页列表，支持关键词搜索和条件筛选")
-    @PostMapping("/page")
-    @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_VIEW + "')")
-    public Result<PageVO<CategoryVO>> listCategories(
-            @Parameter(description = "分页查询参数，包含查询条件")
-            @Valid @RequestBody PageDTO<CategoryQueryDTO> pageDTO) {
-        PageVO<CategoryVO> pageVO = categoriesService.listCategories(pageDTO);
-        return Result.success(pageVO);
-    }
-
-    /**
-     * 查询分类详情
-     *
-     * @param categoryId 分类ID
-     * @return 分类详情信息
-     */
     @Operation(summary = "查询分类详情", description = "根据分类ID获取分类的详细信息")
     @GetMapping("/detail/{categoryId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_VIEW + "')")
@@ -117,12 +79,18 @@ public class CategoriesController {
         return Result.success(categoryVO);
     }
 
-    /**
-     * 启用/禁用分类
-     *
-     * @param dto 分类状态切换请求DTO
-     * @return 操作结果
-     */
+
+    @Operation(summary = "分页查询分类列表", description = "获取分类的分页列表，支持关键词搜索和条件筛选")
+    @PostMapping("/page")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_VIEW + "')")
+    public Result<PageVO<CategoryVO>> queryCategoryList(
+            @Parameter(description = "分页查询参数，包含查询条件")
+            @Valid @RequestBody PageDTO<CategoryQueryDTO> pageDTO) {
+        PageVO<CategoryVO> pageVO = categoriesService.listCategories(pageDTO);
+        return Result.success(pageVO);
+    }
+
+
     @Operation(summary = "启用/禁用分类", description = "切换分类的启用状态")
     @PostMapping("/toggle-enable")
     @SiaeAuthorize("hasAuthority('" + CONTENT_CATEGORY_TOGGLE + "')")

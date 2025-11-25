@@ -106,4 +106,28 @@ public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMappe
         AssertUtils.isTrue(deleted, "删除通知失败");
         log.info("删除通知 - 通知ID: {}, 用户ID: {}", notificationId, userId);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateReadStatus(Long notificationId, Long userId, Boolean isRead) {
+        LambdaUpdateWrapper<SystemNotification> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SystemNotification::getId, notificationId)
+               .eq(SystemNotification::getUserId, userId)
+               .set(SystemNotification::getIsRead, isRead);
+
+        boolean updated = update(wrapper);
+        AssertUtils.isTrue(updated, "更新通知状态失败");
+        log.info("更新通知状态 - 通知ID: {}, 用户ID: {}, 已读: {}", notificationId, userId, isRead);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateAllReadStatus(Long userId, Boolean isRead) {
+        LambdaUpdateWrapper<SystemNotification> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SystemNotification::getUserId, userId)
+               .set(SystemNotification::getIsRead, isRead);
+
+        update(wrapper);
+        log.info("更新所有通知状态 - 用户ID: {}, 已读: {}", userId, isRead);
+    }
 }

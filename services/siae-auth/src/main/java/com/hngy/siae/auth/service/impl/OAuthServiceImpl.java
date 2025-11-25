@@ -10,7 +10,6 @@ import com.hngy.siae.auth.entity.UserAuth;
 import com.hngy.siae.auth.entity.UserRole;
 import com.hngy.siae.auth.feign.UserClient;
 import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
-import com.hngy.siae.auth.feign.dto.response.UserBasicVO;
 import com.hngy.siae.auth.feign.dto.response.UserVO;
 import com.hngy.siae.auth.mapper.OAuthAccountMapper;
 import com.hngy.siae.auth.mapper.RoleMapper;

@@ -14,7 +14,8 @@ import com.hngy.siae.auth.entity.UserAuth;
 import com.hngy.siae.auth.entity.UserRole;
 import com.hngy.siae.auth.feign.UserClient;
 import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
-import com.hngy.siae.auth.feign.dto.response.UserBasicVO;
+import com.hngy.siae.auth.feign.dto.response.UserAuthVO;
+import com.hngy.siae.auth.feign.dto.response.UserAuthVO;
 import com.hngy.siae.auth.feign.dto.response.UserVO;
 
 import com.hngy.siae.auth.mapper.RoleMapper;
@@ -85,9 +86,8 @@ public class AuthServiceImpl
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
         try {
             // 1. 远程调用userClient接口获取用户信息
-            UserBasicVO user = userClient.getUserByUsername(loginDTO.getUsername());
-            log.info(user.toString());
-
+            UserAuthVO user = userClient.getUserByUsername(loginDTO.getUsername());
+            
             // 验证用户存在性并记录失败日志
             assertUserExists(user, loginDTO.getUsername(), clientIp, browser, os);
 
@@ -356,7 +356,7 @@ public class AuthServiceImpl
         AssertUtils.notNull(userId, CommonResultCodeEnum.UNAUTHORIZED);
         AssertUtils.notEmpty(username, CommonResultCodeEnum.UNAUTHORIZED);
 
-        UserBasicVO userBasic = userClient.getUserByUsername(username);
+        UserAuthVO userBasic = userClient.getUserByUsername(username);
         AssertUtils.notNull(userBasic, AuthResultCodeEnum.USER_NOT_FOUND);
         AssertUtils.isTrue(Objects.equals(userId, userBasic.getId()), CommonResultCodeEnum.UNAUTHORIZED);
         AssertUtils.isTrue(userBasic.getStatus() == null || userBasic.getStatus() == 1, AuthResultCodeEnum.ACCOUNT_DISABLED);
@@ -472,7 +472,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws UsernameNotFoundException 当用户不存在时抛出
      */
-    private void assertUserExists(UserBasicVO user, String username, String clientIp, String browser, String os) {
+    private void assertUserExists(UserAuthVO user, String username, String clientIp, String browser, String os) {
         if (user == null) {
             logService.saveLoginLogAsync(null, username, clientIp, browser, os, 0, AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.USER_NOT_FOUND);
@@ -491,7 +491,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws ServiceException 当用户账户被禁用时抛出
      */
-    private void assertUserEnabled(UserBasicVO user, String clientIp, String browser, String os) {
+    private void assertUserEnabled(UserAuthVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.ACCOUNT_DISABLED);
@@ -511,7 +511,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws BadCredentialsException 当密码不匹配时抛出
      */
-    private void assertPasswordMatches(String inputPassword, UserBasicVO user, String clientIp, String browser, String os) {
+    private void assertPasswordMatches(String inputPassword, UserAuthVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.PASSWORD_ERROR);
@@ -575,7 +575,7 @@ public class AuthServiceImpl
      * @param user 用户信息
      * @param expireSeconds 过期时间（秒）
      */
-    private void storeTokenToRedis(String token, UserBasicVO user, long expireSeconds) {
+    private void storeTokenToRedis(String token, UserAuthVO user, long expireSeconds) {
         try {
             // 存储用户基本信息到Redis
             String userInfo = String.format("{\"userId\":%d,\"username\":\"%s\",\"status\":%d}",

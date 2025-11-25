@@ -1,4 +1,4 @@
-# ===================================================================
+ # ===================================================================
 # DEV CONFIGURATION (本地开发配置)
 # ===================================================================
 
@@ -12,7 +12,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        enabled: false
+        enabled: true
       config:
         enabled: false
   
@@ -109,14 +109,15 @@ springdoc:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: false
-    enable-direct-access: true
+    enable-gateway-auth: true
+    enable-direct-access: false
   security:
-    enabled: false
+    enabled: true
   
   # RabbitMQ 消息队列配置
   messaging:
     rabbit:
+      enabled: true  # 设置为 false 可以完全禁用 RabbitMQ
       connection:
         addresses: localhost:5672
         username: guest
@@ -141,6 +142,7 @@ siae:
           initial-interval: 1000
           multiplier: 2.0
           max-interval: 10000
+        acknowledge-mode: AUTO
       # 交换机配置
       exchanges:
         siae.notification.exchange:

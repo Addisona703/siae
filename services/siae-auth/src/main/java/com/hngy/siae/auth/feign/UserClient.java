@@ -1,7 +1,7 @@
 package com.hngy.siae.auth.feign;
 
 import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
-import com.hngy.siae.auth.feign.dto.response.UserBasicVO;
+import com.hngy.siae.auth.feign.dto.response.UserAuthVO;
 import com.hngy.siae.auth.feign.dto.response.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,7 +45,7 @@ public interface UserClient {
      */
     @GetMapping("/username/{username}")
     @Operation(summary = "根据用户名查询用户", description = "供认证服务调用，返回用户信息")
-    UserBasicVO getUserByUsername(
+    UserAuthVO getUserByUsername(
             @Parameter(description = "用户名") @PathVariable("username") @NotBlank String username);
 
     /**

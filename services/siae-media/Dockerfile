@@ -7,7 +7,7 @@ WORKDIR /build
 
 # 复制父 POM 和依赖配置
 COPY ../../pom.xml ./pom.xml
-COPY ../../siae-core ./siae-core
+COPY ../../package/siae-core ./siae-core
 COPY ../../siae-starters ./siae-starters
 
 # 复制服务代码

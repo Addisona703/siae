@@ -36,6 +36,16 @@ public class UserVO implements Serializable {
      * 昵称
      */
     private String nickname;
+
+    /**
+     * 真实姓名
+     */
+    private String realName;
+
+    /**
+     * 邮箱
+     */
+    private String email;
     
     /**
      * 头像文件ID
@@ -46,6 +56,11 @@ public class UserVO implements Serializable {
      * 头像访问URL（从Media服务获取）
      */
     private String avatarUrl;
+
+    /**
+     * 状态：0禁用，1启用
+     */
+    private Integer status;
 
     /**
      * 创建时间

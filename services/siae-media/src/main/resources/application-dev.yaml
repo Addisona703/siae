@@ -13,7 +13,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        enabled: false
+        enabled: true
       config:
         enabled: false
   
@@ -126,6 +126,10 @@ minio:
   secretKey: 123456789
   bucketName: siae-media
   region: us-east-1
+  # 外部访问地址（用于替换生成的URL中的endpoint，供前端访问）
+  # 如果不配置，则使用 endpoint 的值
+  # 示例：http://your-server-ip:9000 或 https://minio.yourdomain.com
+  external-endpoint: http://192.168.155.107:9000
 
 # 5. 媒体业务配置
 media:
@@ -226,10 +230,10 @@ management:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: false
-    enable-direct-access: true
+    enable-gateway-auth: true
+    enable-direct-access: false
   security:
-    enabled: false
+    enabled: true
 
 # 日志配置
 logging:

@@ -70,6 +70,18 @@ public interface UserService extends IService<User> {
     UserDetailVO getUserDetailById(Long id);
 
     /**
+     * 根据条件查询用户详细信息（包含用户基本信息、详情信息和班级关联信息）
+     * <p>
+     * 支持按ID、用户名、学号查询，参数可选且可同时存在（多个条件使用AND连接）
+     *
+     * @param id 用户ID（可选）
+     * @param username 用户名（可选）
+     * @param studentId 学号（可选）
+     * @return 用户详细信息（三表联查结果），如果不存在则返回null
+     */
+    UserDetailVO getUserDetail(Long id, String username, String studentId);
+
+    /**
      * 根据用户名获取用户信息
      *
      * @param username 用户名
@@ -148,4 +160,12 @@ public interface UserService extends IService<User> {
      * @throws RuntimeException 如果有用户不存在
      */
     void assertUsersExist(List<Long> userIds);
+
+    /**
+     * 批量查询用户简要信息
+     *
+     * @param userIds 用户ID列表
+     * @return 用户ID -> 用户简要信息的映射
+     */
+    Map<Long, com.hngy.siae.user.dto.response.UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds);
 } 

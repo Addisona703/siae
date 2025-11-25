@@ -46,46 +46,26 @@ public class ContentController {
     private final ContentService contentService;
 
 
-    /**
-     * 发布内容
-     *
-     * @param contentCreateDTO 内容发布请求DTO
-     * @return 发布的内容详情
-     */
     @Operation(summary = "发布内容", description = "创建并发布新的内容，支持文章、笔记、提问、文件、视频等多种类型")
     @PostMapping("/")
     @SiaeAuthorize("hasAuthority('" + CONTENT_PUBLISH + "')")
-    public Result<ContentVO<ContentDetailVO>> publishContent(
+    public Result<ContentVO<ContentDetailVO>> createContent(
             @Parameter(description = "内容发布请求数据，包含标题、类型、描述、分类等信息", required = true)
             @Valid @RequestBody ContentCreateDTO contentCreateDTO) {
         return Result.success(contentFacade.publishContent(contentCreateDTO));
     }
 
 
-    /**
-     * 编辑内容
-     *
-     * @param contentUpdateDTO 内容编辑请求DTO
-     * @return 编辑后的内容详情
-     */
     @Operation(summary = "编辑内容", description = "修改已存在的内容信息，包括标题、描述、分类等，需要提供内容ID")
     @PutMapping("/")
     @SiaeAuthorize("hasAuthority('" + CONTENT_EDIT + "')")
-    public Result<ContentVO<ContentDetailVO>> editContent(
+    public Result<ContentVO<ContentDetailVO>> updateContent(
             @Parameter(description = "内容编辑请求数据，必须包含内容ID和要修改的字段", required = true)
             @Valid @RequestBody ContentUpdateDTO contentUpdateDTO) {
         return Result.success(contentFacade.editContent(contentUpdateDTO));
     }
 
 
-    /**
-     * 删除内容
-     * 权限说明：非管理员只能删除自己创建的内容
-     *
-     * @param id 内容ID
-     * @param isTrash 是否移至垃圾箱（0-永久删除，1-移至垃圾箱）
-     * @return 删除结果
-     */
     @Operation(summary = "删除内容", description = "删除指定的内容，可选择永久删除或移至垃圾箱。非管理员只能删除自己创建的内容")
     @DeleteMapping("/")
     @SiaeAuthorize("hasAuthority('" + CONTENT_DELETE + "')")
@@ -109,12 +89,6 @@ public class ContentController {
     }
 
 
-    /**
-     * 查询内容详情
-     *
-     * @param contentId 内容ID
-     * @return 内容详情信息
-     */
     @Operation(summary = "查询内容详情", description = "根据内容ID获取内容的详细信息，包括基本信息和具体内容详情")
     @GetMapping("/query/{contentId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_QUERY + "')")

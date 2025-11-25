@@ -10,6 +10,7 @@ import static com.hngy.siae.core.permissions.UserPermissions.*;
 import com.hngy.siae.user.dto.request.UserCreateDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
+import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,22 +83,18 @@ public class UserController {
      * @return 用户详细信息
      */
     @GetMapping
-    @Operation(summary = "查询用户", description = "根据不同条件查询用户详细信息（支持按ID、用户名、学号查询）")
+    @Operation(summary = "查询用户详细信息", description = "根据不同条件查询用户详细信息（支持按ID、用户名、学号查询，参数可选且可同时存在）")
     @SiaeAuthorize(RoleConstants.ANY_AUTHENTICATED)
-    public Result<UserVO> getUser(
+    public Result<UserDetailVO> getUser(
             @Parameter(description = "用户ID") @RequestParam(required = false) Long id,
             @Parameter(description = "用户名") @RequestParam(required = false) String username,
             @Parameter(description = "学号") @RequestParam(required = false) String studentId) {
-        UserVO result = null;
-        if (id != null) {
-            result = userService.getUserById(id);
-        } else if (username != null && !username.isBlank()) {
-            result = userService.getUserByUsername(username);
-        } else if (studentId != null && !studentId.isBlank()) {
-            result = userService.getUserByStudentId(studentId);
-        } else {
-            AssertUtils.fail("必须提供id、username或studentId中的一个参数");
+        // 至少需要提供一个查询参数
+        if (id == null && (username == null || username.isBlank()) && (studentId == null || studentId.isBlank())) {
+            AssertUtils.fail("必须提供id、username或studentId中的至少一个参数");
         }
+        
+        UserDetailVO result = userService.getUserDetail(id, username, studentId);
         return Result.success(result);
     }
 

@@ -99,12 +99,11 @@ public class AwardTypeServiceImpl
     /**
      * 获取所有奖项类型列表
      *
-     * @return 所有奖项类型列表
+     * @return 所有奖项类型列表，按排序ID和ID升序排列，包含关联的奖项数量
      */
     @Override
     public List<AwardTypeVO> listAllAwardTypes() {
-        List<AwardType> awardTypes = list();
-        return BeanConvertUtil.toList(awardTypes, AwardTypeVO.class);
+        return baseMapper.selectAllWithRefCount();
     }
 
     /**

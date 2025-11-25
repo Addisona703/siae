@@ -21,12 +21,18 @@ import com.hngy.siae.content.dto.request.content.ContentPageDTO;
 import com.hngy.siae.content.dto.response.ContentVO;
 import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
+import com.hngy.siae.content.entity.Category;
+import com.hngy.siae.content.feign.UserFeignClient;
+import com.hngy.siae.content.feign.dto.UserProfileDTO;
 import com.hngy.siae.content.mapper.ContentMapper;
+import com.hngy.siae.content.mapper.CategoryMapper;
 import com.hngy.siae.content.service.ContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 /** 
  * 内容服务impl
@@ -41,6 +47,9 @@ import java.util.Optional;
 public class ContentServiceImpl
         extends ServiceImpl<ContentMapper, Content>
         implements ContentService {
+
+    private final CategoryMapper categoryMapper;
+    private final UserFeignClient userFeignClient;
 
     @Override
     public Content createContent(ContentCreateDTO dto) {
@@ -143,13 +152,38 @@ public class ContentServiceImpl
 
     @Override
     public PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentPageDTO> dto) {
-        // 创建分页参数
+        // 如果查询条件简单，使用联表查询
+        ContentPageDTO params = dto.getParams();
+        boolean useJoinQuery = StrUtil.isBlank(dto.getKeyword()) 
+                && (params == null || CollUtil.isEmpty(params.getTagIds()));
+        
+        if (useJoinQuery) {
+            // 使用联表查询
+            Page<ContentVO<EmptyDetailVO>> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+            Content queryContent = new Content();
+            if (params != null) {
+                queryContent.setCategoryId(params.getCategoryId());
+                queryContent.setStatus(params.getStatus());
+                queryContent.setType(params.getType());
+            }
+            
+            Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectContentPageWithDetails(page, queryContent);
+            
+            // 批量填充作者昵称
+            fillAuthorNicknames(resultPage.getRecords());
+            
+            // 设置空的detail对象
+            resultPage.getRecords().forEach(vo -> vo.setDetail(new EmptyDetailVO()));
+            
+            return PageConvertUtil.convert(resultPage);
+        }
+        
+        // 复杂查询使用原有逻辑
         Page<Content> page = PageConvertUtil.toPage(dto);
 
         LambdaQueryWrapper<Content> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.isNotNull(Content::getId);
 
-        ContentPageDTO params = dto.getParams();
         if (params != null) {
             if (params.getCategoryId() != null) {
                 queryWrapper.eq(Content::getCategoryId, params.getCategoryId());
@@ -180,15 +214,71 @@ public class ContentServiceImpl
 
         Page<Content> resultPage = this.page(page, queryWrapper);
 
-        return PageConvertUtil.convert(resultPage, this::convertToContentVO);
+        PageVO<ContentVO<EmptyDetailVO>> pageVO = PageConvertUtil.convert(resultPage, this::convertToContentVO);
+        
+        // 批量填充作者昵称
+        fillAuthorNicknames(pageVO.getRecords());
+        
+        return pageVO;
     }
 
     /**
-     * 将Content实体转换为ContentVO
+     * 将Content实体转换为ContentVO（用于复杂查询场景）
      */
     private ContentVO<EmptyDetailVO> convertToContentVO(Content content) {
+        // 使用联表查询获取完整信息
+        Page<ContentVO<EmptyDetailVO>> page = new Page<>(1, 1);
+        Content queryContent = new Content();
+        queryContent.setId(content.getId());
+        
+        Page<ContentVO<EmptyDetailVO>> result = baseMapper.selectContentPageWithDetails(page, queryContent);
+        
+        if (CollUtil.isNotEmpty(result.getRecords())) {
+            ContentVO<EmptyDetailVO> vo = result.getRecords().get(0);
+            vo.setDetail(new EmptyDetailVO());
+            return vo;
+        }
+        
+        // 降级处理
         ContentVO<EmptyDetailVO> vo = BeanConvertUtil.to(content, ContentVO.class);
         vo.setDetail(new EmptyDetailVO());
         return vo;
+    }
+
+    /**
+     * 批量填充作者昵称
+     */
+    private void fillAuthorNicknames(List<ContentVO<EmptyDetailVO>> contentList) {
+        if (CollUtil.isEmpty(contentList)) {
+            return;
+        }
+
+        try {
+            // 收集所有作者ID
+            List<Long> userIds = contentList.stream()
+                    .map(ContentVO::getUploadedBy)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            if (CollUtil.isEmpty(userIds)) {
+                return;
+            }
+
+            // 批量查询用户信息
+            Map<Long, UserProfileDTO> userMap = userFeignClient.batchGetUserProfiles(userIds);
+            
+            if (userMap != null && !userMap.isEmpty()) {
+                // 填充昵称
+                contentList.forEach(content -> {
+                    UserProfileDTO userProfile = userMap.get(content.getUploadedBy());
+                    if (userProfile != null) {
+                        content.setAuthorNickname(userProfile.getNickname());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("批量查询用户信息失败，跳过填充作者昵称", e);
+        }
     }
 }

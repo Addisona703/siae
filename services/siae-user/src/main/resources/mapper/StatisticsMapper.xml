@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.user.mapper.StatisticsMapper">
+
+    <!-- 统计总用户数 -->
+    <select id="countTotalUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_deleted = 0
+    </select>
+
+    <!-- 统计启用用户数 -->
+    <select id="countEnabledUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_deleted = 0 AND status = 1
+    </select>
+
+    <!-- 统计禁用用户数 -->
+    <select id="countDisabledUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_deleted = 0 AND status = 0
+    </select>
+
+    <!-- 统计正式成员数 -->
+    <select id="countFormalMembers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM membership
+        WHERE is_deleted = 0 AND lifecycle_status = 1
+    </select>
+
+    <!-- 统计候选成员数 -->
+    <select id="countCandidateMembers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM membership
+        WHERE is_deleted = 0 AND lifecycle_status = 0
+    </select>
+
+    <!-- 统计本月新增用户数 -->
+    <select id="countNewUsersThisMonth" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_deleted = 0
+          AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+    </select>
+
+    <!-- 统计本年新增用户数 -->
+    <select id="countNewUsersThisYear" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_deleted = 0
+          AND YEAR(created_at) = YEAR(NOW())
+    </select>
+
+    <!-- 获取部门统计 -->
+    <select id="getDepartmentStats" resultType="com.hngy.siae.user.dto.response.statistics.DepartmentStatVO">
+        SELECT
+            d.id AS departmentId,
+            d.name AS departmentName,
+            COUNT(DISTINCT md.membership_id) AS totalMembers,
+            SUM(CASE WHEN m.lifecycle_status = 1 THEN 1 ELSE 0 END) AS formalMembers,
+            SUM(CASE WHEN m.lifecycle_status = 0 THEN 1 ELSE 0 END) AS candidateMembers,
+            SUM(CASE WHEN md.has_position = 1 THEN 1 ELSE 0 END) AS withPosition
+        FROM department d
+        LEFT JOIN member_department md ON d.id = md.department_id
+        LEFT JOIN membership m ON md.membership_id = m.id AND m.is_deleted = 0
+        GROUP BY d.id, d.name
+        ORDER BY totalMembers DESC
+    </select>
+
+    <!-- 统计总获奖数 -->
+    <select id="countTotalAwards" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_award
+        WHERE is_deleted = 0
+    </select>
+
+    <!-- 统计本年获奖数 -->
+    <select id="countThisYearAwards" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_award
+        WHERE is_deleted = 0
+          AND YEAR(awarded_at) = YEAR(NOW())
+    </select>
+
+    <!-- 统计本月获奖数 -->
+    <select id="countThisMonthAwards" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_award
+        WHERE is_deleted = 0
+          AND DATE_FORMAT(awarded_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+    </select>
+
+    <!-- 统计获奖总人数 -->
+    <select id="countTotalAwardedUsers" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT u.id)
+        FROM user u
+        INNER JOIN user_award ua ON JSON_CONTAINS(ua.team_members, CAST(u.id AS JSON))
+        WHERE ua.is_deleted = 0
+          AND u.is_deleted = 0
+    </select>
+
+    <!-- 统计团队获奖数（成员数>1） -->
+    <select id="countTeamAwards" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_award
+        WHERE is_deleted = 0
+          AND team_members IS NOT NULL
+          AND team_members != ''
+          AND team_members != '[]'
+          AND JSON_LENGTH(team_members) > 1
+    </select>
+
+    <!-- 统计个人获奖数（成员数=1） -->
+    <select id="countIndividualAwards" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_award
+        WHERE is_deleted = 0
+          AND team_members IS NOT NULL
+          AND team_members != ''
+          AND team_members != '[]'
+          AND JSON_LENGTH(team_members) = 1
+    </select>
+
+    <!-- 按奖项等级统计 -->
+    <select id="getAwardsByLevel" resultType="com.hngy.siae.user.dto.response.statistics.AwardDistributionVO">
+        SELECT
+            al.id AS id,
+            al.name AS name,
+            COUNT(ua.id) AS count
+        FROM award_level al
+        LEFT JOIN user_award ua ON al.id = ua.award_level_id AND ua.is_deleted = 0
+        GROUP BY al.id, al.name
+        ORDER BY count DESC
+    </select>
+
+    <!-- 按奖项类型统计 -->
+    <select id="getAwardsByType" resultType="com.hngy.siae.user.dto.response.statistics.AwardDistributionVO">
+        SELECT
+            at.id AS id,
+            at.name AS name,
+            COUNT(ua.id) AS count
+        FROM award_type at
+        LEFT JOIN user_award ua ON at.id = ua.award_type_id AND ua.is_deleted = 0
+        GROUP BY at.id, at.name
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取获奖趋势（按月） -->
+    <select id="getAwardTrendByMonth" resultType="com.hngy.siae.user.dto.response.statistics.TrendVO">
+        SELECT
+            DATE_FORMAT(awarded_at, '%Y-%m') AS period,
+            COUNT(*) AS count
+        FROM user_award
+        WHERE is_deleted = 0
+          AND awarded_at >= DATE_SUB(NOW(), INTERVAL #{limit} MONTH)
+        GROUP BY DATE_FORMAT(awarded_at, '%Y-%m')
+        ORDER BY period ASC
+    </select>
+
+    <!-- 获取获奖趋势（按年） -->
+    <select id="getAwardTrendByYear" resultType="com.hngy.siae.user.dto.response.statistics.TrendVO">
+        SELECT
+            YEAR(awarded_at) AS period,
+            COUNT(*) AS count
+        FROM user_award
+        WHERE is_deleted = 0
+          AND awarded_at >= DATE_SUB(NOW(), INTERVAL #{limit} YEAR)
+        GROUP BY YEAR(awarded_at)
+        ORDER BY period ASC
+    </select>
+
+    <!-- 获取获奖排行榜 -->
+    <select id="getAwardRanking" resultType="com.hngy.siae.user.dto.response.statistics.AwardRankVO">
+        SELECT
+            u.id AS userId,
+            u.username AS username,
+            up.real_name AS realName,
+            u.avatar_file_id AS avatarUrl,
+            COUNT(ua.id) AS awardCount,
+            SUM(CASE WHEN al.name LIKE '%国家%' THEN 1 ELSE 0 END) AS nationalCount,
+            SUM(CASE WHEN al.name LIKE '%省%' THEN 1 ELSE 0 END) AS provincialCount,
+            SUM(CASE WHEN al.name LIKE '%校%' THEN 1 ELSE 0 END) AS schoolCount
+        FROM user u
+        INNER JOIN user_profile up ON u.id = up.user_id
+        INNER JOIN user_award ua ON FIND_IN_SET(u.id, REPLACE(REPLACE(REPLACE(ua.team_members, '[', ''), ']', ''), ' ', '')) > 0
+                                 OR (ua.team_members IS NULL OR ua.team_members = '' OR ua.team_members = '[]')
+        LEFT JOIN award_level al ON ua.award_level_id = al.id
+        WHERE u.is_deleted = 0 AND ua.is_deleted = 0
+        GROUP BY u.id, u.username, up.real_name, u.avatar_file_id
+        ORDER BY awardCount DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取性别统计 -->
+    <select id="getGenderStats" resultType="com.hngy.siae.user.dto.response.statistics.GenderStatVO">
+        SELECT
+            COALESCE(up.gender, 0) AS gender,
+            CASE
+                WHEN COALESCE(up.gender, 0) = 1 THEN '男'
+                WHEN COALESCE(up.gender, 0) = 2 THEN '女'
+                ELSE '未知'
+            END AS genderName,
+            COUNT(*) AS count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM user WHERE is_deleted = 0), 2) AS percentage
+        FROM user u
+        LEFT JOIN user_profile up ON u.id = up.user_id
+        WHERE u.is_deleted = 0
+        GROUP BY COALESCE(up.gender, 0)
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取年级统计 -->
+    <select id="getGradeStats" resultType="com.hngy.siae.user.dto.response.statistics.GradeStatVO">
+        SELECT
+            CASE
+                WHEN LENGTH(u.student_id) >= 4 AND SUBSTRING(u.student_id, 1, 4) REGEXP '^[0-9]{4}$'
+                THEN CONCAT(SUBSTRING(u.student_id, 1, 4), '级')
+                ELSE '其他'
+            END AS grade,
+            COUNT(*) AS count
+        FROM user u
+        WHERE u.is_deleted = 0 AND u.student_id IS NOT NULL
+        GROUP BY grade
+        ORDER BY grade DESC
+    </select>
+
+    <!-- 获取专业统计 -->
+    <select id="getMajorStats" resultType="com.hngy.siae.user.dto.response.statistics.MajorStatVO">
+        SELECT
+            m.id AS majorId,
+            m.name AS majorName,
+            COUNT(DISTINCT mce.user_id) AS count
+        FROM major m
+        LEFT JOIN major_class_enrollment mce ON m.id = mce.major_id
+        LEFT JOIN user u ON mce.user_id = u.id AND u.is_deleted = 0
+        GROUP BY m.id, m.name
+        HAVING count > 0
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取职位统计 -->
+    <select id="getPositionStats" resultType="com.hngy.siae.user.dto.response.statistics.PositionStatVO">
+        SELECT
+            p.id AS positionId,
+            p.name AS positionName,
+            COUNT(DISTINCT mp.membership_id) AS count
+        FROM position p
+        LEFT JOIN member_position mp ON p.id = mp.position_id
+        LEFT JOIN membership m ON mp.membership_id = m.id AND m.is_deleted = 0
+        GROUP BY p.id, p.name
+        HAVING count > 0
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取入会趋势（按月） -->
+    <select id="getMembershipTrendByMonth" resultType="com.hngy.siae.user.dto.response.statistics.MembershipTrendVO">
+        SELECT
+            period,
+            SUM(formal_count) AS formalCount,
+            SUM(candidate_count) AS candidateCount
+        FROM (
+            SELECT
+                DATE_FORMAT(join_date, '%Y-%m') AS period,
+                COUNT(*) AS formal_count,
+                0 AS candidate_count
+            FROM membership
+            WHERE is_deleted = 0
+              AND lifecycle_status = 1
+              AND join_date IS NOT NULL
+              AND join_date >= DATE_SUB(NOW(), INTERVAL #{limit} MONTH)
+            GROUP BY DATE_FORMAT(join_date, '%Y-%m')
+
+            UNION ALL
+
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') AS period,
+                0 AS formal_count,
+                COUNT(*) AS candidate_count
+            FROM membership
+            WHERE is_deleted = 0
+              AND lifecycle_status = 0
+              AND created_at >= DATE_SUB(NOW(), INTERVAL #{limit} MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        ) AS combined
+        GROUP BY period
+        ORDER BY period ASC
+    </select>
+
+    <!-- 获取入会趋势（按年） -->
+    <select id="getMembershipTrendByYear" resultType="com.hngy.siae.user.dto.response.statistics.MembershipTrendVO">
+        SELECT
+            period,
+            SUM(formal_count) AS formalCount,
+            SUM(candidate_count) AS candidateCount
+        FROM (
+            SELECT
+                YEAR(join_date) AS period,
+                COUNT(*) AS formal_count,
+                0 AS candidate_count
+            FROM membership
+            WHERE is_deleted = 0
+              AND lifecycle_status = 1
+              AND join_date IS NOT NULL
+              AND join_date >= DATE_SUB(NOW(), INTERVAL #{limit} YEAR)
+            GROUP BY YEAR(join_date)
+
+            UNION ALL
+
+            SELECT
+                YEAR(created_at) AS period,
+                0 AS formal_count,
+                COUNT(*) AS candidate_count
+            FROM membership
+            WHERE is_deleted = 0
+              AND lifecycle_status = 0
+              AND created_at >= DATE_SUB(NOW(), INTERVAL #{limit} YEAR)
+            GROUP BY YEAR(created_at)
+        ) AS combined
+        GROUP BY period
+        ORDER BY period ASC
+    </select>
+
+    <!-- 获取获奖趋势明细数据（按月） -->
+    <select id="getAwardLevelTrendByMonth" resultType="com.hngy.siae.user.dto.response.statistics.AwardLevelTrendItemVO">
+        SELECT
+            DATE_FORMAT(ua.awarded_at, '%Y-%m') AS period,
+            COALESCE(al.name, '未知等级') AS levelName,
+            COUNT(*) AS count
+        FROM user_award ua
+        LEFT JOIN award_level al ON ua.award_level_id = al.id
+        WHERE ua.is_deleted = 0
+        <choose>
+            <when test="startPeriod != null and endPeriod != null">
+                AND DATE_FORMAT(ua.awarded_at, '%Y-%m') BETWEEN #{startPeriod} AND #{endPeriod}
+            </when>
+            <when test="limit != null">
+                AND ua.awarded_at >= DATE_SUB(NOW(), INTERVAL #{limit} MONTH)
+            </when>
+        </choose>
+        GROUP BY DATE_FORMAT(ua.awarded_at, '%Y-%m'), al.name
+        ORDER BY period ASC, levelName ASC
+    </select>
+
+    <!-- 获取获奖趋势明细数据（按年） -->
+    <select id="getAwardLevelTrendByYear" resultType="com.hngy.siae.user.dto.response.statistics.AwardLevelTrendItemVO">
+        SELECT
+            YEAR(ua.awarded_at) AS period,
+            COALESCE(al.name, '未知等级') AS levelName,
+            COUNT(*) AS count
+        FROM user_award ua
+        LEFT JOIN award_level al ON ua.award_level_id = al.id
+        WHERE ua.is_deleted = 0
+        <choose>
+            <when test="startPeriod != null and endPeriod != null">
+                AND YEAR(ua.awarded_at) BETWEEN #{startPeriod} AND #{endPeriod}
+            </when>
+            <when test="limit != null">
+                AND ua.awarded_at >= DATE_SUB(NOW(), INTERVAL #{limit} YEAR)
+            </when>
+        </choose>
+        GROUP BY YEAR(ua.awarded_at), al.name
+        ORDER BY period ASC, levelName ASC
+    </select>
+
+</mapper>

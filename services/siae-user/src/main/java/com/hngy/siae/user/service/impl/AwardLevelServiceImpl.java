@@ -99,14 +99,11 @@ public class AwardLevelServiceImpl
     /**
      * 获取所有奖项等级列表
      *
-     * @return 所有奖项等级列表，按排序ID和ID升序排列
+     * @return 所有奖项等级列表，按排序ID和ID升序排列，包含关联的奖项数量
      */
     @Override
     public List<AwardLevelVO> listAllAwardLevels() {
-        List<AwardLevel> awardLevels = lambdaQuery()
-                .orderByAsc(AwardLevel::getOrderId, AwardLevel::getId)
-                .list();
-        return BeanConvertUtil.toList(awardLevels, AwardLevelVO.class);
+        return baseMapper.selectAllWithRefCount();
     }
 
     /**

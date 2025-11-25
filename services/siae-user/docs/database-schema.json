@@ -23,8 +23,7 @@
       "entityClass": "UserProfile",
       "description": "用户详情表",
       "fields": [
-        { "name": "id", "type": "Long", "description": "主键，自增", "primaryKey": true },
-        { "name": "userId", "type": "Long", "description": "用户ID（关联user表）", "foreignKey": "user.id" },
+        { "name": "userId", "type": "Long", "description": "用户ID（关联user表，作为主键）", "primaryKey": true, "foreignKey": "user.id" },
         { "name": "realName", "type": "String", "description": "真实姓名" },
         { "name": "nickname", "type": "String", "description": "昵称" },
         { "name": "email", "type": "String", "description": "邮箱" },
@@ -122,7 +121,6 @@
         { "name": "userId", "type": "Long", "description": "用户ID", "foreignKey": "user.id" },
         { "name": "memberType", "type": "MemberTypeEnum", "description": "成员类型：0非协会成员，1协会成员" },
         { "name": "status", "type": "ClassUserStatusEnum", "description": "状态：1在读，2离校" },
-        { "name": "joinDate", "type": "LocalDate", "description": "入会日期" },
         { "name": "isDeleted", "type": "Integer", "description": "是否删除：0否，1是", "logicDelete": true },
         { "name": "createdAt", "type": "LocalDateTime", "description": "记录创建时间" },
         { "name": "updatedAt", "type": "LocalDateTime", "description": "记录更新时间" }

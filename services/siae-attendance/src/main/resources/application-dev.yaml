@@ -1,0 +1,134 @@
+# ===================================================================
+# LOCAL CONFIGURATION FOR SIAE-ATTENDANCE
+# 本地开发配置，不使用 Nacos
+# ===================================================================
+
+server:
+  port: 8050
+  servlet:
+    context-path: /api/v1/attendance
+
+spring:
+  # 禁用 Nacos
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+      config:
+        enabled: false
+  
+  # 排除 Spring Security 自动配置（开发环境）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/attendance_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: root
+    password: 123456
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 60000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  
+  # Jackson 配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+  
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 0  # 使用 database 0，与其他服务保持一致
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.hngy.siae.attendance.entity
+
+# SpringDoc API 文档配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'siae-attendance'
+      paths-to-match: '/**'
+  packages-to-scan: com.hngy.siae.attendance.controller
+
+# SIAE 安全配置
+siae:
+  auth:
+    enable-gateway-auth: true  # 禁用网关认证（开发环境）
+    enable-direct-access: false  # 允许直接访问
+  security:
+    enabled: true  # 启用权限检查
+
+# Feign 配置
+feign:
+  user:
+    url: http://localhost:8020  # User服务地址
+  notification:
+    url: http://localhost:8030  # Notification服务地址
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.hngy.siae: DEBUG
+    com.hngy.siae.attendance: DEBUG
+
+# 考勤服务限流配置（暂时禁用）
+attendance:
+  rate-limit:
+    enabled: false
+    # 签到接口限流：每分钟10次
+    check-in:
+      permits: 10
+      window: 60
+    # 签退接口限流：每分钟10次
+    check-out:
+      permits: 10
+      window: 60
+    # 查询接口限流：每分钟100次
+    query:
+      permits: 100
+      window: 60
+    # 导出接口限流：每分钟5次
+    export:
+      permits: 5
+      window: 60

@@ -128,7 +128,7 @@ public class FileController {
      */
     @GetMapping("/{fileId}/url")
     @Operation(summary = "获取文件URL", description = "获取单个文件的预签名访问URL，支持缓存")
-    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
+//    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
     public Result<String> getFileUrl(
             @Parameter(description = "文件ID")
             @PathVariable String fileId,
@@ -154,7 +154,7 @@ public class FileController {
      */
     @PostMapping("/urls/batch")
     @Operation(summary = "批量获取文件URL", description = "批量获取文件的预签名访问URL，支持缓存")
-    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
+//    @SiaeAuthorize("hasAuthority('" + MEDIA_FILE_QUERY + "')")
     public Result<BatchUrlResponse> batchGetFileUrls(
             @Parameter(description = "批量URL请求")
             @Valid @RequestBody com.hngy.siae.media.domain.dto.file.BatchUrlRequest request) {

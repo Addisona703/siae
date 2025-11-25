@@ -53,5 +53,72 @@
         ORDER BY awarded_at DESC
     </select>
 
+    <!-- 分页查询用户获奖记录（带关联信息，不含成员列表） -->
+    <select id="selectUserAwardPageWithDetails" resultType="com.hngy.siae.user.dto.response.UserAwardVO">
+        SELECT
+            ua.id,
+            ua.award_title AS awardTitle,
+            ua.award_level_id AS awardLevelId,
+            al.name AS awardLevelName,
+            ua.award_type_id AS awardTypeId,
+            at.name AS awardTypeName,
+            ua.awarded_by AS awardedBy,
+            ua.awarded_at AS awardedAt,
+            ua.description,
+            ua.certificate_file_id AS certificateFileId,
+            ua.team_members AS teamMembers,
+            ua.created_at AS createdAt,
+            ua.updated_at AS updatedAt
+        FROM user_award ua
+        LEFT JOIN award_level al ON ua.award_level_id = al.id
+        LEFT JOIN award_type at ON ua.award_type_id = at.id
+        WHERE ua.is_deleted = 0
+        <if test="query != null">
+            <if test="query.id != null">
+                AND ua.id = #{query.id}
+            </if>
+            <if test="query.userId != null">
+                AND JSON_CONTAINS(ua.team_members, #{query.userId})
+            </if>
+            <if test="query.awardTypeId != null">
+                AND ua.award_type_id = #{query.awardTypeId}
+            </if>
+            <if test="query.awardLevelId != null">
+                AND ua.award_level_id = #{query.awardLevelId}
+            </if>
+            <if test="query.awardTitle != null and query.awardTitle != ''">
+                AND ua.award_title LIKE CONCAT('%', #{query.awardTitle}, '%')
+            </if>
+            <if test="query.awardedBy != null and query.awardedBy != ''">
+                AND ua.awarded_by LIKE CONCAT('%', #{query.awardedBy}, '%')
+            </if>
+            <if test="query.awardDateStart != null">
+                AND ua.awarded_at &gt;= #{query.awardDateStart}
+            </if>
+            <if test="query.awardDateEnd != null">
+                AND ua.awarded_at &lt;= #{query.awardDateEnd}
+            </if>
+        </if>
+        ORDER BY ua.awarded_at DESC
+    </select>
+
+    <!-- 批量查询用户基本信息 -->
+    <select id="selectUsersByIds" resultType="com.hngy.siae.user.dto.response.UserVO">
+        SELECT
+            u.id,
+            u.student_id AS studentId,
+            u.avatar_file_id AS avatarFileId,
+            u.created_at AS createAt,
+            u.updated_at AS updateAt,
+            up.real_name AS nickname
+        FROM user u
+        LEFT JOIN user_profile up ON u.id = up.user_id
+        WHERE u.id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        AND u.is_deleted = 0
+    </select>
+
 
 </mapper>

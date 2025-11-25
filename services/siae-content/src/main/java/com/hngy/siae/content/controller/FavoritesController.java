@@ -37,10 +37,6 @@ public class FavoritesController {
 
     // ==================== 收藏夹管理 ====================
 
-    /**
-     * 创建收藏夹
-     * 权限说明：所有认证用户可以创建收藏夹
-     */
     @Operation(summary = "创建收藏夹", description = "创建一个新的收藏夹")
     @PostMapping("/folders")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_MANAGE + "')")
@@ -50,10 +46,7 @@ public class FavoritesController {
         return Result.success(favoriteService.createFolder(createDTO));
     }
 
-    /**
-     * 更新收藏夹
-     * 权限说明：所有认证用户可以更新收藏夹，非管理员只能更新自己的
-     */
+
     @Operation(summary = "更新收藏夹", description = "更新收藏夹的名称、描述等信息")
     @PutMapping("/folders")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_MANAGE + "')")
@@ -63,10 +56,7 @@ public class FavoritesController {
         return Result.success(favoriteService.updateFolder(updateDTO));
     }
 
-    /**
-     * 删除收藏夹
-     * 权限说明：所有认证用户可以删除收藏夹，非管理员只能删除自己的
-     */
+
     @Operation(summary = "删除收藏夹", description = "删除指定的收藏夹，默认收藏夹不可删除")
     @DeleteMapping("/folders/{folderId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_MANAGE + "')")
@@ -77,10 +67,7 @@ public class FavoritesController {
         return Result.success();
     }
 
-    /**
-     * 查询用户的收藏夹列表
-     * 权限说明：所有认证用户可以查询收藏夹列表
-     */
+
     @Operation(summary = "查询收藏夹列表", description = "获取指定用户的所有收藏夹")
     @GetMapping("/folders/user/{userId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")
@@ -90,10 +77,7 @@ public class FavoritesController {
         return Result.success(favoriteService.getUserFolders(userId));
     }
 
-    /**
-     * 查询收藏夹详情
-     * 权限说明：所有认证用户可以查询收藏夹详情
-     */
+
     @Operation(summary = "查询收藏夹详情", description = "获取指定收藏夹的详细信息")
     @GetMapping("/folders/{folderId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")
@@ -105,10 +89,6 @@ public class FavoritesController {
 
     // ==================== 收藏内容管理 ====================
 
-    /**
-     * 添加收藏
-     * 权限说明：所有认证用户可以添加收藏
-     */
     @Operation(summary = "添加收藏", description = "将内容添加到收藏夹")
     @PostMapping("/items")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_ADD + "')")
@@ -118,10 +98,7 @@ public class FavoritesController {
         return Result.success(favoriteService.addFavorite(addDTO));
     }
 
-    /**
-     * 更新收藏
-     * 权限说明：所有认证用户可以更新收藏，非管理员只能更新自己的
-     */
+
     @Operation(summary = "更新收藏", description = "更新收藏的备注、移动到其他收藏夹等")
     @PutMapping("/items")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_MANAGE + "')")
@@ -131,10 +108,7 @@ public class FavoritesController {
         return Result.success(favoriteService.updateFavorite(updateDTO));
     }
 
-    /**
-     * 取消收藏
-     * 权限说明：所有认证用户可以取消收藏
-     */
+
     @Operation(summary = "取消收藏", description = "从收藏夹中移除指定内容")
     @DeleteMapping("/items/{itemId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_REMOVE + "')")
@@ -145,10 +119,7 @@ public class FavoritesController {
         return Result.success();
     }
 
-    /**
-     * 查询收藏夹中的内容列表
-     * 权限说明：所有认证用户可以查询收藏内容列表
-     */
+
     @Operation(summary = "查询收藏内容列表", description = "分页查询指定收藏夹中的收藏内容")
     @PostMapping("/items/folder/{folderId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")
@@ -160,10 +131,7 @@ public class FavoritesController {
         return Result.success(favoriteService.getFolderItems(folderId, pageDTO));
     }
 
-    /**
-     * 查询用户的所有收藏
-     * 权限说明：所有认证用户可以查询用户所有收藏
-     */
+
     @Operation(summary = "查询用户所有收藏", description = "分页查询用户在所有收藏夹中的收藏内容")
     @PostMapping("/items/user/{userId}")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")
@@ -175,10 +143,7 @@ public class FavoritesController {
         return Result.success(favoriteService.getUserFavorites(userId, pageDTO));
     }
 
-    /**
-     * 检查内容是否已收藏
-     * 权限说明：所有认证用户可以检查是否已收藏
-     */
+
     @Operation(summary = "检查是否已收藏", description = "检查用户是否已收藏指定内容")
     @GetMapping("/items/check")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")

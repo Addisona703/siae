@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StorageService {
 
-    private final MinioClient minioClient;
+    private final MinioClient minioClient;  // 用于实际操作
+    private final MinioClient minioClientForUrl;  // 用于生成URL
     private final MinioConfig minioConfig;
     private final MediaProperties mediaProperties;
     
@@ -71,7 +72,7 @@ public class StorageService {
      */
     public String generatePresignedUploadUrl(String bucketName, String objectKey, int expirySeconds) {
         try {
-            return minioClient.getPresignedObjectUrl(
+            return minioClientForUrl.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.PUT)
                             .bucket(bucketName)
@@ -91,7 +92,7 @@ public class StorageService {
      */
     public String generatePresignedDownloadUrl(String bucketName, String objectKey, int expirySeconds) {
         try {
-            String url = minioClient.getPresignedObjectUrl(
+            String url = minioClientForUrl.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(bucketName)
@@ -127,7 +128,7 @@ public class StorageService {
     public String generatePartUploadUrl(String bucketName, String objectKey, int partNumber, int expirySeconds) {
         try {
             String partObjectKey = buildPartObjectKey(objectKey, partNumber);
-            return minioClient.getPresignedObjectUrl(
+            return minioClientForUrl.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.PUT)
                             .bucket(bucketName)
@@ -165,7 +166,7 @@ public class StorageService {
                 CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
                     try {
                         String partObjectKey = buildPartObjectKey(objectKey, partNumber);
-                        return minioClient.getPresignedObjectUrl(
+                        return minioClientForUrl.getPresignedObjectUrl(
                                 GetPresignedObjectUrlArgs.builder()
                                         .method(Method.PUT)
                                         .bucket(bucketName)

@@ -49,11 +49,71 @@
         FROM content c
         LEFT JOIN category cat ON c.category_id = cat.id
         LEFT JOIN statistics s ON c.id = s.content_id
-        LEFT JOIN content_tag_relation ctr ON c.id = ctr.content_id
+        LEFT JOIN tag_relation ctr ON c.id = ctr.content_id
         LEFT JOIN tag t ON ctr.tag_id = t.id
         WHERE c.id = #{contentId}
         AND c.status != 3
         GROUP BY c.id
+    </select>
+
+    <!-- 内容分页查询结果映射 -->
+    <resultMap id="ContentPageResultMap" type="com.hngy.siae.content.dto.response.ContentVO">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="description" column="description"/>
+        <result property="uploadedBy" column="uploaded_by"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <!-- 统计信息嵌套对象 -->
+        <association property="statistics" javaType="com.hngy.siae.content.dto.response.StatisticsVO">
+            <result property="contentId" column="content_id"/>
+            <result property="viewCount" column="view_count"/>
+            <result property="likeCount" column="like_count"/>
+            <result property="favoriteCount" column="favorite_count"/>
+            <result property="commentCount" column="comment_count"/>
+        </association>
+    </resultMap>
+
+    <!-- 分页查询内容列表（联表查询分类名称和统计信息） -->
+    <select id="selectContentPageWithDetails" resultMap="ContentPageResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            c.uploaded_by,
+            c.category_id,
+            cat.name as category_name,
+            c.status,
+            c.create_time,
+            c.update_time,
+            s.content_id,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        <where>
+            <if test="content.id != null">
+                AND c.id = #{content.id}
+            </if>
+            <if test="content.categoryId != null">
+                AND c.category_id = #{content.categoryId}
+            </if>
+            <if test="content.status != null">
+                AND c.status = #{content.status}
+            </if>
+            <if test="content.type != null">
+                AND c.type = #{content.type}
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
     </select>
 
 </mapper>

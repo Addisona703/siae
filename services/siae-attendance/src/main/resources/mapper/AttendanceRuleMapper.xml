@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.attendance.mapper.AttendanceRuleMapper">
+
+    <!-- 动态更新考勤规则 -->
+    <update id="updateRuleSelective">
+        UPDATE attendance_rule
+        <set>
+            <if test="dto.name != null">
+                name = #{dto.name},
+            </if>
+            <if test="dto.description != null">
+                description = #{dto.description},
+            </if>
+            <if test="dto.targetType != null">
+                target_type = #{dto.targetType},
+            </if>
+            <if test="dto.targetIds != null">
+                target_ids = #{dto.targetIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="dto.checkInStartTime != null">
+                check_in_start_time = #{dto.checkInStartTime},
+            </if>
+            <if test="dto.checkInEndTime != null">
+                check_in_end_time = #{dto.checkInEndTime},
+            </if>
+            <if test="dto.checkOutStartTime != null">
+                check_out_start_time = #{dto.checkOutStartTime},
+            </if>
+            <if test="dto.checkOutEndTime != null">
+                check_out_end_time = #{dto.checkOutEndTime},
+            </if>
+            <if test="dto.lateThresholdMinutes != null">
+                late_threshold_minutes = #{dto.lateThresholdMinutes},
+            </if>
+            <if test="dto.earlyThresholdMinutes != null">
+                early_threshold_minutes = #{dto.earlyThresholdMinutes},
+            </if>
+            <if test="dto.locationRequired != null">
+                location_required = #{dto.locationRequired},
+            </if>
+            <if test="dto.allowedLocations != null">
+                allowed_locations = #{dto.allowedLocations, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="dto.locationRadiusMeters != null">
+                location_radius_meters = #{dto.locationRadiusMeters},
+            </if>
+            <if test="dto.effectiveDate != null">
+                effective_date = #{dto.effectiveDate},
+            </if>
+            <if test="dto.expiryDate != null">
+                expiry_date = #{dto.expiryDate},
+            </if>
+            <if test="dto.status != null">
+                status = #{dto.status},
+            </if>
+            <if test="dto.priority != null">
+                priority = #{dto.priority},
+            </if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

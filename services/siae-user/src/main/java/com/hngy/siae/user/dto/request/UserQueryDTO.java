@@ -31,6 +31,11 @@ public class UserQueryDTO implements Serializable {
     private String username;
     
     /**
+     * 学号
+     */
+    private String studentId;
+    
+    /**
      * 状态：0禁用，1启用
      */
     private Integer status;

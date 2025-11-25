@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.user.mapper.AwardLevelMapper">
+
+    <!-- 查询所有奖项等级及其关联的奖项数量 -->
+    <select id="selectAllWithRefCount" resultType="com.hngy.siae.user.dto.response.AwardLevelVO">
+        SELECT
+            al.id,
+            al.name,
+            al.order_id AS orderId,
+            COALESCE(COUNT(ua.id), 0) AS refCount
+        FROM award_level al
+        LEFT JOIN user_award ua ON al.id = ua.award_level_id AND ua.is_deleted = 0
+        GROUP BY al.id, al.name, al.order_id
+        ORDER BY al.order_id ASC, al.id ASC
+    </select>
+
+</mapper>

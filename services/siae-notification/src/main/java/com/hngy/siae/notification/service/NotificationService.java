@@ -34,6 +34,16 @@ public interface NotificationService extends IService<SystemNotification> {
     void markAllAsRead(Long userId);
 
     /**
+     * 更新通知已读状态
+     */
+    void updateReadStatus(Long notificationId, Long userId, Boolean isRead);
+
+    /**
+     * 更新所有通知已读状态
+     */
+    void updateAllReadStatus(Long userId, Boolean isRead);
+
+    /**
      * 获取未读通知数量
      */
     Long getUnreadCount(Long userId);

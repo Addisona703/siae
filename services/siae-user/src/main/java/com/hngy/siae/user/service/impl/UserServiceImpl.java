@@ -1,6 +1,7 @@
 package com.hngy.siae.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -239,6 +240,27 @@ public class UserServiceImpl
     }
 
     /**
+     * 根据条件查询用户详细信息（包含用户基本信息、详情信息和班级关联信息）
+     * <p>
+     * 支持按ID、用户名、学号查询，参数可选且可同时存在（多个条件使用AND连接）
+     *
+     * @param id 用户ID（可选）
+     * @param username 用户名（可选）
+     * @param studentId 学号（可选）
+     * @return 用户详细信息（三表联查结果），如果不存在则返回null
+     */
+    @Override
+    public UserDetailVO getUserDetail(Long id, String username, String studentId) {
+        UserDetailVO userDetail = baseMapper.selectUserDetail(id, username, studentId);
+        AssertUtils.notNull(userDetail, UserResultCodeEnum.USER_NOT_FOUND);
+        
+        // 获取头像和背景图URL
+        enrichUserDetailWithMediaUrls(userDetail);
+        
+        return userDetail;
+    }
+
+    /**
      * 根据用户名获取用户信息
      *
      * @param username 用户名
@@ -279,16 +301,20 @@ public class UserServiceImpl
      */
     @Override
     public PageVO<UserVO> listUsersByPage(PageDTO<UserQueryDTO> pageDTO) {
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        // 获取查询参数
+        UserQueryDTO params = pageDTO.getParams() != null ? pageDTO.getParams() : new UserQueryDTO();
 
-        Optional.ofNullable(pageDTO.getParams()).ifPresent(param -> wrapper.like(StrUtil.isNotBlank(param.getUsername()), User::getUsername, param.getUsername())
-                .eq(param.getStatus() != null, User::getStatus, param.getStatus()));
-
-        // 排除已删除记录，并按创建时间倒序
-        wrapper.eq(User::getIsDeleted, 0)
-                .orderByDesc(User::getCreatedAt);
-
-        Page<User> resultPage = page(PageConvertUtil.toPage(pageDTO), wrapper);
+        // 使用 XML 方式进行联表分页查询
+        Page<UserVO> page = PageConvertUtil.toPage(pageDTO);
+        IPage<UserVO> resultPage = baseMapper.selectUsersByPage(
+                page, 
+                params.getUsername(), 
+                params.getStudentId(), 
+                params.getRealName(), 
+                params.getEmail(), 
+                params.getStatus()
+        );
+        
         PageVO<UserVO> pageVO = PageConvertUtil.convert(resultPage, UserVO.class);
         
         // 批量获取头像URL
@@ -519,5 +545,47 @@ public class UserServiceImpl
             log.error("Failed to call media service for batch URLs", e);
             return Collections.emptyMap();
         }
+    }
+
+    @Override
+    public Map<Long, com.hngy.siae.user.dto.response.UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // 查询用户基本信息
+        List<User> users = this.lambdaQuery()
+                .in(User::getId, userIds)
+                .list();
+
+        if (users.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // 查询用户详情信息（只查询需要的字段）
+        List<UserProfile> profiles = userProfileMapper.selectList(
+                new LambdaQueryWrapper<UserProfile>()
+                        .select(UserProfile::getUserId, UserProfile::getNickname)
+                        .in(UserProfile::getUserId, userIds)
+        );
+
+        // 构建用户详情映射
+        Map<Long, UserProfile> profileMap = profiles.stream()
+                .collect(Collectors.toMap(UserProfile::getUserId, p -> p));
+
+        // 组装结果
+        return users.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> {
+                            UserProfile profile = profileMap.get(user.getId());
+                            return com.hngy.siae.user.dto.response.UserProfileSimpleVO.builder()
+                                    .userId(user.getId())
+                                    .username(user.getUsername())
+                                    .nickname(profile != null ? profile.getNickname() : null)
+                                    .avatarFileId(user.getAvatarFileId())
+                                    .build();
+                        }
+                ));
     }
 }

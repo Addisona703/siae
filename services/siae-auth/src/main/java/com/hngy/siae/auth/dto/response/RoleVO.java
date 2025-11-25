@@ -13,7 +13,7 @@ public class RoleVO {
     /**
      * 角色ID
      */
-    private Long roleId;
+    private Long id;
     
     /**
      * 角色名称

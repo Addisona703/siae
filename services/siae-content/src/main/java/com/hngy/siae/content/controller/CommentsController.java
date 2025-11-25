@@ -35,14 +35,6 @@ public class CommentsController {
     private final CommentFacade commentFacade;
 
 
-    /**
-     * 创建评论
-     * 权限说明：所有认证用户可以创建评论
-     *
-     * @param contentId 内容ID
-     * @param commentCreateDTO 评论创建请求DTO
-     * @return 创建的评论信息
-     */
     @Operation(summary = "创建评论", description = "为指定内容创建评论")
     @PostMapping("/{contentId}")
     public Result<CommentVO> createComment(
@@ -54,14 +46,6 @@ public class CommentsController {
     }
 
 
-    /**
-     * 更新评论
-     * 权限说明：所有认证用户可以更新评论
-     *
-     * @param commentId 评论ID
-     * @param commentUpdateDTO 评论更新请求DTO
-     * @return 更新后的评论信息
-     */
     @Operation(summary = "更新评论", description = "更新指定评论的内容")
     @PutMapping("/{commentId}")
     public Result<CommentVO> updateComment(
@@ -74,13 +58,6 @@ public class CommentsController {
     }
 
 
-    /**
-     * 删除评论
-     * 权限说明：所有认证用户可以删除评论，但非管理员只能删除自己创建的评论，内容创建者可以删除其内容下的评论
-     *
-     * @param id 评论ID
-     * @return 删除结果
-     */
     @Operation(summary = "删除评论", description = "删除指定的评论")
     @DeleteMapping("/{id}")
     public Result<Void> deleteComment(
@@ -91,14 +68,6 @@ public class CommentsController {
     }
 
 
-    /**
-     * 查询评论列表
-     * 权限说明：所有认证用户可以查询评论列表
-     *
-     * @param contentId 内容ID
-     * @param pageDTO 分页查询参数
-     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
-     */
     @PostMapping("/{contentId}/page")
     @Operation(summary = "查询评论列表", description = "根据内容ID分页查询评论列表")
     public Result<PageVO<CommentVO>> listComments(
@@ -108,15 +77,9 @@ public class CommentsController {
         return Result.success(commentsService.listComments(contentId, pageDTO));
     }
 
-    /**
-     * 分页查询评论（标准化分页）
-     * 权限说明：所有认证用户可以查询评论列表
-     *
-     * @param pageDTO 分页查询参数
-     * @return {@link Result }<{@link PageVO }<{@link CommentVO }>>
-     */
+
     @PostMapping("/page")
-    @Operation(summary = "分页查询评论", description = "使用标准化分页参数查询评论列表，支持多条件查询")
+    @Operation(summary = "分页查询评论", description = "可以查询指定用户发表的评论，也可以根据父评论查询子评论")
     public Result<PageVO<CommentVO>> listCommentsPage(
             @Parameter(description = "分页查询参数", required = true)
             @Valid @RequestBody PageDTO<CommentQueryDTO> pageDTO) {

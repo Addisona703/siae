@@ -90,8 +90,8 @@ springdoc:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: false
-    enable-direct-access: true
+    enable-gateway-auth: true
+    enable-direct-access: false
   security:
     enabled: true  # 必须启用，否则缺少 PasswordEncoder Bean
     jwt:
