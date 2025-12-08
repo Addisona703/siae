@@ -34,9 +34,12 @@ public class EnumConfig implements WebMvcConfigurer {
      */
     @PostConstruct
     public void configureObjectMapper() {
-        // 扫描核心枚举包
+        // 扫描核心枚举包和 media 服务枚举包
         objectMapper.registerModule(
-            new EnumModule("com.hngy.siae.core.enums")
+            new EnumModule(
+                "com.hngy.siae.media.domain.enums",
+                "com.hngy.siae.core.enums"
+            )
         );
     }
 }

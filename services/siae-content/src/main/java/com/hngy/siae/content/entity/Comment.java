@@ -11,6 +11,7 @@ import lombok.Data;
  * @TableName content_comment
  */
 @Data
+@TableName("comment")
 public class Comment {
     /**
      * 主键，自增
@@ -29,9 +30,14 @@ public class Comment {
     private Long userId;
 
     /**
-     * 父评论ID
+     * 父评论ID（顶级评论为NULL）
      */
-    private Long parentId = 0L;
+    private Long parentId;
+
+    /**
+     * 回复目标用户ID（回复某人时使用）
+     */
+    private Long replyToUserId;
 
     /**
      * 评论内容
@@ -39,9 +45,20 @@ public class Comment {
     private String content;
 
     /**
+     * 点赞数
+     */
+    private Integer likeCount;
+
+    /**
      * 状态：0待审核，1已发布，2已删除
      */
     private CommentStatusEnum status;
+
+    /**
+     * 乐观锁版本号，用于防止并发审核冲突
+     */
+    @Version
+    private Integer version;
 
     /**
      * 创建时间

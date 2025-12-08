@@ -6,7 +6,7 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.content.dto.request.category.CategoryCreateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryUpdateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryQueryDTO;
-import com.hngy.siae.content.dto.response.CategoryVO;
+import com.hngy.siae.content.dto.response.category.CategoryVO;
 import com.hngy.siae.content.entity.Category;
 
 

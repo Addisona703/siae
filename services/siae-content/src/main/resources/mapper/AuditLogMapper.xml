@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.content.mapper.AuditLogMapper">
+
+    <!-- 审核历史记录结果映射 -->
+    <resultMap id="AuditLogResultMap" type="com.hngy.siae.content.entity.AuditLog">
+        <id property="id" column="id"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetType" column="target_type"/>
+        <result property="fromStatus" column="from_status"/>
+        <result property="toStatus" column="to_status"/>
+        <result property="auditReason" column="audit_reason"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!-- 审核VO结果映射（包含关联信息） -->
+    <resultMap id="AuditVOResultMap" type="com.hngy.siae.content.dto.response.audit.AuditVO">
+        <id property="id" column="id"/>
+        <result property="targetId" column="target_id"/>
+        <result property="targetType" column="target_type"/>
+        <result property="auditStatus" column="to_status"/>
+        <result property="auditReason" column="audit_reason"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="createTime" column="create_time"/>
+        <!-- 内容相关 -->
+        <result property="contentTitle" column="content_title"/>
+        <result property="contentDescription" column="content_description"/>
+        <result property="contentAuthorId" column="content_author_id"/>
+        <result property="contentAuthorName" column="content_author_name"/>
+        <result property="contentType" column="content_type"/>
+        <result property="contentCoverFileId" column="content_cover_file_id"/>
+        <!-- 评论相关 -->
+        <result property="commentContent" column="comment_content"/>
+        <result property="commentUserId" column="comment_user_id"/>
+        <result property="commentUserName" column="comment_user_name"/>
+        <result property="commentContentId" column="comment_content_id"/>
+        <result property="commentContentTitle" column="comment_content_title"/>
+    </resultMap>
+
+    <!-- 分页查询审核列表（每个目标只取最新记录，关联内容/评论信息） -->
+    <select id="selectAuditPageWithDetail" resultMap="AuditVOResultMap">
+        SELECT 
+            a.id,
+            a.target_id,
+            a.target_type,
+            a.from_status,
+            a.to_status,
+            a.audit_reason,
+            a.audit_by,
+            a.create_time,
+            -- 内容信息（target_type=0 时有值）
+            c.title AS content_title,
+            c.description AS content_description,
+            c.uploaded_by AS content_author_id,
+            c.type AS content_type,
+            c.cover_file_id AS content_cover_file_id,
+            -- 评论信息（target_type=1 时有值）
+            cm.content AS comment_content,
+            cm.user_id AS comment_user_id,
+            cm.content_id AS comment_content_id,
+            cc.title AS comment_content_title
+        FROM audit_log a
+        INNER JOIN (
+            -- 子查询：获取每个目标的最新审核记录ID
+            SELECT target_id, target_type, MAX(id) AS max_id
+            FROM audit_log
+            GROUP BY target_id, target_type
+        ) latest ON a.id = latest.max_id
+        LEFT JOIN content c ON a.target_type = 0 AND a.target_id = c.id
+        LEFT JOIN comment cm ON a.target_type = 1 AND a.target_id = cm.id
+        LEFT JOIN content cc ON cm.content_id = cc.id
+        <where>
+            <if test="targetType != null">
+                AND a.target_type = #{targetType}
+            </if>
+            <if test="auditStatus != null">
+                AND a.to_status = #{auditStatus}
+            </if>
+        </where>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <!-- 统计审核列表总数（每个目标只计算一次） -->
+    <select id="countAuditPageWithDetail" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM audit_log a
+        INNER JOIN (
+            SELECT target_id, target_type, MAX(id) AS max_id
+            FROM audit_log
+            GROUP BY target_id, target_type
+        ) latest ON a.id = latest.max_id
+        <where>
+            <if test="targetType != null">
+                AND a.target_type = #{targetType}
+            </if>
+            <if test="auditStatus != null">
+                AND a.to_status = #{auditStatus}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询指定目标的所有审核历史记录（按时间倒序） -->
+    <!-- Requirements: 4.3 -->
+    <select id="selectAuditLogsByTarget" resultMap="AuditLogResultMap">
+        SELECT 
+            id,
+            target_id,
+            target_type,
+            from_status,
+            to_status,
+            audit_reason,
+            audit_by,
+            create_time
+        FROM audit_log
+        WHERE target_id = #{targetId}
+          AND target_type = #{targetType}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询指定目标的最新审核记录 -->
+    <!-- Requirements: 4.4 -->
+    <select id="selectLatestAuditLog" resultMap="AuditLogResultMap">
+        SELECT 
+            id,
+            target_id,
+            target_type,
+            from_status,
+            to_status,
+            audit_reason,
+            audit_by,
+            create_time
+        FROM audit_log
+        WHERE target_id = #{targetId}
+          AND target_type = #{targetType}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 统计指定目标的审核记录数量 -->
+    <select id="countByTarget" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM audit_log
+        WHERE target_id = #{targetId}
+          AND target_type = #{targetType}
+    </select>
+
+</mapper>

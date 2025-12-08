@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -29,16 +29,16 @@ public class LeaveRequestCreateDTO {
     private LeaveType leaveType;
 
     /**
-     * 开始日期
+     * 开始时间
      */
-    @NotNull(message = "开始日期不能为空")
-    private LocalDate startDate;
+    @NotNull(message = "开始时间不能为空")
+    private LocalDateTime startDate;
 
     /**
-     * 结束日期
+     * 结束时间
      */
-    @NotNull(message = "结束日期不能为空")
-    private LocalDate endDate;
+    @NotNull(message = "结束时间不能为空")
+    private LocalDateTime endDate;
 
     /**
      * 请假原因

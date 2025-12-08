@@ -36,15 +36,13 @@ public class MinioConfig {
     }
 
     /**
-     * URL生成客户端（用于生成外部可访问的预签名URL）
+     * URL生成客户端（用于生成预签名URL，使用内部endpoint避免签名问题）
      */
     @Bean
     public MinioClient minioClientForUrl() {
-        String urlEndpoint = (externalEndpoint != null && !externalEndpoint.isEmpty()) 
-                ? externalEndpoint : endpoint;
-        
+        // 预签名URL必须使用内部endpoint（localhost）生成，避免签名验证失败
         return MinioClient.builder()
-                .endpoint(urlEndpoint)
+                .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .region(region)
                 .build();

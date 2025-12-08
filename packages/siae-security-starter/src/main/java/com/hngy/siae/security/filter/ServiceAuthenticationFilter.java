@@ -7,7 +7,7 @@ import com.hngy.siae.core.enums.RequestSource;
 import com.hngy.siae.core.config.AuthProperties;
 import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.security.service.RedisPermissionService;
+import com.hngy.siae.security.service.SecurityCacheService;
 import com.hngy.siae.core.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -43,16 +43,20 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // 打印配置值用于调试
+        log.info("【认证配置】enableGatewayAuth={}, enableDirectAccess={}", 
+                authProperties.isEnableGatewayAuth(), authProperties.isEnableDirectAccess());
+        
         // 如果网关认证被禁用，则跳过此过滤器
         if (!authProperties.isEnableGatewayAuth()) {
-            log.debug("Gateway auth disabled, skipping ServiceAuthenticationFilter for: {}", request.getRequestURI());
+            log.info("Gateway auth disabled, skipping ServiceAuthenticationFilter for: {}", request.getRequestURI());
             return true;
         }
         return false;
     }
 
     private final JwtUtils jwtUtils;
-    private final RedisPermissionService redisPermissionService;
+    private final SecurityCacheService securityCacheService;
     private final AuthProperties authProperties;
     private final ObjectMapper objectMapper;
 
@@ -60,10 +64,14 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
     private static final List<String> WHITELIST = Arrays.asList(
         "/api/v1/auth/login",
         "/api/v1/auth/register",
+        "/api/v1/auth/oauth",
+        "/oauth",
         "/api/v1/notification/email/code/send",
         "/swagger-ui",
         "/v3/api-docs",
-        "/actuator/health"
+        "/actuator/health",
+        "/login.html",
+        "/static"
     );
 
     @Override
@@ -150,7 +158,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
             log.info("Gateway request user info received: userId={}, username={}", userIdHeader, usernameHeader);
 
             // 从Redis查询用户权限（这里是唯一的权限查询点）
-            List<String> permissions = redisPermissionService.getAllUserAuthorities(userId);
+            List<String> permissions = securityCacheService.getAllUserAuthorities(userId);
             if (permissions == null) {
                 log.warn("User permissions not found in cache for user: {}, loading from database", usernameHeader);
                 // 这里可以添加从数据库加载权限的逻辑
@@ -180,7 +188,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
         if (StrUtil.isNotBlank(onBehalfOfUser)) {
             try {
                 Long userId = Long.parseLong(onBehalfOfUser);
-                List<String> permissions = redisPermissionService.getAllUserAuthorities(userId);
+                List<String> permissions = securityCacheService.getAllUserAuthorities(userId);
 
                 setSecurityContext(userId, "service-call-user", permissions != null ? permissions : Collections.emptyList());
                 log.info("Internal service call authenticated from: {} on behalf of user: {}", callerService, userId);
@@ -224,7 +232,7 @@ public class ServiceAuthenticationFilter extends OncePerRequestFilter {
 
         Long userId = jwtUtils.getUserIdFromToken(token);
         String username = jwtUtils.getUsernameFromToken(token);
-        List<String> permissions = redisPermissionService.getAllUserAuthorities(userId);
+        List<String> permissions = securityCacheService.getAllUserAuthorities(userId);
 
         setSecurityContext(userId, username, permissions != null ? permissions : Collections.emptyList());
 

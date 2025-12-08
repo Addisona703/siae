@@ -1,10 +1,17 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.content.dto.response.*;
+import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
+import com.hngy.siae.content.dto.response.category.CategoryStatisticsVO;
+import com.hngy.siae.content.dto.response.content.HotContentVO;
+import com.hngy.siae.content.dto.response.statistics.ContentTypeStatisticsVO;
+import com.hngy.siae.content.dto.response.statistics.StatisticsSummaryVO;
+import com.hngy.siae.content.dto.response.statistics.StatisticsVO;
+import com.hngy.siae.content.dto.response.statistics.TrendDataVO;
 import com.hngy.siae.content.enums.ActionTypeEnum;
-import com.hngy.siae.content.dto.request.StatisticsDTO;
+import com.hngy.siae.content.dto.request.interaction.StatisticsDTO;
 import com.hngy.siae.content.entity.Statistics;
+import com.hngy.siae.core.dto.PageVO;
 
 import java.util.List;
 
@@ -84,4 +91,12 @@ public interface StatisticsService extends IService<Statistics> {
      * @return 趋势数据
      */
     TrendDataVO getTrendData(Integer days);
+
+    /**
+     * 查询热门内容
+     *
+     * @param contentHotPageDTO 热门内容查询参数
+     * @return {@link PageVO}<{@link HotContentVO}>
+     */
+    PageVO<HotContentVO> queryHotContent(ContentHotPageDTO contentHotPageDTO);
 }

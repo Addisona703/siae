@@ -7,9 +7,10 @@ import lombok.Data;
 
 /**
  * 内容标签表
- * @TableName content_tag
+ * @TableName tag
  */
 @Data
+@TableName("tag")
 public class Tag {
     /**
      * 主键

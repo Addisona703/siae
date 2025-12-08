@@ -32,6 +32,11 @@ public class Content {
     private String description;
 
     /**
+     * 封面文件ID，关联media服务（UUID字符串）
+     */
+    private String coverFileId;
+
+    /**
      * 上传者/作者用户 ID
      */
     private Long uploadedBy;
@@ -40,6 +45,12 @@ public class Content {
      * 状态：0草稿，1待审核，2已发布，3已删除
      */
     private ContentStatusEnum status;
+
+    /**
+     * 乐观锁版本号，用于防止并发审核冲突
+     */
+    @Version
+    private Integer version;
 
     /**
      * 创建时间，默认当前时间

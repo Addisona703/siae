@@ -18,6 +18,10 @@
         <module>packages/siae-web-starter</module>
         <module>packages/siae-security-starter</module>
         <module>packages/siae-messaging-starter</module>
+        <module>packages/siae-feign-starter</module>
+        <module>api/api-user</module>
+        <module>api/api-content</module>
+        <module>api/api-media</module>
         <module>siae-gateway</module>
         <module>services/siae-auth</module>
         <module>services/siae-user</module>
@@ -109,6 +113,11 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-extension</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
             <dependency>

@@ -1,6 +1,6 @@
 package com.hngy.siae.messaging.support.refresh;
 
-import com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties;
+import com.hngy.siae.messaging.autoconfigure.SiaeRabbitProperties;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.boot.context.properties.bind.BindException;
 import org.springframework.boot.context.properties.bind.Bindable;

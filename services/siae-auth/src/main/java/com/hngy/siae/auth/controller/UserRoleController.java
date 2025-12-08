@@ -19,7 +19,7 @@ import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.AuthPermissions.*;
+import static com.hngy.siae.auth.permissions.AuthPermissions.*;
 
 /**
  * 用户角色控制器

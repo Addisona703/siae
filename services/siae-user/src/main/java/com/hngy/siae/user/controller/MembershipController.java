@@ -2,7 +2,7 @@ package com.hngy.siae.user.controller;
 
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.permissions.RoleConstants;
+import com.hngy.siae.security.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import com.hngy.siae.user.dto.request.MembershipCreateDTO;
@@ -46,8 +46,28 @@ public class MembershipController {
         return Result.success(membershipId);
     }
 
+    @PutMapping("/{id}/approve")
+    @Operation(summary = "审核通过", description = "管理员审核通过，将待审核成员转为候选成员")
+    @SiaeAuthorize(RoleConstants.ADMIN_LEVEL)
+    public Result<Boolean> approveCandidate(
+            @Parameter(description = "成员ID") @PathVariable Long id) {
+        log.info("审核通过，成员ID: {}", id);
+        boolean success = membershipService.approveCandidate(id);
+        return Result.success(success);
+    }
+
+    @PutMapping("/{id}/reject")
+    @Operation(summary = "审核拒绝", description = "管理员审核拒绝，将待审核成员标记为已拒绝")
+    @SiaeAuthorize(RoleConstants.ADMIN_LEVEL)
+    public Result<Boolean> rejectCandidate(
+            @Parameter(description = "成员ID") @PathVariable Long id) {
+        log.info("审核拒绝，成员ID: {}", id);
+        boolean success = membershipService.rejectCandidate(id);
+        return Result.success(success);
+    }
+
     @PutMapping("/{id}/promote")
-    @Operation(summary = "候选成员转正", description = "管理员审核通过，将候选成员转为正式成员")
+    @Operation(summary = "候选成员转正", description = "管理员将候选成员转为正式成员")
     @SiaeAuthorize(RoleConstants.ADMIN_LEVEL)
     public Result<Boolean> promoteToOfficial(
             @Parameter(description = "成员ID") @PathVariable Long id,
@@ -81,20 +101,20 @@ public class MembershipController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "查询成员信息", description = "根据成员ID查询成员基本信息")
+    @Operation(summary = "查询成员信息", description = "根据成员ID查询成员详细信息（含用户、部门、职位）")
     @SiaeAuthorize(RoleConstants.MEMBER_LEVEL)
-    public Result<MembershipVO> getMembershipById(
+    public Result<MembershipDetailVO> getMembershipById(
             @Parameter(description = "成员ID") @PathVariable Long id) {
-        MembershipVO membership = membershipService.getMembershipById(id);
+        MembershipDetailVO membership = membershipService.getMembershipById(id);
         return Result.success(membership);
     }
 
     @GetMapping("/by-user/{userId}")
-    @Operation(summary = "根据用户ID查询成员", description = "根据用户ID查询成员信息")
+    @Operation(summary = "根据用户ID查询成员", description = "根据用户ID查询成员详细信息（含用户、部门、职位）")
     @SiaeAuthorize(RoleConstants.MEMBER_LEVEL)
-    public Result<MembershipVO> getMembershipByUserId(
+    public Result<MembershipDetailVO> getMembershipByUserId(
             @Parameter(description = "用户ID") @PathVariable Long userId) {
-        MembershipVO membership = membershipService.getMembershipByUserId(userId);
+        MembershipDetailVO membership = membershipService.getMembershipByUserId(userId);
         return Result.success(membership);
     }
 

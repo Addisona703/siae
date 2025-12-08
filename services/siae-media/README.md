@@ -6,11 +6,18 @@
 
 Media Service 是一个企业级的文件上传与分发平台，为软件协会官网的多个业务模块提供统一的媒体文件管理能力。
 
+## ✨ 新特性（v1.1）
+
+- **访问策略支持**：支持 PUBLIC/PRIVATE/PROTECTED 三种访问策略
+- **永久 URL**：公开文件返回永久 URL，无需频繁刷新
+- **智能缓存**：根据访问策略自动选择缓存策略
+- **灵活控制**：支持动态修改文件访问策略
+
 ## 核心功能
 
 - **文件上传**：支持单文件和分片上传，提供预签名 URL 直传对象存储
 - **文件管理**：文件查询、元数据管理、软删除和恢复
-- **访问控制**：基于 ACL 的权限验证，生成带有效期的签名 URL
+- **访问控制**：支持公开/私有/受保护访问策略，基于 ACL 的权限验证
 - **异步处理**：病毒扫描、缩略图生成、内容审核
 - **配额管理**：租户级存储配额和对象数量限制
 - **生命周期管理**：文件归档、自动删除、冷热数据分层
@@ -46,21 +53,37 @@ Media Service 是一个企业级的文件上传与分发平台，为软件协会
 CREATE DATABASE siae_media CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-3. 配置 MinIO
+3. 初始化数据库
+```bash
+# 执行初始化脚本
+mysql -u root -p media_db < src/main/resources/db/media_db.sql
+
+# 执行迁移脚本（添加访问策略支持）
+mysql -u root -p media_db < src/main/resources/db/migration_add_access_policy.sql
+```
+
+4. 配置 MinIO
 ```bash
 # 创建 bucket
 mc mb local/siae-media
+
+# 配置公开访问（支持公开文件）
+mc anonymous set download local/siae-media/*/public/*
 ```
 
-4. 启动服务
+5. 启动服务
 ```bash
 mvn spring-boot:run
 ```
 
-5. 访问 API 文档
+6. 访问 API 文档
 ```
-http://localhost:8084/swagger-ui.html
+http://localhost:8040/api/v1/media/swagger-ui.html
 ```
+
+### 5 分钟快速开始
+
+详细步骤请参考：[快速开始指南](QUICK_START.md)
 
 ## 配置说明
 
@@ -152,7 +175,15 @@ GET /actuator/prometheus
 
 ## 开发指南
 
-详细的开发指南请参考：
+### 核心文档
+- [快速开始指南](QUICK_START.md) - 5 分钟快速上手
+- [API 使用文档](API使用文档.md) - 完整的 API 接口说明
+- [重构方案](REFACTORING_PLAN.md) - 访问策略重构详细方案
+- [重构总结](REFACTORING_SUMMARY.md) - 重构完成情况和使用指南
+- [MinIO 配置指南](docs/MINIO_PUBLIC_ACCESS_SETUP.md) - MinIO 公开访问配置
+- [包结构说明](docs/PACKAGE_STRUCTURE.md) - 代码结构说明
+
+### 规范文档
 - [需求文档](../../../.specs/media/requirements.md)
 - [设计文档](../../../.specs/media/design.md)
 - [任务列表](../../../.specs/media/tasks.md)

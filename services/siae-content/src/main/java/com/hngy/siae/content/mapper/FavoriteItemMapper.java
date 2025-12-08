@@ -1,7 +1,7 @@
 package com.hngy.siae.content.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.hngy.siae.content.dto.response.FavoriteItemVO;
+import com.hngy.siae.content.dto.response.favorite.FavoriteItemVO;
 import com.hngy.siae.content.entity.FavoriteItem;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

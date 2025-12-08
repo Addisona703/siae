@@ -114,6 +114,11 @@ siae:
   security:
     enabled: true
   
+  # 通知服务配置
+  notification:
+    # 前端基础URL，用于拼接通知中的跳转链接
+    frontend-base-url: http://localhost:5173
+  
   # RabbitMQ 消息队列配置
   messaging:
     rabbit:
@@ -143,33 +148,7 @@ siae:
           multiplier: 2.0
           max-interval: 10000
         acknowledge-mode: AUTO
-      # 交换机配置
-      exchanges:
-        siae.notification.exchange:
-          type: topic
-          durable: true
-      # 队列配置
-      queues:
-        siae.notification.queue:
-          durable: true
-        siae.email.queue:
-          durable: true
-        siae.sms.queue:
-          durable: true
-      # 绑定配置
-      bindings:
-        notification-binding:
-          exchange: siae.notification.exchange
-          destination: siae.notification.queue
-          routing-key: notification.#
-        email-binding:
-          exchange: siae.notification.exchange
-          destination: siae.email.queue
-          routing-key: email.#
-        sms-binding:
-          exchange: siae.notification.exchange
-          destination: siae.sms.queue
-          routing-key: sms.#
+      # 队列、交换机、绑定已通过 @DeclareQueue 注解自动声明，无需手动配置
 
 # 日志配置
 logging:

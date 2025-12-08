@@ -14,13 +14,12 @@
         m.updated_at AS updatedAt
     </sql>
 
-    <!-- 根据用户ID查询成员信息 -->
+    <!-- 根据用户ID查询成员信息（包含已删除的记录，用于唯一性检查） -->
     <select id="selectByUserId" resultType="com.hngy.siae.user.entity.Membership">
         SELECT
             <include refid="BaseColumns"/>
         FROM membership m
         WHERE m.user_id = #{userId}
-          AND m.is_deleted = 0
     </select>
 
     <!-- 根据生命周期状态查询成员列表 -->
@@ -120,6 +119,8 @@
             m.user_id AS userId,
             m.headshot_file_id AS headshotFileId,
             m.lifecycle_status AS lifecycleStatus,
+            (m.lifecycle_status = 2) AS isOfficial,
+            (m.lifecycle_status = 1) AS isCandidate,
             m.join_date AS joinDate,
             m.created_at AS createdAt,
             m.updated_at AS updatedAt,
@@ -148,6 +149,9 @@
         </if>
         <if test="query.lifecycleStatus != null">
             AND m.lifecycle_status = #{query.lifecycleStatus}
+        </if>
+        <if test="query.excludePending != null and query.excludePending == true">
+            AND m.lifecycle_status != 0
         </if>
         <if test="query.departmentId != null">
             AND md.department_id = #{query.departmentId}
@@ -191,7 +195,7 @@
             AND mce.entry_year = #{query.entryYear}
         </if>
         GROUP BY m.id
-        ORDER BY m.created_at DESC
+        ORDER BY m.created_at DESC, m.id DESC
     </select>
 
     <!-- 根据用户ID查询荣誉成就列表 -->
@@ -230,6 +234,36 @@
         LEFT JOIN department d ON mp.department_id = d.id
         WHERE mp.membership_id = #{membershipId}
         ORDER BY mp.start_date DESC
+    </select>
+
+    <!-- 根据用户ID查询成员详情（含用户信息） -->
+    <select id="selectMembershipDetailByUserId" resultType="com.hngy.siae.user.dto.response.MembershipDetailVO">
+        SELECT
+            m.id,
+            m.user_id AS userId,
+            m.headshot_file_id AS headshotFileId,
+            m.lifecycle_status AS lifecycleStatus,
+            m.join_date AS joinDate,
+            m.created_at AS createdAt,
+            m.updated_at AS updatedAt,
+            u.username,
+            u.student_id AS studentId,
+            u.avatar_file_id AS avatarFileId,
+            up.real_name AS realName,
+            up.nickname,
+            up.email,
+            up.phone,
+            up.bio,
+            mce.entry_year AS entryYear,
+            maj.name AS majorName,
+            mce.status AS enrollmentStatus
+        FROM membership m
+        LEFT JOIN user u ON m.user_id = u.id
+        LEFT JOIN user_profile up ON m.user_id = up.user_id
+        LEFT JOIN major_class_enrollment mce ON m.user_id = mce.user_id AND mce.is_deleted = 0
+        LEFT JOIN major maj ON mce.major_id = maj.id
+        WHERE m.user_id = #{userId}
+          AND m.is_deleted = 0
     </select>
 
 </mapper>

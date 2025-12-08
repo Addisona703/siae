@@ -9,14 +9,6 @@ server:
     context-path: /api/v1/user
 
 spring:
-  # 禁用 Nacos
-  cloud:
-    nacos:
-      discovery:
-        enabled: true
-      config:
-        enabled: false
-  
   # 排除 Spring Security 自动配置（开发环境）
   autoconfigure:
     exclude:
@@ -88,6 +80,42 @@ siae:
     enable-direct-access: true
   security:
     enabled: false
+  # 数据清理配置
+  cleanup:
+    retention-days: 30        # 已删除数据保留天数
+    batch-size: 100           # 每次清理的批次大小
+    cron: "0 0 2 * * ?"       # 每天凌晨2点执行
+  # RabbitMQ 消息配置
+  messaging:
+    rabbit:
+      connection:
+        addresses: localhost:5672
+        username: guest
+        password: guest
+      exchanges:
+        siae.cleanup.exchange:
+          type: fanout
+          durable: true
+      queues:
+        siae.cleanup.user.content.queue:
+          durable: true
+        siae.cleanup.user.notification.queue:
+          durable: true
+        siae.cleanup.user.media.queue:
+          durable: true
+      bindings:
+        cleanup.content.binding:
+          exchange: siae.cleanup.exchange
+          destination: siae.cleanup.user.content.queue
+          routing-key: cleanup.user.deleted
+        cleanup.notification.binding:
+          exchange: siae.cleanup.exchange
+          destination: siae.cleanup.user.notification.queue
+          routing-key: cleanup.user.deleted
+        cleanup.media.binding:
+          exchange: siae.cleanup.exchange
+          destination: siae.cleanup.user.media.queue
+          routing-key: cleanup.user.deleted
 
 # Feign 配置
 feign:

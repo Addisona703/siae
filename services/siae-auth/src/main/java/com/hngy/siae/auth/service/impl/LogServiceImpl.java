@@ -18,7 +18,7 @@ import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

@@ -37,14 +37,14 @@ public class LeaveRequestVO {
     private LeaveType leaveType;
 
     /**
-     * 开始日期
+     * 开始时间
      */
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     /**
-     * 结束日期
+     * 结束时间
      */
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     /**
      * 请假天数

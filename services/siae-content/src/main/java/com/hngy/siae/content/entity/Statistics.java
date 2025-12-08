@@ -7,9 +7,10 @@ import lombok.Data;
 
 /**
  * 内容统计表
- * @TableName content_statistics
+ * @TableName statistics
  */
 @Data
+@TableName("statistics")
 public class Statistics {
     /**
      * 主键，自增

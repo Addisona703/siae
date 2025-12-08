@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.hngy.siae.core.permissions.AuthPermissions.*;
+import static com.hngy.siae.auth.permissions.AuthPermissions.*;
 
 /**
  * 角色控制器

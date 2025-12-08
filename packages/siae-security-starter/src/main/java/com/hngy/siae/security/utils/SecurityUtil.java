@@ -77,6 +77,16 @@ public class SecurityUtil {
         return authorities.contains("ROLE_ADMIN");
     }
 
+    /** 当前用户是否拥有任意一个角色 */
+    public boolean hasAnyRole(String... roles) {
+        Set<String> authorities = getCurrentUserAuthorities();
+        for (String role : roles) {
+            String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+            if (authorities.contains(roleWithPrefix)) return true;
+        }
+        return false;
+    }
+
     /** 当前用户是否拥有指定权限（仅管理员生效） */
     public boolean hasPermission(String permission) {
         if (!isAdmin()) return false;  // 仅管理员判断

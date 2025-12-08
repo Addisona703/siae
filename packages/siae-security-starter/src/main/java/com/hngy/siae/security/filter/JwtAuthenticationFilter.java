@@ -1,8 +1,8 @@
 package com.hngy.siae.security.filter;
 
-import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.security.properties.SecurityProperties;
-import com.hngy.siae.security.service.RedisPermissionService;
+import com.hngy.siae.core.utils.JwtUtils;
+import com.hngy.siae.security.service.SecurityCacheService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final RedisPermissionService redisPermissionService;
+    private final SecurityCacheService securityCacheService;
     private final SecurityProperties securityProperties;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     
@@ -172,7 +172,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             // 从Redis缓存获取用户的所有权限（包括角色）
-            List<String> authorities = redisPermissionService.getAllUserAuthorities(userId);
+            List<String> authorities = securityCacheService.getAllUserAuthorities(userId);
 
             log.info("Redis权限服务返回结果，用户ID: {}, 权限列表: {}", userId, authorities);
 
@@ -261,7 +261,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     private boolean isTokenValidInDatabase(String jwt) {
         try {
-            boolean isValid = redisPermissionService.validateToken(jwt);
+            boolean isValid = securityCacheService.validateToken(jwt);
             if (!isValid) {
                 log.debug("Token在Redis中不存在，用户可能已登出");
             }

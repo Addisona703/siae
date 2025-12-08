@@ -43,10 +43,18 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
-        <!-- OpenFeign -->
+        <!-- OpenFeign (由siae-feign-starter提供) -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-feign-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 用户服务API -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-user</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>

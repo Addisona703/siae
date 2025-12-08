@@ -122,27 +122,38 @@
             up.email,
             u.avatar_file_id AS avatarFileId,
             u.status,
-            u.created_at AS createAt,
-            u.updated_at AS updateAt
+            mce.member_type AS memberType,
+            u.is_deleted AS isDeleted,
+            u.created_at AS createdAt,
+            u.updated_at AS updatedAt
         FROM user u
         LEFT JOIN user_profile up ON u.id = up.user_id
-        WHERE u.is_deleted = 0
-        <if test="username != null and username != ''">
-            AND u.username LIKE CONCAT('%', #{username}, '%')
+        LEFT JOIN major_class_enrollment mce ON u.id = mce.user_id AND mce.is_deleted = 0
+        WHERE u.is_deleted = #{params.isDeleted}
+        <choose>
+            <when test="params.isDeleted != null">
+                AND u.is_deleted = #{params.isDeleted}
+            </when>
+            <otherwise>
+                AND u.is_deleted = 0
+            </otherwise>
+        </choose>
+        <if test="params.username != null and params.username != ''">
+            AND u.username LIKE CONCAT('%', #{params.username}, '%')
         </if>
-        <if test="studentId != null and studentId != ''">
-            AND u.student_id LIKE CONCAT('%', #{studentId}, '%')
+        <if test="params.studentId != null and params.studentId != ''">
+            AND u.student_id LIKE CONCAT('%', #{params.studentId}, '%')
         </if>
-        <if test="realName != null and realName != ''">
-            AND up.real_name LIKE CONCAT('%', #{realName}, '%')
+        <if test="params.realName != null and params.realName != ''">
+            AND up.real_name LIKE CONCAT('%', #{params.realName}, '%')
         </if>
-        <if test="email != null and email != ''">
-            AND up.email LIKE CONCAT('%', #{email}, '%')
+        <if test="params.email != null and params.email != ''">
+            AND up.email LIKE CONCAT('%', #{params.email}, '%')
         </if>
-        <if test="status != null">
-            AND u.status = #{status}
+        <if test="params.status != null">
+            AND u.status = #{params.status}
         </if>
-        ORDER BY u.created_at DESC
+        ORDER BY u.created_at DESC, u.id DESC
     </select>
 
 </mapper>

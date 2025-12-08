@@ -3,7 +3,7 @@
 <mapper namespace="com.hngy.siae.content.mapper.FavoriteItemMapper">
 
     <!-- 收藏内容详情结果映射 -->
-    <resultMap id="FavoriteItemWithContentResultMap" type="com.hngy.siae.content.dto.response.FavoriteItemVO">
+    <resultMap id="FavoriteItemWithContentResultMap" type="com.hngy.siae.content.dto.response.favorite.FavoriteItemVO">
         <!-- 收藏项基本信息 -->
         <id property="id" column="id"/>
         <result property="folderId" column="folder_id"/>

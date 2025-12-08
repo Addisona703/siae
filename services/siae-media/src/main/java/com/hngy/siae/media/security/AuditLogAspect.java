@@ -1,7 +1,6 @@
 package com.hngy.siae.media.security;
 
 import com.hngy.siae.media.domain.enums.ActorType;
-import com.hngy.siae.media.service.AuditService;
 import com.hngy.siae.web.utils.WebUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuditLogAspect {
 
-    private final AuditService auditService;
+    private final com.hngy.siae.media.service.IAuditService auditService;
 
     @AfterReturning(pointcut = "@annotation(com.hngy.siae.media.security.AuditLog)", returning = "result")
     public void logAudit(JoinPoint joinPoint, Object result) {

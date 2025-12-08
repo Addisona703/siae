@@ -22,6 +22,9 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Gateway 不依赖 siae-security-starter，因为它是 WebFlux 应用 -->
+        <!-- JwtUtils 和 GatewayUserInfo 已移至 siae-core -->
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
@@ -36,6 +39,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
             <version>${spring-boot.version}</version>
+            <exclusions>
+                <!-- Gateway 使用 WebFlux，排除 Servlet 相关的 Security -->
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 添加 Servlet API 作为 provided 依赖，解决类加载问题 -->
+        <!-- 这是为了让 Spring 在扫描时能够解析 Servlet 相关的类，但不会在运行时使用 -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -81,9 +100,10 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Gateway 使用 WebFlux，需要使用 webflux 版本的 springdoc -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
         </dependency>
 
         <!-- CircuitBreaker 熔断器支持 -->

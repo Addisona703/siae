@@ -3,7 +3,7 @@ package com.hngy.siae.media.controller;
 import com.hngy.siae.core.result.Result;
 
 import com.hngy.siae.media.domain.dto.upload.*;
-import com.hngy.siae.media.service.upload.UploadService;
+import com.hngy.siae.media.service.UploadService;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,9 +34,9 @@ public class UploadController {
     @PostMapping("/init")
     @Operation(summary = "初始化上传", description = "创建上传会话并获取预签名URL")
     @SiaeAuthorize("hasAuthority('" + MEDIA_UPLOAD + "')")
-    public Result<UploadInitResponse> initUpload(@Valid @RequestBody UploadInitRequest request) {
+    public Result<UploadInitVO> initUpload(@Valid @RequestBody UploadInitDTO request) {
         log.info("Received upload init request: {}", request);
-        UploadInitResponse response = uploadService.initUpload(request);
+        UploadInitVO response = uploadService.initUpload(request);
         return Result.success(response);
     }
 
@@ -46,11 +46,11 @@ public class UploadController {
     @PostMapping("/{uploadId}/refresh")
     @Operation(summary = "刷新上传URL", description = "刷新预签名URL或追加分片")
     @SiaeAuthorize("hasAuthority('" + MEDIA_UPLOAD + "')")
-    public Result<UploadRefreshResponse> refreshUpload(
+    public Result<UploadRefreshVO> refreshUpload(
             @PathVariable String uploadId,
-            @Valid @RequestBody UploadRefreshRequest request) {
+            @Valid @RequestBody UploadRefreshDTO request) {
         log.info("Received upload refresh request for uploadId: {}", uploadId);
-        UploadRefreshResponse response =
+        UploadRefreshVO response =
                 uploadService.refreshUpload(uploadId, request);
         return Result.success(response);
     }
@@ -61,11 +61,11 @@ public class UploadController {
     @PostMapping("/{uploadId}/complete")
     @Operation(summary = "完成上传", description = "确认文件上传完成")
     @SiaeAuthorize("hasAuthority('" + MEDIA_UPLOAD + "')")
-    public Result<UploadCompleteResponse> completeUpload(
+    public Result<UploadCompleteVO> completeUpload(
             @PathVariable String uploadId,
-            @Valid @RequestBody UploadCompleteRequest request) {
+            @Valid @RequestBody UploadCompleteDTO request) {
         log.info("Received upload complete request for uploadId: {}", uploadId);
-        UploadCompleteResponse response =
+        UploadCompleteVO response =
                 uploadService.completeUpload(uploadId, request);
         return Result.success(response);
     }
@@ -80,5 +80,18 @@ public class UploadController {
         log.info("Received upload abort request for uploadId: {}", uploadId);
         uploadService.abortUpload(uploadId);
         return Result.success();
+    }
+
+    /**
+     * 查询上传状态
+     * 用于异步合并分片后，前端轮询查询处理结果
+     */
+    @GetMapping("/{uploadId}/status")
+    @Operation(summary = "查询上传状态", description = "查询上传处理状态，用于异步合并分片后轮询结果")
+    @SiaeAuthorize("hasAuthority('" + MEDIA_UPLOAD + "')")
+    public Result<UploadStatusVO> getUploadStatus(@PathVariable String uploadId) {
+        log.debug("Received upload status query for uploadId: {}", uploadId);
+        UploadStatusVO response = uploadService.getUploadStatus(uploadId);
+        return Result.success(response);
     }
 }

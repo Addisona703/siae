@@ -9,14 +9,6 @@ server:
     context-path: /api/v1/attendance
 
 spring:
-  # 禁用 Nacos
-  cloud:
-    nacos:
-      discovery:
-        enabled: true
-      config:
-        enabled: false
-  
   # 排除 Spring Security 自动配置（开发环境）
   autoconfigure:
     exclude:
@@ -87,10 +79,10 @@ springdoc:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: true  # 禁用网关认证（开发环境）
-    enable-direct-access: false  # 允许直接访问
+    enable-gateway-auth: false  # 禁用网关认证（开发环境）
+    enable-direct-access: true  # 允许直接访问
   security:
-    enabled: true  # 启用权限检查
+    enabled: false  # 启用权限检查
 
 # Feign 配置
 feign:

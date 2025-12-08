@@ -10,7 +10,7 @@ import com.hngy.siae.attendance.dto.response.LeaveRequestVO;
 import com.hngy.siae.attendance.service.ILeaveService;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.permissions.AttendancePermissions;
+import com.hngy.siae.attendance.permissions.AttendancePermissions;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import io.swagger.v3.oas.annotations.Operation;

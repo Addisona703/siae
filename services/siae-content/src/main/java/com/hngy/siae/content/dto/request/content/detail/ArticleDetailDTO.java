@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 public class ArticleDetailDTO implements ContentDetailDTO {
     private Long id;
     private String content;
-    private String coverUrl;
 }

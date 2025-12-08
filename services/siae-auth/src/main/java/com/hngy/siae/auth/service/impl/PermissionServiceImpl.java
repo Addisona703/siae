@@ -33,7 +33,7 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 
 import cn.hutool.core.util.StrUtil;
 

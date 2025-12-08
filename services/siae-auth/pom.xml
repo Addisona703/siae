@@ -31,6 +31,13 @@
             <artifactId>siae-security-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 消息队列 -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-messaging-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
 
         <!-- ✅ Spring Boot 基础依赖 (由starter提供) -->
@@ -62,8 +69,9 @@
 
         <!-- ✅ 服务间调用（Feign + 负载均衡） -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-feign-starter</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -111,6 +119,12 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-user</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

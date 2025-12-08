@@ -3,12 +3,13 @@
 <mapper namespace="com.hngy.siae.content.mapper.ContentMapper">
 
     <!-- 内容详情扩展结果映射 -->
-    <resultMap id="ContentDetailResultMap" type="com.hngy.siae.content.dto.response.ContentDetailDTO">
+    <resultMap id="ContentDetailResultMap" type="com.hngy.siae.content.dto.response.content.ContentQueryResultVO">
         <!-- 内容基本信息 -->
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="type" column="type"/>
         <result property="description" column="description"/>
+        <result property="coverFileId" column="cover_file_id"/>
         <result property="uploadedBy" column="uploaded_by"/>
         <result property="categoryId" column="category_id"/>
         <result property="status" column="status"/>
@@ -26,6 +27,9 @@
         
         <!-- 标签ID列表（使用逗号分隔的字符串，需要在Service层转换） -->
         <result property="tagIdsStr" column="tag_ids"/>
+        
+        <!-- 标签名称列表（使用逗号分隔的字符串，需要在Service层转换） -->
+        <result property="tagNamesStr" column="tag_names"/>
     </resultMap>
 
     <!-- 查询内容详情（包含分类、标签、统计信息） -->
@@ -35,6 +39,7 @@
             c.title,
             c.type,
             c.description,
+            c.cover_file_id,
             c.uploaded_by,
             c.category_id,
             c.status,
@@ -45,7 +50,8 @@
             COALESCE(s.like_count, 0) as like_count,
             COALESCE(s.favorite_count, 0) as favorite_count,
             COALESCE(s.comment_count, 0) as comment_count,
-            GROUP_CONCAT(DISTINCT t.id) as tag_ids
+            GROUP_CONCAT(DISTINCT t.id) as tag_ids,
+            GROUP_CONCAT(DISTINCT t.name) as tag_names
         FROM content c
         LEFT JOIN category cat ON c.category_id = cat.id
         LEFT JOIN statistics s ON c.id = s.content_id
@@ -57,19 +63,19 @@
     </select>
 
     <!-- 内容分页查询结果映射 -->
-    <resultMap id="ContentPageResultMap" type="com.hngy.siae.content.dto.response.ContentVO">
+    <resultMap id="ContentPageResultMap" type="com.hngy.siae.content.dto.response.content.ContentVO">
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="type" column="type"/>
         <result property="description" column="description"/>
+        <result property="coverFileId" column="cover_file_id"/>
         <result property="uploadedBy" column="uploaded_by"/>
-        <result property="categoryId" column="category_id"/>
         <result property="categoryName" column="category_name"/>
         <result property="status" column="status"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <!-- 统计信息嵌套对象 -->
-        <association property="statistics" javaType="com.hngy.siae.content.dto.response.StatisticsVO">
+        <association property="statistics" javaType="com.hngy.siae.content.dto.response.statistics.StatisticsVO">
             <result property="contentId" column="content_id"/>
             <result property="viewCount" column="view_count"/>
             <result property="likeCount" column="like_count"/>
@@ -85,8 +91,8 @@
             c.title,
             c.type,
             c.description,
+            c.cover_file_id,
             c.uploaded_by,
-            c.category_id,
             cat.name as category_name,
             c.status,
             c.create_time,
@@ -113,6 +119,67 @@
                 AND c.type = #{content.type}
             </if>
         </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 分页查询内容列表（支持所有查询条件） -->
+    <select id="selectContentPageByQuery" resultMap="ContentPageResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            c.cover_file_id,
+            c.uploaded_by,
+            cat.name as category_name,
+            c.status,
+            c.create_time,
+            c.update_time,
+            s.content_id,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        <if test="query.tagIds != null and query.tagIds.size() > 0">
+            INNER JOIN tag_relation ctr ON c.id = ctr.content_id
+            AND ctr.tag_id IN
+            <foreach collection="query.tagIds" item="tagId" open="(" separator="," close=")">
+                #{tagId}
+            </foreach>
+        </if>
+        <where>
+            <if test="query.categoryId != null">
+                AND c.category_id = #{query.categoryId}
+            </if>
+            <choose>
+                <!-- 如果指定了状态，直接按状态查询 -->
+                <when test="query.status != null">
+                    AND c.status = #{query.status}
+                </when>
+                <!-- 管理员：可以看到所有内容（排除回收站和已删除） -->
+                <when test="query.isAdmin != null and query.isAdmin == true">
+                    AND c.status NOT IN (3, 4)
+                </when>
+                <!-- 普通用户：只能看到已发布的 + 自己的待审核/草稿 -->
+                <otherwise>
+                    AND (
+                        c.status = 2
+                        OR (c.status IN (0, 1) AND c.uploaded_by = #{query.currentUserId})
+                    )
+                </otherwise>
+            </choose>
+            <if test="query.type != null">
+                AND c.type = #{query.type}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (c.title LIKE CONCAT('%', #{query.keyword}, '%')
+                OR c.description LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+        </where>
+        GROUP BY c.id
         ORDER BY c.create_time DESC
     </select>
 

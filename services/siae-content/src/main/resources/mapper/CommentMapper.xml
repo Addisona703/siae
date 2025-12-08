@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hngy.siae.content.mapper.CommentMapper">
+
+    <!-- 根评论结果映射（包含子评论数量） -->
+    <resultMap id="RootCommentResultMap" type="com.hngy.siae.content.dto.response.comment.CommentVO">
+        <id property="id" column="id"/>
+        <result property="contentId" column="content_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="replyToUserId" column="reply_to_user_id"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="childCount" column="child_count"/>
+    </resultMap>
+
+    <!-- 子评论结果映射 -->
+    <resultMap id="ChildCommentResultMap" type="com.hngy.siae.content.dto.response.comment.CommentVO">
+        <id property="id" column="id"/>
+        <result property="contentId" column="content_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="replyToUserId" column="reply_to_user_id"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 分页查询根评论（parentId为NULL或0），同时统计子评论数量 -->
+    <select id="selectRootCommentsPage" resultMap="RootCommentResultMap">
+        SELECT 
+            c.id,
+            c.content_id,
+            c.user_id,
+            c.parent_id,
+            c.reply_to_user_id,
+            c.content,
+            c.like_count,
+            c.status,
+            c.create_time,
+            c.update_time,
+            COALESCE(child_stats.child_count, 0) as child_count
+        FROM comment c
+        LEFT JOIN (
+            SELECT parent_id, COUNT(*) as child_count
+            FROM comment
+            WHERE content_id = #{contentId}
+              AND status = 2
+              AND parent_id IS NOT NULL 
+              AND parent_id != 0
+            GROUP BY parent_id
+        ) child_stats ON c.id = child_stats.parent_id
+        WHERE c.content_id = #{contentId}
+          AND c.status = 2
+          AND (c.parent_id IS NULL OR c.parent_id = 0)
+        <choose>
+            <when test="sortBy == 'likeCount'">
+                <if test="sortOrder == 'asc'">ORDER BY c.like_count ASC, c.create_time DESC</if>
+                <if test="sortOrder != 'asc'">ORDER BY c.like_count DESC, c.create_time DESC</if>
+            </when>
+            <otherwise>
+                <if test="sortOrder == 'asc'">ORDER BY c.create_time ASC</if>
+                <if test="sortOrder != 'asc'">ORDER BY c.create_time DESC</if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 查询指定根评论下的前N条子评论（用于根评论列表展示） -->
+    <select id="selectTopChildComments" resultMap="ChildCommentResultMap">
+        SELECT 
+            c.id,
+            c.content_id,
+            c.user_id,
+            c.parent_id,
+            c.reply_to_user_id,
+            c.content,
+            c.like_count,
+            c.status,
+            c.create_time,
+            c.update_time
+        FROM comment c
+        WHERE c.content_id = #{contentId}
+          AND c.status = 2
+          AND c.parent_id = #{rootId}
+        ORDER BY c.create_time ASC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 分页查询指定根评论下的所有子评论（用于展开更多） -->
+    <select id="selectChildCommentsPage" resultMap="ChildCommentResultMap">
+        SELECT 
+            c.id,
+            c.content_id,
+            c.user_id,
+            c.parent_id,
+            c.reply_to_user_id,
+            c.content,
+            c.like_count,
+            c.status,
+            c.create_time,
+            c.update_time
+        FROM comment c
+        WHERE c.content_id = #{contentId}
+          AND c.status = 2
+          AND c.parent_id = #{rootId}
+        ORDER BY c.create_time ASC
+    </select>
+
+</mapper>

@@ -2,15 +2,15 @@ package com.hngy.siae.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.request.UserCreateDTO;
+import com.hngy.siae.api.user.dto.response.UserVO;
 import com.hngy.siae.auth.dto.response.LoginVO;
 import com.hngy.siae.auth.dto.response.OAuthAccountVO;
 import com.hngy.siae.auth.entity.OAuthAccount;
 import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserAuth;
 import com.hngy.siae.auth.entity.UserRole;
-import com.hngy.siae.auth.feign.UserClient;
-import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
-import com.hngy.siae.auth.feign.dto.response.UserVO;
 import com.hngy.siae.auth.mapper.OAuthAccountMapper;
 import com.hngy.siae.auth.mapper.RoleMapper;
 import com.hngy.siae.auth.mapper.UserAuthMapper;
@@ -24,17 +24,22 @@ import com.hngy.siae.auth.service.oauth.GiteeOAuthService;
 import com.hngy.siae.auth.util.StateManager;
 import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
+import com.hngy.siae.security.service.SecurityCacheService;
 import com.hngy.siae.core.utils.JwtUtils;
-import com.hngy.siae.security.service.RedisPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import com.hngy.siae.auth.dto.request.OAuthRegisterDTO;
+import com.hngy.siae.auth.dto.response.OAuthCallbackVO;
 
 /**
  * OAuth第三方登录服务实现类
@@ -53,13 +58,17 @@ public class OAuthServiceImpl implements OAuthService {
     private final StateManager stateManager;
     private final JwtUtils jwtUtils;
     private final LogService logService;
-    private final UserClient userClient;
+    private final UserFeignClient userClient;
     private final RoleMapper roleMapper;
     private final UserRoleMapper userRoleMapper;
     private final UserPermissionMapper userPermissionMapper;
     private final UserAuthMapper userAuthMapper;
-    private final RedisPermissionService redisPermissionService;
+    private final SecurityCacheService securityCacheService;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+    
+    // OAuth临时信息缓存前缀
+    private static final String OAUTH_TEMP_PREFIX = "oauth:temp:";
     
     @Override
     public String generateAuthUrl(String provider) {
@@ -205,6 +214,193 @@ public class OAuthServiceImpl implements OAuthService {
             }
             throw new ServiceException("第三方登录失败: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public OAuthCallbackVO handleCallbackV2(String provider, String code, String state) {
+        try {
+            // 1. 验证state参数
+            if (!stateManager.validateState(state, provider)) {
+                log.warn("State验证失败: provider={}, state={}", provider, state);
+                throw new ServiceException(AuthResultCodeEnum.OAUTH_STATE_INVALID);
+            }
+            
+            // 2. 删除已使用的state
+            stateManager.removeState(state);
+            
+            // 3. 换取access_token并获取用户信息
+            Map<String, Object> userInfo = getUserInfoFromProvider(provider, code);
+            String providerUserId = (String) userInfo.get("provider_user_id");
+            String nickname = (String) userInfo.get("nickname");
+            String avatar = (String) userInfo.get("avatar");
+            String accessToken = (String) userInfo.get("access_token");
+            
+            // 4. 查询oauth_account表
+            OAuthAccount oauthAccount = oauthAccountMapper.selectByProviderAndUserId(provider, providerUserId);
+            
+            if (oauthAccount == null) {
+                // 5. 新用户，生成临时token并缓存第三方信息
+                String tempToken = UUID.randomUUID().toString().replace("-", "");
+                
+                // 缓存OAuth信息到Redis，10分钟有效
+                Map<String, String> oauthInfo = new HashMap<>();
+                oauthInfo.put("provider", provider);
+                oauthInfo.put("providerUserId", providerUserId);
+                oauthInfo.put("nickname", nickname != null ? nickname : "");
+                oauthInfo.put("avatar", avatar != null ? avatar : "");
+                oauthInfo.put("accessToken", accessToken);
+                oauthInfo.put("rawJson", convertToJson(userInfo));
+                
+                stringRedisTemplate.opsForHash().putAll(OAUTH_TEMP_PREFIX + tempToken, oauthInfo);
+                stringRedisTemplate.expire(OAUTH_TEMP_PREFIX + tempToken, 10, TimeUnit.MINUTES);
+                
+                log.info("新OAuth用户，需要完善信息: provider={}, providerUserId={}", provider, providerUserId);
+                
+                return OAuthCallbackVO.needRegister(tempToken, provider, providerUserId, nickname, avatar);
+            } else {
+                // 6. 已绑定用户，直接登录
+                Long userId = oauthAccount.getUserId();
+                UserVO user = userClient.getUserById(userId);
+                if (user == null) {
+                    throw new ServiceException(AuthResultCodeEnum.USER_NOT_FOUND);
+                }
+                
+                // 更新access_token
+                oauthAccount.setAccessToken(accessToken);
+                oauthAccount.setRawJson(convertToJson(userInfo));
+                oauthAccountMapper.updateById(oauthAccount);
+                
+                // 生成登录信息
+                LoginVO loginVO = generateLoginResponse(userId, user.getUsername());
+                
+                log.info("已绑定OAuth用户登录: userId={}, provider={}", userId, provider);
+                
+                return OAuthCallbackVO.directLogin(loginVO);
+            }
+        } catch (Exception e) {
+            log.error("处理OAuth回调失败: provider={}, error={}", provider, e.getMessage(), e);
+            if (e instanceof ServiceException) {
+                throw e;
+            }
+            throw new ServiceException("第三方登录失败: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LoginVO completeOAuthRegister(OAuthRegisterDTO registerDTO, String clientIp, String browser, String os) {
+        try {
+            String tempToken = registerDTO.getTempToken();
+            String cacheKey = OAUTH_TEMP_PREFIX + tempToken;
+            
+            // 1. 从Redis获取OAuth信息
+            Map<Object, Object> oauthInfo = stringRedisTemplate.opsForHash().entries(cacheKey);
+            if (oauthInfo.isEmpty()) {
+                throw new ServiceException("临时令牌已过期，请重新进行第三方登录");
+            }
+            
+            String provider = (String) oauthInfo.get("provider");
+            String providerUserId = (String) oauthInfo.get("providerUserId");
+            String nickname = (String) oauthInfo.get("nickname");
+            String avatar = (String) oauthInfo.get("avatar");
+            String accessToken = (String) oauthInfo.get("accessToken");
+            String rawJson = (String) oauthInfo.get("rawJson");
+            
+            // 2. 检查用户名是否已存在
+            if (userClient.checkUsernameExists(registerDTO.getUsername())) {
+                throw new ServiceException("用户名已存在");
+            }
+            
+            // 3. 创建用户
+            UserCreateDTO userDTO = new UserCreateDTO();
+            userDTO.setUsername(registerDTO.getUsername());
+            userDTO.setPassword(registerDTO.getPassword() != null ? registerDTO.getPassword() : UUID.randomUUID().toString().substring(0, 16));
+            userDTO.setNickname(nickname);
+            userDTO.setEmail(registerDTO.getEmail());
+            userDTO.setStatus(1);
+            
+            UserVO createdUser = userClient.register(userDTO);
+            if (createdUser == null) {
+                throw new ServiceException(AuthResultCodeEnum.USER_CREATION_FAILED);
+            }
+            
+            Long userId = createdUser.getId();
+            
+            // 4. 分配默认角色
+            assignDefaultRoleToUser(userId);
+            
+            // 5. 创建OAuth绑定记录
+            OAuthAccount oauthAccount = new OAuthAccount();
+            oauthAccount.setUserId(userId);
+            oauthAccount.setProvider(provider);
+            oauthAccount.setProviderUserId(providerUserId);
+            oauthAccount.setNickname(nickname);
+            oauthAccount.setAvatar(avatar);
+            oauthAccount.setAccessToken(accessToken);
+            oauthAccount.setRawJson(rawJson);
+            oauthAccount.setCreatedAt(LocalDateTime.now());
+            oauthAccountMapper.insert(oauthAccount);
+            
+            // 6. 删除临时缓存
+            stringRedisTemplate.delete(cacheKey);
+            
+            // 7. 生成登录响应
+            LoginVO loginVO = generateLoginResponse(userId, registerDTO.getUsername());
+            
+            // 8. 记录登录日志
+            logService.saveLoginLogAsync(userId, registerDTO.getUsername(), clientIp, browser, os, 1, 
+                    provider.toUpperCase() + "注册登录成功");
+            
+            log.info("OAuth用户注册成功: userId={}, username={}, provider={}", 
+                    userId, registerDTO.getUsername(), provider);
+            
+            return loginVO;
+            
+        } catch (Exception e) {
+            log.error("OAuth用户注册失败: error={}", e.getMessage(), e);
+            if (e instanceof ServiceException) {
+                throw e;
+            }
+            throw new ServiceException("注册失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 生成登录响应
+     */
+    private LoginVO generateLoginResponse(Long userId, String username) {
+        // 查询用户权限和角色
+        List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(userId);
+        List<String> roles = userRoleMapper.selectRoleCodesByUserId(userId);
+        
+        // 生成JWT令牌
+        String jwtAccessToken = jwtUtils.createAccessToken(userId, username);
+        String refreshToken = jwtUtils.createRefreshToken(userId, username);
+        Date expirationDate = jwtUtils.getExpirationDate(jwtAccessToken);
+        long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
+        
+        // 缓存用户权限和角色到Redis
+        cacheUserPermissionsAndRolesToRedis(userId, permissions, roles, tokenExpireSeconds);
+        
+        // 保存认证信息到数据库
+        UserAuth userAuth = new UserAuth();
+        userAuth.setUserId(userId);
+        userAuth.setAccessToken(jwtAccessToken);
+        userAuth.setRefreshToken(refreshToken);
+        userAuth.setTokenType("Bearer");
+        userAuth.setExpiresAt(LocalDateTime.ofInstant(expirationDate.toInstant(), ZoneId.systemDefault()));
+        userAuthMapper.insert(userAuth);
+        
+        // 构建响应
+        LoginVO response = new LoginVO();
+        response.setUserId(userId);
+        response.setUsername(username);
+        response.setAccessToken(jwtAccessToken);
+        response.setRefreshToken(refreshToken);
+        response.setTokenType("Bearer");
+        response.setExpiresIn(tokenExpireSeconds);
+        
+        return response;
     }
     
     @Override
@@ -381,11 +577,12 @@ public class OAuthServiceImpl implements OAuthService {
             userDTO.setUsername(username);
             userDTO.setPassword(randomPassword);
             userDTO.setNickname(nickname);
-            userDTO.setAvatar(avatar);
+            // OAuth头像是URL，暂不设置avatarFileId，用户可后续上传头像
+            // TODO: 可以考虑下载头像上传到media服务后再设置file_id
             userDTO.setStatus(1);
             
             // 调用用户服务创建用户
-            UserVO createdUser = userClient.registerUser(userDTO);
+            UserVO createdUser = userClient.register(userDTO);
             
             if (createdUser == null) {
                 throw new ServiceException(AuthResultCodeEnum.USER_CREATION_FAILED);
@@ -440,8 +637,8 @@ public class OAuthServiceImpl implements OAuthService {
     private void cacheUserPermissionsAndRolesToRedis(Long userId, List<String> permissions, 
                                                      List<String> roles, long expireSeconds) {
         try {
-            redisPermissionService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
-            redisPermissionService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
+            securityCacheService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
+            securityCacheService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
             
             log.debug("用户权限和角色已缓存到Redis，用户ID: {}, 权限数量: {}, 角色数量: {}, 过期时间: {}秒",
                     userId, permissions.size(), roles.size(), expireSeconds);

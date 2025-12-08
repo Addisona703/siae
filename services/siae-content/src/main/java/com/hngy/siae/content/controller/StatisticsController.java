@@ -1,8 +1,8 @@
 package com.hngy.siae.content.controller;
 
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.dto.request.StatisticsDTO;
-import com.hngy.siae.content.dto.response.StatisticsVO;
+import com.hngy.siae.content.dto.request.interaction.StatisticsDTO;
+import com.hngy.siae.content.dto.response.statistics.StatisticsVO;
 import com.hngy.siae.content.enums.ActionTypeEnum;
 import com.hngy.siae.content.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +16,7 @@ import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.ContentPermissions.*;
+import static com.hngy.siae.content.permissions.ContentPermissions.*;
 
 /**
  * 内容统计管理控制器
@@ -111,9 +111,9 @@ public class StatisticsController {
     @Operation(summary = "获取统计汇总数据", description = "获取全站统计汇总数据，包括总浏览量、总点赞数、总收藏数、总评论数、今日数据等，用于首页统计卡片")
     @GetMapping("/summary")
     @SiaeAuthorize("hasAuthority('" + CONTENT_STATISTICS_VIEW + "')")
-    public Result<com.hngy.siae.content.dto.response.StatisticsSummaryVO> getStatisticsSummary() {
+    public Result<com.hngy.siae.content.dto.response.statistics.StatisticsSummaryVO> getStatisticsSummary() {
         log.info("获取统计汇总数据");
-        com.hngy.siae.content.dto.response.StatisticsSummaryVO summary = statisticsService.getStatisticsSummary();
+        com.hngy.siae.content.dto.response.statistics.StatisticsSummaryVO summary = statisticsService.getStatisticsSummary();
         return Result.success(summary);
     }
 
@@ -126,9 +126,9 @@ public class StatisticsController {
     @Operation(summary = "按内容类型统计", description = "统计各内容类型（文章、笔记、问答、文件、视频）的数量和互动数据，用于饼图或柱状图展示")
     @GetMapping("/by-type")
     @SiaeAuthorize("hasAuthority('" + CONTENT_STATISTICS_VIEW + "')")
-    public Result<java.util.List<com.hngy.siae.content.dto.response.ContentTypeStatisticsVO>> getContentTypeStatistics() {
+    public Result<java.util.List<com.hngy.siae.content.dto.response.statistics.ContentTypeStatisticsVO>> getContentTypeStatistics() {
         log.info("获取内容类型统计数据");
-        java.util.List<com.hngy.siae.content.dto.response.ContentTypeStatisticsVO> statistics = statisticsService.getContentTypeStatistics();
+        java.util.List<com.hngy.siae.content.dto.response.statistics.ContentTypeStatisticsVO> statistics = statisticsService.getContentTypeStatistics();
         return Result.success(statistics);
     }
 
@@ -141,9 +141,9 @@ public class StatisticsController {
     @Operation(summary = "按分类统计", description = "统计各分类的内容数量和互动数据，用于饼图或柱状图展示")
     @GetMapping("/by-category")
     @SiaeAuthorize("hasAuthority('" + CONTENT_STATISTICS_VIEW + "')")
-    public Result<java.util.List<com.hngy.siae.content.dto.response.CategoryStatisticsVO>> getCategoryStatistics() {
+    public Result<java.util.List<com.hngy.siae.content.dto.response.category.CategoryStatisticsVO>> getCategoryStatistics() {
         log.info("获取分类统计数据");
-        java.util.List<com.hngy.siae.content.dto.response.CategoryStatisticsVO> statistics = statisticsService.getCategoryStatistics();
+        java.util.List<com.hngy.siae.content.dto.response.category.CategoryStatisticsVO> statistics = statisticsService.getCategoryStatistics();
         return Result.success(statistics);
     }
 
@@ -157,11 +157,11 @@ public class StatisticsController {
     @Operation(summary = "获取趋势数据", description = "获取指定天数内的统计趋势数据，用于折线图展示浏览量、点赞数、收藏数、评论数的变化趋势")
     @GetMapping("/trend")
     @SiaeAuthorize("hasAuthority('" + CONTENT_STATISTICS_VIEW + "')")
-    public Result<com.hngy.siae.content.dto.response.TrendDataVO> getTrendData(
+    public Result<com.hngy.siae.content.dto.response.statistics.TrendDataVO> getTrendData(
             @Parameter(description = "统计天数，默认7天，可选7、30、90等", example = "7")
             @RequestParam(defaultValue = "7") Integer days) {
         log.info("获取趋势数据，天数: {}", days);
-        com.hngy.siae.content.dto.response.TrendDataVO trendData = statisticsService.getTrendData(days);
+        com.hngy.siae.content.dto.response.statistics.TrendDataVO trendData = statisticsService.getTrendData(days);
         return Result.success(trendData);
     }
 }

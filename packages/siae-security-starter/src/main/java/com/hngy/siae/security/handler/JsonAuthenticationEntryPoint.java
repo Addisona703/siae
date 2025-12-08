@@ -5,7 +5,6 @@ import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -18,10 +17,7 @@ import java.io.IOException;
  * @author KEYKB
  */
 @Slf4j
-@RequiredArgsConstructor
-public class JsonAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    private final ObjectMapper objectMapper;
+public record JsonAuthenticationEntryPoint(ObjectMapper objectMapper) implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request,

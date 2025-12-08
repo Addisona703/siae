@@ -8,10 +8,11 @@ import lombok.Data;
 
 /**
  * 内容标签关系表
- * @TableName content_tag_relation
+ * @TableName tag_relation
  */
 @Data
 @Builder
+@TableName("tag_relation")
 public class TagRelation {
     /**
      * 主键，自增

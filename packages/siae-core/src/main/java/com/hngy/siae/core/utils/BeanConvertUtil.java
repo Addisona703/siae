@@ -27,6 +27,20 @@ public class BeanConvertUtil {
     }
 
     /**
+     * 通用 Entity → VO 转换，支持忽略特定字段
+     * @param source 原始对象
+     * @param targetClass 目标类
+     * @param ignoreProperties 需要忽略的字段
+     * @return 转换后的对象
+     */
+    public static <S, T> T to(S source, Class<T> targetClass, String... ignoreProperties) {
+        if (source == null) {
+            return null;
+        }
+        return BeanUtil.copyProperties(source, targetClass, ignoreProperties);
+    }
+
+    /**
      * 将源对象属性复制到目标对象，支持排除特定字段
      *
      * @param source 源对象

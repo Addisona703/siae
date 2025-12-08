@@ -1,5 +1,6 @@
 package com.hngy.siae.user.dto.request;
 
+import com.hngy.siae.user.enums.UserStatusEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -91,5 +92,5 @@ public class UserUpdateDTO implements Serializable {
     /**
      * 状态：0禁用，1启用
      */
-    private Integer status;
+    private UserStatusEnum status;
 } 

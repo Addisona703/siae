@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.user.dto.request.UserAwardCreateDTO;
@@ -14,15 +13,15 @@ import com.hngy.siae.user.dto.request.UserAwardUpdateDTO;
 import com.hngy.siae.user.dto.response.UserAwardVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.UserAward;
-import com.hngy.siae.user.feign.MediaFeignClient;
-import com.hngy.siae.user.feign.dto.BatchUrlRequest;
-import com.hngy.siae.user.feign.dto.BatchUrlResponse;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
 import com.hngy.siae.user.mapper.UserAwardMapper;
 import com.hngy.siae.user.service.AwardLevelService;
 import com.hngy.siae.user.service.AwardTypeService;
 import com.hngy.siae.user.service.UserAwardService;
 import com.hngy.siae.user.service.UserService;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -145,14 +144,13 @@ public class UserAwardServiceImpl
                     
                     if (!avatarFileIds.isEmpty()) {
                         try {
-                            BatchUrlRequest request = BatchUrlRequest.builder()
-                                    .fileIds(avatarFileIds)
-                                    .expirySeconds(86400) // 24小时
-                                    .build();
-                            Result<BatchUrlResponse> urlResult = mediaFeignClient.batchGetFileUrls(request);
+                            BatchUrlDTO request = new BatchUrlDTO();
+                            request.setFileIds(avatarFileIds);
+                            request.setExpirySeconds(86400); // 24小时
+                            BatchUrlVO urlResult = mediaFeignClient.batchGetFileUrls(request);
                             
-                            if (urlResult != null && urlResult.getCode() == 200 && urlResult.getData() != null) {
-                                Map<String, String> urlMap = urlResult.getData().getUrls();
+                            if (urlResult != null && urlResult.getUrls() != null) {
+                                Map<String, String> urlMap = urlResult.getUrls();
                                 // 将URL设置到用户对象中
                                 for (UserVO user : members) {
                                     if (StrUtil.isNotBlank(user.getAvatarFileId())) {
@@ -209,8 +207,14 @@ public class UserAwardServiceImpl
 
         PageVO<UserAwardVO> pageVO = PageConvertUtil.convert(resultPage, UserAwardVO.class);
         
-        // 填充团队成员信息
+        // 填充团队成员信息（已删除用户会被过滤）
         fillTeamMemberInfo(pageVO.getRecords());
+        
+        // 过滤掉没有有效团队成员的获奖记录
+        List<UserAwardVO> filteredRecords = pageVO.getRecords().stream()
+                .filter(award -> award.getTeamMemberList() != null && !award.getTeamMemberList().isEmpty())
+                .collect(Collectors.toList());
+        pageVO.setRecords(filteredRecords);
         
         return pageVO;
     }
@@ -259,14 +263,13 @@ public class UserAwardServiceImpl
         
         if (!avatarFileIds.isEmpty()) {
             try {
-                BatchUrlRequest request = BatchUrlRequest.builder()
-                        .fileIds(avatarFileIds)
-                        .expirySeconds(86400) // 24小时
-                        .build();
-                Result<BatchUrlResponse> urlResult = mediaFeignClient.batchGetFileUrls(request);
+                BatchUrlDTO request = new BatchUrlDTO();
+                request.setFileIds(avatarFileIds);
+                request.setExpirySeconds(86400); // 24小时
+                BatchUrlVO urlResult = mediaFeignClient.batchGetFileUrls(request);
                 
-                if (urlResult != null && urlResult.getCode() == 200 && urlResult.getData() != null) {
-                    Map<String, String> urlMap = urlResult.getData().getUrls();
+                if (urlResult != null && urlResult.getUrls() != null) {
+                    Map<String, String> urlMap = urlResult.getUrls();
                     // 将URL设置到用户对象中
                     for (UserVO user : users) {
                         if (StrUtil.isNotBlank(user.getAvatarFileId())) {
@@ -317,8 +320,14 @@ public class UserAwardServiceImpl
         Page<UserAwardVO> page = new Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
         Page<UserAwardVO> resultPage = baseMapper.selectUserAwardPageWithDetails(page, pageDTO.getParams());
         
-        // 2. 填充团队成员信息
+        // 2. 填充团队成员信息（已删除用户会被过滤）
         fillTeamMemberInfo(resultPage.getRecords());
+        
+        // 3. 过滤掉没有有效团队成员的获奖记录
+        List<UserAwardVO> filteredRecords = resultPage.getRecords().stream()
+                .filter(award -> award.getTeamMemberList() != null && !award.getTeamMemberList().isEmpty())
+                .collect(Collectors.toList());
+        resultPage.setRecords(filteredRecords);
         
         return PageConvertUtil.convert(resultPage);
     }

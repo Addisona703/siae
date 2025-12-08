@@ -7,7 +7,7 @@ import com.hngy.siae.content.dto.request.category.CategoryCreateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryUpdateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryQueryDTO;
 import com.hngy.siae.content.dto.request.category.CategoryEnableDTO;
-import com.hngy.siae.content.dto.response.CategoryVO;
+import com.hngy.siae.content.dto.response.category.CategoryVO;
 import com.hngy.siae.content.service.CategoriesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,7 @@ import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.ContentPermissions.*;
+import static com.hngy.siae.content.permissions.ContentPermissions.*;
 
 
 /**

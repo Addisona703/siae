@@ -1,5 +1,6 @@
 package com.hngy.siae.attendance.dto.request;
 
+import com.hngy.siae.attendance.entity.AttendanceRule;
 import com.hngy.siae.attendance.enums.RuleStatus;
 import com.hngy.siae.attendance.enums.RuleTargetType;
 import lombok.Data;
@@ -72,9 +73,9 @@ public class AttendanceRuleUpdateDTO {
     private Boolean locationRequired;
 
     /**
-     * 允许的位置列表（JSON格式）
+     * 允许的位置列表
      */
-    private String allowedLocations;
+    private List<AttendanceRule.Location> allowedLocations;
 
     /**
      * 位置半径(米)

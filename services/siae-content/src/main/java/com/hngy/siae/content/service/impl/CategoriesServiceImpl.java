@@ -14,11 +14,11 @@ import com.hngy.siae.content.enums.status.CategoryStatusEnum;
 import com.hngy.siae.content.dto.request.category.CategoryCreateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryUpdateDTO;
 import com.hngy.siae.content.dto.request.category.CategoryQueryDTO;
-import com.hngy.siae.content.dto.response.CategoryVO;
+import com.hngy.siae.content.dto.response.category.CategoryVO;
 import com.hngy.siae.content.entity.Category;
 import com.hngy.siae.content.mapper.CategoryMapper;
 import com.hngy.siae.content.service.CategoriesService;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -62,14 +62,22 @@ public class CategoriesServiceImpl
         Category existingCategory = this.getById(categoryUpdateDTO.getId());
         AssertUtils.notNull(existingCategory, ContentResultCodeEnum.CATEGORY_NOT_FOUND);
 
-        // 检查名称是否重复（排除自身）
-        boolean exists = lambdaQuery()
-                .eq(Category::getName, categoryUpdateDTO.getName())
-                .or()
-                .eq(Category::getCode, categoryUpdateDTO.getCode())
-                .ne(Category::getId, categoryUpdateDTO.getId())
-                .exists();
-        AssertUtils.isFalse(exists, ContentResultCodeEnum.CATEGORY_NAME_OR_CODE_EXISTS);
+        // 只有当名称或编码发生变化时才检查重复
+        if (categoryUpdateDTO.getName() != null && !categoryUpdateDTO.getName().equals(existingCategory.getName())) {
+            boolean nameExists = lambdaQuery()
+                    .eq(Category::getName, categoryUpdateDTO.getName())
+                    .ne(Category::getId, categoryUpdateDTO.getId())
+                    .exists();
+            AssertUtils.isFalse(nameExists, ContentResultCodeEnum.CATEGORY_NAME_OR_CODE_EXISTS);
+        }
+
+        if (categoryUpdateDTO.getCode() != null && !categoryUpdateDTO.getCode().equals(existingCategory.getCode())) {
+            boolean codeExists = lambdaQuery()
+                    .eq(Category::getCode, categoryUpdateDTO.getCode())
+                    .ne(Category::getId, categoryUpdateDTO.getId())
+                    .exists();
+            AssertUtils.isFalse(codeExists, ContentResultCodeEnum.CATEGORY_NAME_OR_CODE_EXISTS);
+        }
 
         // 存在则更新分类
         Category category = BeanConvertUtil.to(categoryUpdateDTO, Category.class);
@@ -114,23 +122,13 @@ public class CategoriesServiceImpl
         queryWrapper.ne(Category::getStatus, CategoryStatusEnum.DELETED);
 
         if (queryDTO != null) {
-            // 关键词搜索（搜索名称或编码）
+            // 关键词搜索（模糊匹配名称或编码）
             if (StrUtil.isNotBlank(queryDTO.getKeyword())) {
                 queryWrapper.and(wrapper ->
                         wrapper.like(Category::getName, queryDTO.getKeyword())
                                 .or()
                                 .like(Category::getCode, queryDTO.getKeyword())
                 );
-            }
-
-            // 精确匹配分类名称
-            if (StrUtil.isNotBlank(queryDTO.getName())) {
-                queryWrapper.eq(Category::getName, queryDTO.getName());
-            }
-
-            // 精确匹配分类编码
-            if (StrUtil.isNotBlank(queryDTO.getCode())) {
-                queryWrapper.eq(Category::getCode, queryDTO.getCode());
             }
 
             // 分类状态
@@ -150,16 +148,6 @@ public class CategoriesServiceImpl
             if (StrUtil.isNotBlank(queryDTO.getCreatedAtEnd())) {
                 queryWrapper.le(Category::getCreateTime, queryDTO.getCreatedAtEnd());
             }
-        }
-
-        // 兼容原有的keyword查询（从pageDTO中获取）
-        String keyword = pageDTO.getKeyword();
-        if (StrUtil.isNotBlank(keyword) && (queryDTO == null || StrUtil.isBlank(queryDTO.getKeyword()))) {
-            queryWrapper.and(wrapper ->
-                    wrapper.like(Category::getName, keyword)
-                            .or()
-                            .like(Category::getCode, keyword)
-            );
         }
 
         // 执行分页查询

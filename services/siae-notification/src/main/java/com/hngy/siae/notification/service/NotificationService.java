@@ -3,6 +3,7 @@ package com.hngy.siae.notification.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.notification.dto.request.NotificationCreateDTO;
+import com.hngy.siae.notification.dto.request.NotificationBroadcastDTO;
 import com.hngy.siae.notification.dto.response.NotificationVO;
 import com.hngy.siae.notification.entity.SystemNotification;
 
@@ -52,4 +53,9 @@ public interface NotificationService extends IService<SystemNotification> {
      * 删除通知
      */
     void deleteNotification(Long notificationId, Long userId);
+
+    /**
+     * 广播通知（向所有用户或指定用户发送通知）
+     */
+    int broadcastNotification(NotificationBroadcastDTO dto);
 }

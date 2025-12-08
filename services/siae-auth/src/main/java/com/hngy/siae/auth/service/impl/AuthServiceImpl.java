@@ -2,6 +2,10 @@ package com.hngy.siae.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.request.UserCreateDTO;
+import com.hngy.siae.api.user.dto.response.UserLoginVO;
+import com.hngy.siae.api.user.dto.response.UserVO;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
@@ -12,11 +16,6 @@ import com.hngy.siae.auth.dto.response.TokenRefreshVO;
 import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserAuth;
 import com.hngy.siae.auth.entity.UserRole;
-import com.hngy.siae.auth.feign.UserClient;
-import com.hngy.siae.auth.feign.dto.request.UserCreateDTO;
-import com.hngy.siae.auth.feign.dto.response.UserAuthVO;
-import com.hngy.siae.auth.feign.dto.response.UserAuthVO;
-import com.hngy.siae.auth.feign.dto.response.UserVO;
 
 import com.hngy.siae.auth.mapper.RoleMapper;
 import com.hngy.siae.auth.mapper.UserAuthMapper;
@@ -24,17 +23,17 @@ import com.hngy.siae.auth.mapper.UserPermissionMapper;
 import com.hngy.siae.auth.mapper.UserRoleMapper;
 import com.hngy.siae.auth.service.LogService;
 import com.hngy.siae.auth.service.AuthService;
-import com.hngy.siae.security.service.RedisPermissionService;
+import com.hngy.siae.security.service.SecurityCacheService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
-import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.core.utils.JwtUtils;
 import com.hngy.siae.core.exception.ServiceException;
+import com.hngy.siae.core.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -61,14 +60,14 @@ public class AuthServiceImpl
         implements AuthService {
 
     // TODO: 后面抽成外观模式
-    private final UserClient userClient;
+    private final UserFeignClient userClient;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final LogService logService;
     private final RoleMapper roleMapper;
     private final UserPermissionMapper userPermissionMapper;
     private final UserRoleMapper userRoleMapper;
-    private final RedisPermissionService redisPermissionService;
+    private final SecurityCacheService securityCacheService;
     
     /**
      * 用户登录认证
@@ -85,43 +84,49 @@ public class AuthServiceImpl
     @Transactional(rollbackFor = Exception.class)
     public LoginVO login(LoginDTO loginDTO, String clientIp, String browser, String os) {
         try {
-            // 1. 远程调用userClient接口获取用户信息
-            UserAuthVO user = userClient.getUserByUsername(loginDTO.getUsername());
+            // 远程调用userClient接口获取用户信息
+            UserLoginVO user = userClient.getUserByUsername(loginDTO.getUsername());
             
-            // 验证用户存在性并记录失败日志
+            // 验证用户存在性/用户状态/验证密码并记录失败日志
             assertUserExists(user, loginDTO.getUsername(), clientIp, browser, os);
-
-            // 2. 验证用户状态并记录失败日志
             assertUserEnabled(user, clientIp, browser, os);
-
-            // 3. 验证密码并记录失败日志
             assertPasswordMatches(loginDTO.getPassword(), user, clientIp, browser, os);
 
-            // 4. 查询用户权限（使用JOIN查询直接获取权限代码）
+            // 查询用户权限和角色
             List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(user.getId());
-
-            // 5. 查询用户角色（使用JOIN查询直接获取角色代码）
             List<String> roles = userRoleMapper.selectRoleCodesByUserId(user.getId());
 
-            // 6. 生成优化的JWT令牌（不包含权限信息）
+            // 生成优化的JWT令牌（不包含权限信息）
             String accessToken = jwtUtils.createAccessToken(user.getId(), user.getUsername());
             String refreshToken = jwtUtils.createRefreshToken(user.getId(), user.getUsername());
             Date expirationDate = jwtUtils.getExpirationDate(accessToken);
-            long currentTime = System.currentTimeMillis();
-            long tokenExpireSeconds = (expirationDate.getTime() - currentTime) / 1000;
+            long tokenExpireSeconds = (expirationDate.getTime() - System.currentTimeMillis()) / 1000;
 
-            // TODO:后续需要邮箱验证码确认用户身份
+            // TODO:后续需要邮箱验证码确认用户身份，消息队列
 
             // 7. 将用户权限和角色分别缓存到Redis，TTL与JWT过期时间一致
+            log.info("【权限缓存调试】登录时缓存权限，用户ID: {}, 过期时间: {}秒 (约{}小时)", 
+                    user.getId(), tokenExpireSeconds, tokenExpireSeconds / 3600);
             cacheUserPermissionsAndRolesToRedis(user.getId(), permissions, roles, tokenExpireSeconds);
 
-            // 8. 将token存储到Redis，实现统一的token验证机制
+            // 8. 同端互斥：踢掉同类型设备的旧登录
+            String deviceType = loginDTO.getDeviceType() != null ? loginDTO.getDeviceType() : "web";
+            log.info("【登录】用户 {} 使用设备类型: {} 登录", user.getUsername(), deviceType);
+            
+            // 8.1 清理该用户该设备类型的旧token（从Redis和数据库）
+            cleanupOldTokensForDevice(user.getId(), deviceType);
+            
+            // 8.2 存储新的设备token映射
+            securityCacheService.storeUserDeviceToken(user.getId(), deviceType, accessToken, tokenExpireSeconds);
+            
+            // 9. 将token存储到Redis，实现统一的token验证机制
             storeTokenToRedis(accessToken, user, tokenExpireSeconds);
             storeTokenToRedis(refreshToken, user, tokenExpireSeconds);
 
-            // 9. 保存认证信息到数据库（保持兼容性）
+            // 10. 保存认证信息到数据库
             UserAuth userAuth = new UserAuth();
             userAuth.setUserId(user.getId());
+            userAuth.setDeviceType(deviceType);
             userAuth.setAccessToken(accessToken);
             userAuth.setRefreshToken(refreshToken);
             userAuth.setTokenType("Bearer");
@@ -177,7 +182,7 @@ public class AuthServiceImpl
             userDTO.setStatus(1); // 默认启用
             
             // 4. 调用用户服务创建用户
-            UserVO createdUser = userClient.registerUser(userDTO);
+            UserVO createdUser = userClient.register(userDTO);
             AssertUtils.notNull(createdUser, AuthResultCodeEnum.USER_CREATION_FAILED);
 
             // 5. 分配默认角色到数据库
@@ -200,14 +205,22 @@ public class AuthServiceImpl
             // 8. 将用户权限和角色缓存到Redis
             cacheUserPermissionsAndRolesToRedis(createdUser.getId(), permissions, roles, tokenExpireSeconds);
 
-            // 9. 保存认证信息到数据库
+            // 9. 保存认证信息到数据库（注册默认为web设备）
             UserAuth userAuth = new UserAuth();
             userAuth.setUserId(createdUser.getId());
+            userAuth.setDeviceType("web");
             userAuth.setAccessToken(accessToken);
             userAuth.setRefreshToken(refreshToken);
             userAuth.setTokenType("Bearer");
             userAuth.setExpiresAt(LocalDateTime.ofInstant(expirationDate.toInstant(), ZoneId.systemDefault()));
             save(userAuth);
+            
+            // 存储设备token映射
+            securityCacheService.storeUserDeviceToken(createdUser.getId(), "web", accessToken, tokenExpireSeconds);
+            
+            // 存储token到Redis
+            storeTokenToRedis(accessToken, BeanConvertUtil.to(createdUser, UserLoginVO.class), tokenExpireSeconds);
+            storeTokenToRedis(refreshToken, BeanConvertUtil.to(createdUser, UserLoginVO.class), tokenExpireSeconds);
 
             // 10. 记录注册成功日志
             logService.saveLoginLogAsync(createdUser.getId(), createdUser.getUsername(), clientIp, browser, os, 1, "注册成功");
@@ -295,39 +308,23 @@ public class AuthServiceImpl
      * <p>
      * 清理用户认证信息和权限缓存，使令牌失效。
      *
-     * @param token JWT访问令牌
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取）
      */
     @Override
-    public void logout(String token) {
-        // 1. 验证token参数不为空
-        AssertUtils.notEmpty(token, AuthResultCodeEnum.TOKEN_INVALID);
-
-        // 2. 处理Bearer前缀
-        String actualToken = token;
-        if (token.startsWith("Bearer ")) {
-            actualToken = token.substring(7);
-        }
-
-        // 3. 验证token格式不为空
-        AssertUtils.notEmpty(actualToken, AuthResultCodeEnum.TOKEN_INVALID);
-
-        // 4. 验证JWT令牌有效性
-        AssertUtils.isTrue(jwtUtils.validateToken(actualToken), AuthResultCodeEnum.TOKEN_EXPIRED);
-
-        // 5. 获取用户ID用于清除Redis缓存
-        Long userId = jwtUtils.getUserId(actualToken);
+    public void logout(Long userId) {
         AssertUtils.notNull(userId, AuthResultCodeEnum.TOKEN_INVALID);
-        // 6. 从Redis中删除token
-        removeTokenFromRedis(actualToken);
 
-        // 7. 从数据库中删除认证信息
+        // 1. 从数据库中删除该用户的所有认证信息
         remove(
                 new LambdaQueryWrapper<UserAuth>()
-                        .eq(UserAuth::getAccessToken, actualToken)
+                        .eq(UserAuth::getUserId, userId)
         );
 
-        // 8. 清除Redis中的用户权限和角色缓存
+        // 2. 清除 Redis 中的用户权限和角色缓存
         clearUserCacheFromRedis(userId);
+
+        // 3. 清理 Spring Security 上下文
+        SecurityContextHolder.clearContext();
 
         log.info("用户登出成功，用户ID: {}", userId);
     }
@@ -335,40 +332,27 @@ public class AuthServiceImpl
     /**
      * 获取当前登录用户信息
      *
-     * @param authorizationHeader 请求头中的Authorization字段
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取并传入）
      * @return 当前用户信息
      */
     @Override
-    public CurrentUserVO getCurrentUser(String authorizationHeader) {
-        // 1. 断言 header
-        AssertUtils.notEmpty(authorizationHeader, CommonResultCodeEnum.UNAUTHORIZED);
+    public CurrentUserVO getCurrentUser(Long userId) {
+        // 1. 获取用户详细信息（包含头像URL）
+        UserVO userDetail = userClient.getUserById(userId);
+        AssertUtils.notNull(userDetail, AuthResultCodeEnum.USER_NOT_FOUND);
+        AssertUtils.isTrue(userDetail.getStatus() == null || userDetail.getStatus() == 1, AuthResultCodeEnum.ACCOUNT_DISABLED);
 
-        // 2. 提取 token
-        String token = authorizationHeader.startsWith("Bearer ")
-                ? authorizationHeader.substring(7)
-                : authorizationHeader;
-        AssertUtils.notEmpty(token, CommonResultCodeEnum.UNAUTHORIZED);
-        AssertUtils.isTrue(redisPermissionService.validateToken(token), CommonResultCodeEnum.UNAUTHORIZED);
+        // 2. 从 Redis 获取权限和角色
+        List<String> permissions = securityCacheService.getUserPermissions(userId);
+        List<String> roleCodes = securityCacheService.getUserRoles(userId);
 
-        // 3. 获取用户基本信息
-        Long userId = jwtUtils.getUserId(token);
-        String username = jwtUtils.getUsername(token);
-        AssertUtils.notNull(userId, CommonResultCodeEnum.UNAUTHORIZED);
-        AssertUtils.notEmpty(username, CommonResultCodeEnum.UNAUTHORIZED);
-
-        UserAuthVO userBasic = userClient.getUserByUsername(username);
-        AssertUtils.notNull(userBasic, AuthResultCodeEnum.USER_NOT_FOUND);
-        AssertUtils.isTrue(Objects.equals(userId, userBasic.getId()), CommonResultCodeEnum.UNAUTHORIZED);
-        AssertUtils.isTrue(userBasic.getStatus() == null || userBasic.getStatus() == 1, AuthResultCodeEnum.ACCOUNT_DISABLED);
-
-        // 4. 从 Redis 获取权限和角色
-        List<String> permissions = redisPermissionService.getUserPermissions(userId);
-        List<String> roleCodes = redisPermissionService.getUserRoles(userId);
-
-        // 5. 构建返回对象
+        // 3. 构建返回对象
         return CurrentUserVO.builder()
-                .userId(userBasic.getId())
-                .username(userBasic.getUsername())
+                .userId(userDetail.getId())
+                .username(userDetail.getUsername())
+                .nickname(userDetail.getNickname())
+                .email(userDetail.getEmail())
+                .avatar(userDetail.getAvatarUrl())
                 .roles(roleCodes != null ? roleCodes : new ArrayList<>())
                 .permissions(permissions != null ? permissions : new ArrayList<>())
                 .build();
@@ -397,8 +381,8 @@ public class AuthServiceImpl
     private void cacheUserPermissionsAndRolesToRedis(Long userId, List<String> permissions, List<String> roles, long expireSeconds) {
         try {
             // 分别缓存用户权限和角色，TTL与JWT过期时间一致
-            redisPermissionService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
-            redisPermissionService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
+            securityCacheService.cacheUserPermissions(userId, permissions, expireSeconds, TimeUnit.SECONDS);
+            securityCacheService.cacheUserRoles(userId, roles, expireSeconds, TimeUnit.SECONDS);
 
             log.debug("用户权限和角色已缓存到Redis，用户ID: {}, 权限数量: {}, 角色数量: {}, 过期时间: {}秒",
                     userId, permissions.size(), roles.size(), expireSeconds);
@@ -431,7 +415,7 @@ public class AuthServiceImpl
 
         // 清除用户权限缓存
         try {
-            redisPermissionService.clearUserPermissions(userId);
+            securityCacheService.clearUserPermissions(userId);
             permissionCleared = true;
             log.debug("已清除用户权限缓存，用户ID: {}", userId);
         } catch (Exception e) {
@@ -440,7 +424,7 @@ public class AuthServiceImpl
 
         // 清除用户角色缓存
         try {
-            redisPermissionService.clearUserRoles(userId);
+            securityCacheService.clearUserRoles(userId);
             roleCleared = true;
             log.debug("已清除用户角色缓存，用户ID: {}", userId);
         } catch (Exception e) {
@@ -472,7 +456,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws UsernameNotFoundException 当用户不存在时抛出
      */
-    private void assertUserExists(UserAuthVO user, String username, String clientIp, String browser, String os) {
+    private void assertUserExists(UserLoginVO user, String username, String clientIp, String browser, String os) {
         if (user == null) {
             logService.saveLoginLogAsync(null, username, clientIp, browser, os, 0, AuthResultCodeEnum.USER_NOT_FOUND.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.USER_NOT_FOUND);
@@ -491,7 +475,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws ServiceException 当用户账户被禁用时抛出
      */
-    private void assertUserEnabled(UserAuthVO user, String clientIp, String browser, String os) {
+    private void assertUserEnabled(UserLoginVO user, String clientIp, String browser, String os) {
         if (user.getStatus() != null && user.getStatus() == 0) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.ACCOUNT_DISABLED.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.ACCOUNT_DISABLED);
@@ -511,7 +495,7 @@ public class AuthServiceImpl
      * @param os 操作系统信息，用于审计日志
      * @throws BadCredentialsException 当密码不匹配时抛出
      */
-    private void assertPasswordMatches(String inputPassword, UserAuthVO user, String clientIp, String browser, String os) {
+    private void assertPasswordMatches(String inputPassword, UserLoginVO user, String clientIp, String browser, String os) {
         if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
             logService.saveLoginLogAsync(user.getId(), user.getUsername(), clientIp, browser, os, 0, AuthResultCodeEnum.PASSWORD_ERROR.getMessage());
             AssertUtils.fail(AuthResultCodeEnum.PASSWORD_ERROR);
@@ -575,15 +559,15 @@ public class AuthServiceImpl
      * @param user 用户信息
      * @param expireSeconds 过期时间（秒）
      */
-    private void storeTokenToRedis(String token, UserAuthVO user, long expireSeconds) {
+    private void storeTokenToRedis(String token, UserLoginVO user, long expireSeconds) {
         try {
             // 存储用户基本信息到Redis
             String userInfo = String.format("{\"userId\":%d,\"username\":\"%s\",\"status\":%d}",
                                           user.getId(), user.getUsername(), user.getStatus());
 
-            redisPermissionService.storeToken(token, userInfo, expireSeconds);
+            securityCacheService.storeToken(token, userInfo, expireSeconds);
 
-            log.debug("Token已通过RedisPermissionService存储到Redis: expireSeconds={}", expireSeconds);
+            log.debug("Token已通过securityCacheService存储到Redis: expireSeconds={}", expireSeconds);
 
         } catch (Exception e) {
             log.error("存储token到Redis失败: {}", e.getMessage(), e);
@@ -598,10 +582,59 @@ public class AuthServiceImpl
      */
     private void removeTokenFromRedis(String token) {
         try {
-            redisPermissionService.removeToken(token);
-            log.debug("Token已通过RedisPermissionService从Redis中删除");
+            securityCacheService.removeToken(token);
+            log.debug("Token已通过securityCacheService从Redis中删除");
         } catch (Exception e) {
             log.error("从Redis删除token失败: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 清理用户指定设备类型的旧token
+     * <p>
+     * 在用户登录时调用，实现同端互斥：
+     * 1. 从数据库查询该用户该设备类型的所有旧认证记录
+     * 2. 从Redis中删除这些旧token
+     * 3. 从数据库中删除这些旧认证记录
+     *
+     * @param userId 用户ID
+     * @param deviceType 设备类型
+     */
+    private void cleanupOldTokensForDevice(Long userId, String deviceType) {
+        try {
+            // 1. 查询该用户该设备类型的所有旧认证记录
+            List<UserAuth> oldAuths = list(new LambdaQueryWrapper<UserAuth>()
+                    .eq(UserAuth::getUserId, userId)
+                    .eq(UserAuth::getDeviceType, deviceType));
+            
+            if (oldAuths.isEmpty()) {
+                log.debug("【登录清理】用户 {} 设备 {} 没有旧的认证记录", userId, deviceType);
+                return;
+            }
+            
+            log.info("【登录清理】用户 {} 设备 {} 发现 {} 条旧认证记录，开始清理", 
+                    userId, deviceType, oldAuths.size());
+            
+            // 2. 从Redis中删除这些旧token
+            for (UserAuth oldAuth : oldAuths) {
+                if (oldAuth.getAccessToken() != null) {
+                    removeTokenFromRedis(oldAuth.getAccessToken());
+                }
+                if (oldAuth.getRefreshToken() != null) {
+                    removeTokenFromRedis(oldAuth.getRefreshToken());
+                }
+            }
+            
+            // 3. 从数据库中删除这些旧认证记录
+            List<Long> oldAuthIds = oldAuths.stream().map(UserAuth::getId).toList();
+            removeByIds(oldAuthIds);
+            
+            log.info("【登录清理】用户 {} 设备 {} 清理完成，删除了 {} 条旧记录", 
+                    userId, deviceType, oldAuthIds.size());
+            
+        } catch (Exception e) {
+            log.error("清理用户旧token失败，userId: {}, deviceType: {}", userId, deviceType, e);
+            // 不抛出异常，避免影响登录流程
         }
     }
 }

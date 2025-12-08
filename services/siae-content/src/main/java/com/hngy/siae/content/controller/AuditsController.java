@@ -3,10 +3,11 @@ package com.hngy.siae.content.controller;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.dto.request.AuditDTO;
-import com.hngy.siae.content.dto.request.AuditQueryDTO;
-import com.hngy.siae.content.dto.response.AuditVO;
+import com.hngy.siae.content.dto.request.audit.AuditDTO;
+import com.hngy.siae.content.dto.request.audit.AuditQueryDTO;
+import com.hngy.siae.content.dto.response.audit.AuditVO;
 import com.hngy.siae.content.service.AuditsService;
+import com.hngy.siae.security.utils.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +17,7 @@ import com.hngy.siae.security.annotation.SiaeAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.ContentPermissions.*;
+import static com.hngy.siae.content.permissions.ContentPermissions.*;
 
 /**
  * 审核内容控制器
@@ -32,6 +33,7 @@ import static com.hngy.siae.core.permissions.ContentPermissions.*;
 public class AuditsController {
 
     private final AuditsService auditsService;
+    private final SecurityUtil securityUtil;
 
 
     @Operation(summary = "处理审核", description = "处理内容审核，包括审核通过、拒绝等操作")
@@ -42,6 +44,7 @@ public class AuditsController {
             @PathVariable Long id,
             @Parameter(description = "审核处理请求数据，包含审核结果、审核意见等", required = true)
             @Valid @RequestBody AuditDTO auditDTO) {
+        auditDTO.setAuditBy(securityUtil.getCurrentUserId());
         auditsService.handleAudit(id, auditDTO);
         return Result.success();
     }

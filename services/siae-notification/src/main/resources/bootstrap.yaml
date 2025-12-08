@@ -15,10 +15,10 @@ spring:
   
   cloud:
     nacos:
-      server-addr: localhost:8948
+      server-addr: localhost:8848
       config:
-        group: SIAE_GROUP
         enabled: false
+        group: SIAE_GROUP
   
   config:
     # ⚠️ 重要：必须加 .yaml 扩展名

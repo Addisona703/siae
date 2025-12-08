@@ -1,7 +1,7 @@
 package com.hngy.siae.attendance.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.hngy.siae.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum RuleStatus {
+public enum RuleStatus implements BaseEnum {
 
     /**
      * 禁用
@@ -25,7 +25,11 @@ public enum RuleStatus {
     ENABLED(1, "启用");
 
     @EnumValue
-    @JsonValue
-    private final Integer value;
+    private final Integer code;
     private final String description;
+
+    @Override
+    public int getCode() {
+        return code;
+    }
 }

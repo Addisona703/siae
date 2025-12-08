@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * @author KEYKB
  */
 @SpringBootApplication(scanBasePackages = "com.hngy.siae")
-@EnableFeignClients(basePackages = "com.hngy.siae.notification")
+@EnableFeignClients(basePackages = "com.hngy.siae.api")
 public class SiaeNotificationApplication {
 
     public static void main(String[] args) {

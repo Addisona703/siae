@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAE Auth 登录测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: #999;
+            font-size: 13px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #eee;
+        }
+        .divider span { padding: 0 16px; }
+        .oauth-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .oauth-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 24px;
+        }
+        .oauth-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .oauth-btn.github { background: #24292e; color: white; }
+        .oauth-btn.gitee { background: #c71d23; color: white; }
+        .oauth-btn.qq { background: #12b7f5; color: white; }
+        .form-panel { display: none; }
+        .form-panel.active { display: block; }
+        .result-panel {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        .result-panel.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result-panel.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            display: none;
+        }
+        .user-info h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .user-info p {
+            margin: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .user-info .btn-logout {
+            margin-top: 16px;
+            background: #dc3545;
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 SIAE Auth</h1>
+        <p class="subtitle">认证服务测试页面</p>
+        
+        <!-- 登录后显示用户信息 -->
+        <div class="user-info" id="userInfo">
+            <h3>👤 当前用户</h3>
+            <p><strong>用户名:</strong> <span id="displayUsername">-</span></p>
+            <p><strong>用户ID:</strong> <span id="displayUserId">-</span></p>
+            <p><strong>角色:</strong> <span id="displayRoles">-</span></p>
+            <button class="btn btn-logout" onclick="logout()">退出登录</button>
+        </div>
+        
+        <!-- OAuth完善信息表单 -->
+        <div id="oauthRegisterForm" style="display: none;">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #333;">🎉 完善账号信息</h3>
+            <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 14px;">
+                欢迎！请设置您的用户名以完成注册
+            </p>
+            <div class="oauth-user-preview" style="text-align: center; margin-bottom: 20px;">
+                <img id="oauthAvatar" src="" style="width: 64px; height: 64px; border-radius: 50%; margin-bottom: 8px; display: none;">
+                <p style="color: #333; font-weight: 500;"><span id="oauthNickname">-</span></p>
+                <p style="color: #999; font-size: 12px;">来自 <span id="oauthProvider">-</span></p>
+            </div>
+            <form onsubmit="handleOAuthRegister(event)">
+                <div class="form-group">
+                    <label>用户名 <span style="color: #dc3545;">*</span></label>
+                    <input type="text" id="oauthUsername" placeholder="请设置用户名（3-20个字符）" required minlength="3" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label>邮箱（可选）</label>
+                    <input type="email" id="oauthEmail" placeholder="请输入邮箱">
+                </div>
+                <div class="form-group">
+                    <label>密码（可选，用于账号密码登录）</label>
+                    <input type="password" id="oauthPassword" placeholder="请设置密码（6-20个字符）" minlength="6" maxlength="20">
+                </div>
+                <button type="submit" class="btn btn-primary" id="oauthRegBtn">完成注册</button>
+                <button type="button" class="btn" style="margin-top: 10px; background: #6c757d; color: white;" onclick="cancelOAuthRegister()">取消</button>
+            </form>
+        </div>
+        
+        <!-- 登录/注册表单 -->
+        <div id="authForms">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('login')">登录</div>
+                <div class="tab" onclick="switchTab('register')">注册</div>
+            </div>
+
+            <!-- 登录表单 -->
+            <div class="form-panel active" id="loginPanel">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="loginBtn">登 录</button>
+                </form>
+            </div>
+            
+            <!-- 注册表单 -->
+            <div class="form-panel" id="registerPanel">
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" id="regUsername" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" id="regEmail" placeholder="请输入邮箱" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" id="regPassword" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="regBtn">注 册</button>
+                </form>
+            </div>
+            
+            <div class="divider"><span>第三方登录</span></div>
+            
+            <div class="oauth-buttons">
+                <button class="oauth-btn github" onclick="oauthLogin('github')" title="GitHub登录">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                </button>
+                <button class="oauth-btn gitee" onclick="oauthLogin('gitee')" title="Gitee登录">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+                        <path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.328 0 .593-.265.593-.593v-1.482a.594.594 0 0 0-.593-.592h-3.408a.594.594 0 0 1-.593-.593v-1.482c0-.328.266-.593.593-.593h5.63c.328 0 .593.265.593.593v5.63a2.37 2.37 0 0 1-2.37 2.37H7.408a.594.594 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h6.814z"/>
+                    </svg>
+                </button>
+                <button class="oauth-btn qq" onclick="oauthLogin('qq')" title="QQ登录">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                        <path d="M12.003 2c-2.265 0-6.29 1.364-6.29 7.325v1.195S3.55 14.96 3.55 17.474c0 .665.17 1.025.281 1.025.114 0 .902-.484 1.748-2.072 0 0-.18 2.197 1.904 3.967 0 0-1.77.495-1.77 1.182 0 .686 4.078.43 6.29.43 2.239 0 6.29.256 6.29-.43 0-.687-1.77-1.182-1.77-1.182 2.085-1.77 1.905-3.967 1.905-3.967.845 1.588 1.634 2.072 1.746 2.072.111 0 .283-.36.283-1.025 0-2.514-2.166-6.954-2.166-6.954V9.325C18.29 3.364 14.268 2 12.003 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="result-panel" id="resultPanel"></div>
+    </div>
+
+    <script>
+        // 自动检测API地址：如果不是在8000端口访问，则使用完整地址
+        const API_BASE = window.location.port === '8000' 
+            ? '/api/v1/auth' 
+            : 'http://localhost:8000/api/v1/auth';
+        
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            console.log('API Base URL:', API_BASE);
+            checkLoginStatus();
+            // 检查URL参数（OAuth回调）
+            handleOAuthCallback();
+        };
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.querySelector('.tabs .tab:first-child').classList.add('active');
+                document.getElementById('loginPanel').classList.add('active');
+            } else {
+                document.querySelector('.tabs .tab:last-child').classList.add('active');
+                document.getElementById('registerPanel').classList.add('active');
+            }
+            hideResult();
+        }
+        
+        function showResult(message, isSuccess) {
+            const panel = document.getElementById('resultPanel');
+            panel.textContent = message;
+            panel.className = 'result-panel ' + (isSuccess ? 'success' : 'error');
+            panel.style.display = 'block';
+        }
+        
+        function hideResult() {
+            document.getElementById('resultPanel').style.display = 'none';
+        }
+        
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span>处理中...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = btnId === 'loginBtn' ? '登 录' : '注 册';
+            }
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            setLoading('loginBtn', true);
+            hideResult();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    localStorage.setItem('accessToken', data.data.accessToken);
+                    localStorage.setItem('refreshToken', data.data.refreshToken);
+                    showResult('登录成功！', true);
+                    setTimeout(() => checkLoginStatus(), 500);
+                } else {
+                    showResult('登录失败: ' + (data.message || '未知错误'), false);
+                }
+            } catch (err) {
+                showResult('请求失败: ' + err.message, false);
+            } finally {
+                setLoading('loginBtn', false);
+            }
+        }
+        
+        async function handleRegister(e) {
+            e.preventDefault();
+            setLoading('regBtn', true);
+            hideResult();
+            
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    localStorage.setItem('accessToken', data.data.accessToken);
+                    localStorage.setItem('refreshToken', data.data.refreshToken);
+                    showResult('注册成功！', true);
+                    setTimeout(() => checkLoginStatus(), 500);
+                } else {
+                    showResult('注册失败: ' + (data.message || '未知错误'), false);
+                }
+            } catch (err) {
+                showResult('请求失败: ' + err.message, false);
+            } finally {
+                setLoading('regBtn', false);
+            }
+        }
+
+        async function oauthLogin(provider) {
+            hideResult();
+            showResult(`正在跳转到 ${provider} 授权页面...`, true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/oauth/login?provider=${provider}`);
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    // 保存当前页面URL，用于回调后返回
+                    localStorage.setItem('oauth_redirect', window.location.href);
+                    // 跳转到第三方授权页面
+                    window.location.href = data.data.authUrl;
+                } else {
+                    showResult('获取授权链接失败: ' + (data.message || '未知错误'), false);
+                }
+            } catch (err) {
+                showResult('请求失败: ' + err.message, false);
+            }
+        }
+        
+        function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 检查是否是OAuth回调（新格式：后端重定向带参数）
+            const isOAuthCallback = urlParams.get('oauth_callback') === 'true';
+            if (isOAuthCallback) {
+                const provider = urlParams.get('provider');
+                const needRegister = urlParams.get('need_register') === 'true';
+                
+                if (needRegister) {
+                    // 新用户，需要完善信息
+                    oauthTempData = {
+                        tempToken: urlParams.get('temp_token'),
+                        provider: provider,
+                        nickname: urlParams.get('nickname') || '',
+                        avatar: urlParams.get('avatar') || ''
+                    };
+                    showOAuthRegisterForm(oauthTempData);
+                } else {
+                    // 已绑定用户，直接登录
+                    const accessToken = urlParams.get('access_token');
+                    const refreshToken = urlParams.get('refresh_token');
+                    if (accessToken && refreshToken) {
+                        localStorage.setItem('accessToken', accessToken);
+                        localStorage.setItem('refreshToken', refreshToken);
+                        showResult(`${provider} 登录成功！`, true);
+                        setTimeout(() => checkLoginStatus(), 500);
+                    }
+                }
+                // 清理URL参数
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+            
+            // 兼容旧格式（直接带code和state）
+            const error = urlParams.get('error');
+            if (error) {
+                showResult('OAuth授权失败: ' + (urlParams.get('error_description') || error), false);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+            
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            if (code && state) {
+                const pathMatch = window.location.pathname.match(/\/oauth\/callback\/(\w+)/);
+                if (pathMatch) {
+                    processOAuthCallback(pathMatch[1], code, state);
+                }
+            }
+        }
+        
+        // 存储OAuth临时信息
+        let oauthTempData = null;
+        
+        async function processOAuthCallback(provider, code, state) {
+            showResult(`正在处理 ${provider} 登录...`, true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/oauth/callback/${provider}?code=${code}&state=${state}`);
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    const result = data.data;
+                    
+                    if (result.needRegister) {
+                        // 新用户，需要完善信息
+                        oauthTempData = result;
+                        showOAuthRegisterForm(result);
+                        // 清理URL参数
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    } else {
+                        // 已绑定用户，直接登录
+                        localStorage.setItem('accessToken', result.loginInfo.accessToken);
+                        localStorage.setItem('refreshToken', result.loginInfo.refreshToken);
+                        showResult(`${provider} 登录成功！`, true);
+                        
+                        // 清理URL参数并刷新状态
+                        window.history.replaceState({}, document.title, '/api/v1/auth/login.html');
+                        setTimeout(() => checkLoginStatus(), 500);
+                    }
+                } else {
+                    showResult(`${provider} 登录失败: ` + (data.message || '未知错误'), false);
+                }
+            } catch (err) {
+                showResult('处理回调失败: ' + err.message, false);
+            }
+        }
+        
+        function showOAuthRegisterForm(oauthData) {
+            document.getElementById('authForms').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('oauthRegisterForm').style.display = 'block';
+            
+            // 填充OAuth信息
+            document.getElementById('oauthNickname').textContent = oauthData.nickname || '未知';
+            document.getElementById('oauthProvider').textContent = oauthData.provider.toUpperCase();
+            
+            if (oauthData.avatar) {
+                const avatarImg = document.getElementById('oauthAvatar');
+                avatarImg.src = oauthData.avatar;
+                avatarImg.style.display = 'block';
+            }
+            
+            // 建议用户名
+            if (oauthData.nickname) {
+                document.getElementById('oauthUsername').value = oauthData.nickname.replace(/[^a-zA-Z0-9_]/g, '').substring(0, 20);
+            }
+            
+            hideResult();
+            showResult('请完善您的账号信息以完成注册', true);
+        }
+        
+        async function handleOAuthRegister(e) {
+            e.preventDefault();
+            
+            if (!oauthTempData) {
+                showResult('OAuth信息已过期，请重新登录', false);
+                return;
+            }
+            
+            const btn = document.getElementById('oauthRegBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>注册中...';
+            
+            const username = document.getElementById('oauthUsername').value;
+            const email = document.getElementById('oauthEmail').value;
+            const password = document.getElementById('oauthPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/oauth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tempToken: oauthTempData.tempToken,
+                        username: username,
+                        email: email || null,
+                        password: password || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    localStorage.setItem('accessToken', data.data.accessToken);
+                    localStorage.setItem('refreshToken', data.data.refreshToken);
+                    showResult('注册成功！', true);
+                    oauthTempData = null;
+                    setTimeout(() => checkLoginStatus(), 500);
+                } else {
+                    showResult('注册失败: ' + (data.message || '未知错误'), false);
+                }
+            } catch (err) {
+                showResult('请求失败: ' + err.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '完成注册';
+            }
+        }
+        
+        function cancelOAuthRegister() {
+            oauthTempData = null;
+            document.getElementById('oauthRegisterForm').style.display = 'none';
+            showAuthForms();
+            hideResult();
+        }
+        
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                showAuthForms();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/me`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    showUserInfo(data.data);
+                } else {
+                    // Token无效，尝试刷新
+                    const refreshed = await tryRefreshToken();
+                    if (!refreshed) {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        showAuthForms();
+                    }
+                }
+            } catch (err) {
+                showAuthForms();
+            }
+        }
+        
+        async function tryRefreshToken() {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) return false;
+            
+            try {
+                const response = await fetch(`${API_BASE}/refresh-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 || data.success) {
+                    localStorage.setItem('accessToken', data.data.accessToken);
+                    if (data.data.refreshToken) {
+                        localStorage.setItem('refreshToken', data.data.refreshToken);
+                    }
+                    // 刷新成功后重新获取用户信息（只尝试一次，不再递归刷新）
+                    const newToken = data.data.accessToken;
+                    const meResponse = await fetch(`${API_BASE}/me`, {
+                        headers: { 'Authorization': 'Bearer ' + newToken }
+                    });
+                    const meData = await meResponse.json();
+                    if (meData.code === 200 || meData.success) {
+                        showUserInfo(meData.data);
+                        return true;
+                    }
+                }
+            } catch (err) {
+                console.error('Token refresh failed:', err);
+            }
+            return false;
+        }
+        
+        function showUserInfo(user) {
+            document.getElementById('authForms').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            
+            document.getElementById('displayUsername').textContent = user.username || '-';
+            document.getElementById('displayUserId').textContent = user.userId || '-';
+            document.getElementById('displayRoles').textContent = 
+                (user.roles && user.roles.length > 0) ? user.roles.join(', ') : '无';
+            
+            hideResult();
+        }
+        
+        function showAuthForms() {
+            document.getElementById('authForms').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('oauthRegisterForm').style.display = 'none';
+        }
+        
+        async function logout() {
+            const token = localStorage.getItem('accessToken');
+            
+            try {
+                await fetch(`${API_BASE}/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+            } catch (err) {
+                console.error('Logout request failed:', err);
+            }
+            
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            showAuthForms();
+            showResult('已退出登录', true);
+        }
+    </script>
+</body>
+</html>

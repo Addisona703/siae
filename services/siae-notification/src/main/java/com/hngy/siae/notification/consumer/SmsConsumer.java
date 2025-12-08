@@ -1,7 +1,9 @@
 package com.hngy.siae.notification.consumer;
 
-import com.hngy.siae.core.messaging.MessagingConstants;
-import com.hngy.siae.core.messaging.SmsMessage;
+import com.hngy.siae.messaging.annotation.DeclareQueue;
+import com.hngy.siae.messaging.annotation.ExchangeType;
+import com.hngy.siae.messaging.event.MessagingConstants;
+import com.hngy.siae.messaging.event.SmsMessage;
 import com.hngy.siae.messaging.consumer.SiaeRabbitListener;
 import com.hngy.siae.notification.service.SmsLogService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@DeclareQueue(
+        queue = MessagingConstants.SMS_QUEUE,
+        exchange = MessagingConstants.NOTIFICATION_EXCHANGE,
+        routingKey = "sms.#",
+        exchangeType = ExchangeType.TOPIC
+)
 public class SmsConsumer {
 
     private final SmsLogService smsLogService;

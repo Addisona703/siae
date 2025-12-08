@@ -1,7 +1,7 @@
 package com.hngy.siae.attendance.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.hngy.siae.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum AttendanceType {
+public enum AttendanceType implements BaseEnum {
 
     /**
      * 日常考勤
@@ -25,9 +25,13 @@ public enum AttendanceType {
     ACTIVITY(1, "活动考勤");
 
     @EnumValue
-    @JsonValue
-    private final Integer value;
+    private final Integer code;
     private final String description;
+
+    @Override
+    public int getCode() {
+        return code;
+    }
 
     /**
      * 根据值获取枚举
@@ -36,14 +40,6 @@ public enum AttendanceType {
      * @return 枚举
      */
     public static AttendanceType fromValue(Integer value) {
-        if (value == null) {
-            return DAILY;
-        }
-        for (AttendanceType type : values()) {
-            if (type.value.equals(value)) {
-                return type;
-            }
-        }
-        return DAILY;
+        return BaseEnum.fromCode(AttendanceType.class, value);
     }
 }

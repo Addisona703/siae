@@ -3,6 +3,7 @@ package com.hngy.siae.user.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.hngy.siae.user.enums.GenderEnum;
 import lombok.Data;
 
 import java.io.Serial;
@@ -23,14 +24,9 @@ public class UserProfile implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键，自增
+     * 用户ID（关联user表，作为主键）
      */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * 用户ID（关联user表）
-     */
+    @TableId(value = "user_id", type = IdType.INPUT)
     private Long userId;
 
     /**
@@ -61,7 +57,7 @@ public class UserProfile implements Serializable {
     /**
      * 性别：0未知，1男，2女
      */
-    private Integer gender;
+    private GenderEnum gender;
 
     /**
      * 出生日期

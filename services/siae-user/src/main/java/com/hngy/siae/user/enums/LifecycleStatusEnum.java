@@ -16,14 +16,24 @@ import lombok.Getter;
 public enum LifecycleStatusEnum implements BaseEnum {
 
     /**
-     * 候选成员
+     * 待审核（申请入会）
      */
-    CANDIDATE(0, "候选成员"),
+    PENDING(0, "待审核"),
 
     /**
-     * 正式成员
+     * 候选成员（审核通过）
      */
-    OFFICIAL(1, "正式成员");
+    CANDIDATE(1, "候选成员"),
+
+    /**
+     * 正式成员（转正）
+     */
+    OFFICIAL(2, "正式成员"),
+
+    /**
+     * 已拒绝
+     */
+    REJECTED(3, "已拒绝");
 
     /**
      * 状态码
@@ -35,6 +45,16 @@ public enum LifecycleStatusEnum implements BaseEnum {
      * 状态描述
      */
     private final String description;
+
+    /**
+     * 判断是否为待审核
+     *
+     * @param code 状态码
+     * @return true 如果是待审核
+     */
+    public static boolean isPending(int code) {
+        return PENDING.getCode() == code;
+    }
 
     /**
      * 判断是否为候选成员
@@ -54,5 +74,15 @@ public enum LifecycleStatusEnum implements BaseEnum {
      */
     public static boolean isOfficial(int code) {
         return OFFICIAL.getCode() == code;
+    }
+
+    /**
+     * 判断是否已拒绝
+     *
+     * @param code 状态码
+     * @return true 如果已拒绝
+     */
+    public static boolean isRejected(int code) {
+        return REJECTED.getCode() == code;
     }
 }

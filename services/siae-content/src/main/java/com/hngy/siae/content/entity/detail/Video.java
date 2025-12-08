@@ -7,9 +7,12 @@ import lombok.Data;
 
 /**
  * 视频详情表
- * @TableName content_video
+ * 
+ * @TableName video
+ * @see com.hngy.siae.api.media.client.MediaFeignClient
  */
 @Data
+@TableName("video")
 public class Video {
     /**
      * 主键，自增
@@ -23,27 +26,13 @@ public class Video {
     private Long contentId;
 
     /**
-     * 视频访问URL
+     * 视频文件ID（UUID字符串），关联 media 服务
+     * 通过此 ID 调用 MediaFeignClient 获取视频元数据（时长、分辨率等）
      */
-    private String videoUrl;
+    private String videoFileId;
 
     /**
-     * 视频时长，单位：秒
-     */
-    private Integer duration;
-
-    /**
-     * 视频封面图URL
-     */
-    private String coverUrl;
-
-    /**
-     * 视频分辨率
-     */
-    private String resolution;
-
-    /**
-     * 播放次数
+     * 播放次数（业务统计）
      */
     private Integer playCount = 0;
 

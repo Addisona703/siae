@@ -3,11 +3,11 @@
 <mapper namespace="com.hngy.siae.content.mapper.StatisticsMapper">
 
     <!-- 热门内容结果映射 -->
-    <resultMap id="HotContentResultMap" type="com.hngy.siae.content.dto.response.HotContentVO">
+    <resultMap id="HotContentResultMap" type="com.hngy.siae.content.dto.response.content.HotContentVO">
         <result property="contentId" column="content_id"/>
         <result property="title" column="title"/>
         <result property="description" column="description"/>
-        <result property="coverUrl" column="cover_url"/>
+        <result property="coverMediaId" column="cover_media_id"/>
         <result property="viewCount" column="view_count"/>
         <result property="likeCount" column="like_count"/>
         <result property="favoriteCount" column="favorite_count"/>
@@ -20,15 +20,13 @@
             c.id AS content_id,
             c.title AS title,
             c.description AS description,
-            COALESCE(art.cover_url, vid.cover_url) AS cover_url,
+            c.cover_media_id AS cover_media_id,
             s.view_count AS view_count,
             s.like_count AS like_count,
             s.favorite_count AS favorite_count,
             s.comment_count AS comment_count
         FROM content c
         INNER JOIN statistics s ON s.content_id = c.id
-        LEFT JOIN article art ON art.content_id = c.id
-        LEFT JOIN video vid ON vid.content_id = c.id
         WHERE c.status = #{publishedStatus}
         <if test="categoryId != null">
             AND c.category_id = #{categoryId}

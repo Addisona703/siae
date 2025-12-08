@@ -8,7 +8,9 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.notification.events.NotificationCreatedEvent;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.notification.dto.request.NotificationBroadcastDTO;
 import com.hngy.siae.notification.dto.request.NotificationCreateDTO;
 import com.hngy.siae.notification.dto.response.NotificationVO;
 import com.hngy.siae.notification.entity.SystemNotification;
@@ -16,10 +18,11 @@ import com.hngy.siae.notification.mapper.SystemNotificationMapper;
 import com.hngy.siae.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * 通知服务实现类
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMapper, SystemNotification> implements NotificationService {
 
     private final ApplicationEventPublisher publisher;
+    private final UserFeignClient userFeignClient;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -129,5 +133,48 @@ public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMappe
 
         update(wrapper);
         log.info("更新所有通知状态 - 用户ID: {}, 已读: {}", userId, isRead);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int broadcastNotification(NotificationBroadcastDTO dto) {
+        List<Long> targetUserIds;
+        
+        // 如果指定了用户ID列表，则发送给指定用户；否则发送给所有用户
+        if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+            targetUserIds = dto.getUserIds();
+            log.info("广播通知给指定用户 - 用户数量: {}", targetUserIds.size());
+        } else {
+            // 获取所有用户ID
+            targetUserIds = userFeignClient.getAllUserIds();
+            if (targetUserIds == null || targetUserIds.isEmpty()) {
+                log.warn("没有找到任何用户，广播通知取消");
+                return 0;
+            }
+            log.info("广播通知给所有用户 - 用户数量: {}", targetUserIds.size());
+        }
+        
+        int successCount = 0;
+        for (Long userId : targetUserIds) {
+            try {
+                SystemNotification notification = new SystemNotification();
+                notification.setUserId(userId);
+                notification.setType(dto.getType());
+                notification.setTitle(dto.getTitle());
+                notification.setContent(dto.getContent());
+                notification.setLinkUrl(dto.getLinkUrl());
+                notification.setIsRead(false);
+                save(notification);
+                
+                // 发布事件进行实时推送
+                publisher.publishEvent(new NotificationCreatedEvent(notification));
+                successCount++;
+            } catch (Exception e) {
+                log.error("发送通知给用户 {} 失败: {}", userId, e.getMessage());
+            }
+        }
+        
+        log.info("广播通知完成 - 成功发送: {}/{}", successCount, targetUserIds.size());
+        return successCount;
     }
 }

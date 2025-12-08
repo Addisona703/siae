@@ -50,15 +50,15 @@ public interface AuthService extends IService<UserAuth> {
     /**
      * 退出登录
      *
-     * @param token 访问令牌
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取）
      */
-    void logout(String token);
+    void logout(Long userId);
 
     /**
      * 获取当前登录用户信息
      *
-     * @param authorizationHeader 请求头中的Authorization字段
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取）
      * @return 当前用户视图对象
      */
-    CurrentUserVO getCurrentUser(String authorizationHeader);
+    CurrentUserVO getCurrentUser(Long userId);
 }

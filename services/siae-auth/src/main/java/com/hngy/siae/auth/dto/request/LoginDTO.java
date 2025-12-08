@@ -32,4 +32,10 @@ public class LoginDTO {
      * 是否记住我（延长token有效期）
      */
     private Boolean rememberMe = false;
+
+    /**
+     * 设备类型：web、mobile、desktop
+     * 同类型设备登录会踢掉之前的登录
+     */
+    private String deviceType = "web";
 }

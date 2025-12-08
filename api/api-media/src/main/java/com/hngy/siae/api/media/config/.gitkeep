@@ -1,0 +1,30 @@
+# 配置类目录
+
+此目录用于存放 Feign 客户端的配置类（如果需要自定义配置）。
+
+## 示例
+
+```java
+@Configuration
+public class MediaApiFeignConfig {
+    
+    @Bean
+    public Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
+    }
+    
+    @Bean
+    public Retryer feignRetryer() {
+        return new Retryer.Default(100, 1000, 3);
+    }
+}
+```
+
+然后在 FeignClient 中引用：
+
+```java
+@FeignClient(
+    name = "siae-media",
+    configuration = MediaApiFeignConfig.class
+)
+```

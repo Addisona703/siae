@@ -8,9 +8,10 @@ import lombok.Data;
 
 /**
  * 问题详情表
- * @TableName content_question
+ * @TableName question
  */
 @Data
+@TableName("question")
 public class Question {
     /**
      * 主键，自增

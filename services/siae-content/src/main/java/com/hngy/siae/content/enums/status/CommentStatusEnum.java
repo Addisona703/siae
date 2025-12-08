@@ -6,15 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 评论状态枚举类
+ * 评论状态枚举类（与内容状态保持一致）
+ * 0=草稿, 1=待审核, 2=已发布, 3=已删除
  */
 @AllArgsConstructor
 @Getter
 public enum CommentStatusEnum implements BaseEnum {
     //
-    PENDING(0, "待审核"),
-    APPROVED(1, "通过"),
-    DELETED(2, "已删除");
+    DRAFT(0, "草稿"),
+    PENDING(1, "待审核"),
+    PUBLISHED(2, "已发布"),
+    DELETED(3, "已删除");
 
     @EnumValue
     private final int code;

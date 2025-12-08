@@ -1,13 +1,17 @@
 package com.hngy.siae.content.task;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.StopWatch;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.response.BatchDeleteVO;
 import com.hngy.siae.content.enums.ContentTypeEnum;
 import com.hngy.siae.content.enums.status.CategoryStatusEnum;
 import com.hngy.siae.content.enums.status.ContentStatusEnum;
-import com.hngy.siae.content.entity.Audit;
+import com.hngy.siae.content.entity.AuditLog;
 import com.hngy.siae.content.entity.Category;
 import com.hngy.siae.content.entity.Content;
 import com.hngy.siae.content.entity.TagRelation;
@@ -15,7 +19,7 @@ import com.hngy.siae.content.service.AuditsService;
 import com.hngy.siae.content.service.CategoriesService;
 import com.hngy.siae.content.service.ContentService;
 import com.hngy.siae.content.service.TagRelationService;
-import com.hngy.siae.content.strategy.ContentStrategyContext;
+import com.hngy.siae.content.strategy.content.ContentStrategyContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.hngy.siae.core.asserts.AssertUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +49,7 @@ public class SystemCleanupService {
     private final CategoriesService categoriesService;
     private final TagRelationService tagRelationService;
     private final ContentStrategyContext strategyContext;
+    private final MediaFeignClient mediaFeignClient;
 
     private static final int PAGE_SIZE = 500;
 
@@ -78,9 +84,9 @@ public class SystemCleanupService {
                 break;
             }
 
-            // 批量删除审核表
+            // 批量删除审核历史记录
             boolean auditRemoved = auditService.remove(
-                    new LambdaQueryWrapper<Audit>().in(Audit::getTargetId, contentIds));
+                    new LambdaQueryWrapper<AuditLog>().in(AuditLog::getTargetId, contentIds));
             AssertUtils.isTrue(auditRemoved, "批量删除审核记录失败");
 
             // 批量删除标签关系表
@@ -93,6 +99,15 @@ public class SystemCleanupService {
                 AssertUtils.isTrue(tagsRemoved, "批量删除标签关系失败");
             }
 
+            // 收集所有需要删除的媒体文件ID（封面 + 详情中的媒体文件）
+            List<String> mediaFileIds = new ArrayList<>();
+            
+            // 1. 收集封面文件ID
+            pageData.getRecords().stream()
+                    .map(Content::getCoverFileId)
+                    .filter(StrUtil::isNotBlank)
+                    .forEach(mediaFileIds::add);
+
             // 批量删除详情，分组处理
             Map<ContentTypeEnum, List<Long>> typeIdMap = pageData.getRecords().stream()
                     .collect(Collectors.groupingBy(
@@ -102,9 +117,32 @@ public class SystemCleanupService {
 
             typeIdMap.forEach((type, idList) -> strategyContext.tryGetStrategy(type)
                     .ifPresent(strategy -> {
+                        // 2. 收集详情中的媒体文件ID（视频、附件等）
+                        List<String> detailMediaIds = strategy.getMediaFileIds(idList);
+                        if (CollUtil.isNotEmpty(detailMediaIds)) {
+                            mediaFileIds.addAll(detailMediaIds);
+                        }
+                        
+                        // 删除详情记录
                         boolean deleted = strategy.batchDelete(idList);
                         AssertUtils.isTrue(deleted, "策略批量删除详情失败，类型：" + type);
                     }));
+
+            // 3. 调用媒体服务批量删除媒体文件
+            if (CollUtil.isNotEmpty(mediaFileIds)) {
+                try {
+                    log.info("【定时任务】开始删除关联媒体文件，数量：{}", mediaFileIds.size());
+                    BatchDeleteVO deleteResult = mediaFeignClient.batchDeleteFiles(mediaFileIds);
+                    log.info("【定时任务】媒体文件删除完成，成功：{}，失败：{}", 
+                            deleteResult.getSuccessCount(), deleteResult.getFailedCount());
+                    if (deleteResult.getFailedCount() > 0) {
+                        log.warn("【定时任务】部分媒体文件删除失败：{}", deleteResult.getFailedIds());
+                    }
+                } catch (Exception e) {
+                    // 媒体服务不可用时记录警告，但不影响内容删除
+                    log.warn("【定时任务】调用媒体服务删除文件失败，将在下次清理时重试：{}", e.getMessage());
+                }
+            }
 
             // 批量删除主内容
             boolean contentRemoved = contentService.removeByIds(contentIds);

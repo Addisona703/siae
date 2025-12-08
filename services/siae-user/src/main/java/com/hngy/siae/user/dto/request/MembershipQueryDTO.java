@@ -76,4 +76,10 @@ public class MembershipQueryDTO {
      * 年级（入学年份）
      */
     private Integer entryYear;
+
+    /**
+     * 是否排除待审核成员（内部使用，不对外暴露）
+     * 当 lifecycleStatus 为 null 时，默认设置为 true
+     */
+    private Boolean excludePending;
 }

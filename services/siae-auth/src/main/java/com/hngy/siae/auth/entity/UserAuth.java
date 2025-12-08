@@ -43,6 +43,11 @@ public class UserAuth {
     private String tokenType;
     
     /**
+     * 设备类型：web、mobile、desktop
+     */
+    private String deviceType;
+    
+    /**
      * 访问令牌过期时间
      */
     private LocalDateTime expiresAt;

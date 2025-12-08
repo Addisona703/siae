@@ -1,15 +1,24 @@
 package com.hngy.siae.core.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * 枚举基础接口
  * 所有业务枚举都应该实现此接口
+ * 
+ * JSON序列化规范：
+ * - 序列化时统一输出 code（数字）
+ * - 反序列化时支持 code 或 description
+ * - 前端展示用的描述文字由前端自行映射，或通过额外字段返回
  * 
  * @author KEYKB
  */
 public interface BaseEnum {
     /**
      * 获取枚举编码
+     * 序列化时使用此值
      */
+    @JsonValue
     int getCode();
     
     /**

@@ -62,11 +62,6 @@ public class MajorClassEnrollment implements Serializable {
     private ClassUserStatusEnum status;
 
     /**
-     * 入会日期
-     */
-    private LocalDate joinDate;
-
-    /**
      * 是否删除：0否，1是
      */
     @TableLogic

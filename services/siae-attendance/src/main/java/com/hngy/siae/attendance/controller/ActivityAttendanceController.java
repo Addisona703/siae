@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.hngy.siae.core.permissions.AttendancePermissions.*;
+import static com.hngy.siae.attendance.permissions.AttendancePermissions.*;
 
 /**
  * 活动考勤控制器

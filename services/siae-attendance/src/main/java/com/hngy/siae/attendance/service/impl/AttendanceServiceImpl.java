@@ -138,9 +138,12 @@ public class AttendanceServiceImpl implements IAttendanceService {
             // 8. 转换为 VO 返回
             return BeanConvertUtil.to(record, AttendanceRecordVO.class);
 
-        } finally {
-            // 锁会自然过期，防止同一时段内重复签到
-            // 不同时段（不同规则）的签到使用不同的锁key，互不影响
+        } catch (Exception e) {
+            // 发生异常时删除 Redis 锁，避免锁住后续请求
+            redisTemplate.delete(lockKey);
+            log.warn("签到失败，已释放锁: userId={}, lockKey={}, error={}", 
+                    dto.getUserId(), lockKey, e.getMessage());
+            throw e;
         }
     }
 
@@ -679,7 +682,7 @@ public class AttendanceServiceImpl implements IAttendanceService {
     @Override
     public PageVO<AttendanceRecordVO> pageQuery(PageDTO<AttendanceQueryDTO> pageDTO) {
         Long currentUserId = securityUtil.getCurrentUserId();
-        boolean hasListPermission = securityUtil.hasPermission(com.hngy.siae.core.permissions.AttendancePermissions.Record.LIST);
+        boolean hasListPermission = securityUtil.hasPermission(com.hngy.siae.attendance.permissions.AttendancePermissions.Record.LIST);
         return pageQuery(pageDTO, currentUserId, hasListPermission);
     }
 
@@ -768,7 +771,7 @@ public class AttendanceServiceImpl implements IAttendanceService {
         
         // 调用通用分页查询
         Long currentUserId = securityUtil.getCurrentUserId();
-        boolean hasListPermission = securityUtil.hasPermission(com.hngy.siae.core.permissions.AttendancePermissions.Record.LIST);
+        boolean hasListPermission = securityUtil.hasPermission(com.hngy.siae.attendance.permissions.AttendancePermissions.Record.LIST);
         
         return pageQuery(pageDTO, currentUserId, hasListPermission);
     }

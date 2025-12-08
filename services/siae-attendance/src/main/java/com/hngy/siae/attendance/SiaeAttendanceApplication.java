@@ -1,6 +1,5 @@
 package com.hngy.siae.attendance;
 
-import com.hngy.siae.web.feign.DefaultFeignConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -14,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @EnableAsync
 @EnableScheduling
-@EnableFeignClients(basePackages = "com.hngy.siae.attendance", defaultConfiguration = DefaultFeignConfig.class)
+@EnableFeignClients(basePackages = "com.hngy.siae.api")
 @SpringBootApplication(scanBasePackages = "com.hngy.siae")
 public class SiaeAttendanceApplication {
     public static void main(String[] args) {

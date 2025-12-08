@@ -4,13 +4,13 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.api.user.client.UserFeignClient;
 import com.hngy.siae.auth.dto.request.UserRoleQueryDTO;
 import com.hngy.siae.auth.dto.request.UserRoleUpdateDTO;
 import com.hngy.siae.auth.dto.response.UserRoleVO;
 import com.hngy.siae.auth.entity.Role;
 import com.hngy.siae.auth.entity.UserRole;
 
-import com.hngy.siae.auth.feign.UserClient;
 import com.hngy.siae.auth.mapper.UserRoleMapper;
 import com.hngy.siae.auth.service.RoleService;
 import com.hngy.siae.auth.service.UserRoleService;
@@ -20,7 +20,7 @@ import cn.hutool.core.util.StrUtil;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
 import com.hngy.siae.core.result.CommonResultCodeEnum;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class UserRoleServiceImpl
         implements UserRoleService {
 
     private final RoleService roleService;
-    private final UserClient userClient;
+    private final UserFeignClient userClient;
 
     /**
      * 批量分配角色给用户
@@ -113,8 +113,9 @@ public class UserRoleServiceImpl
 
         IPage<UserRole> page = PageConvertUtil.toPage(pageDTO);
 
-        // 使用链式调用优化查询条件构建，添加roleId筛选逻辑
+        // 使用链式调用优化查询条件构建，添加userId和roleId筛选逻辑
         LambdaQueryWrapper<UserRole> queryWrapper = new LambdaQueryWrapper<UserRole>()
+                .eq(queryDTO.getUserId() != null, UserRole::getUserId, queryDTO.getUserId())
                 .eq(queryDTO.getRoleId() != null, UserRole::getRoleId, queryDTO.getRoleId())
                 .ge(StrUtil.isNotBlank(queryDTO.getCreatedAtStart()), UserRole::getCreatedAt, queryDTO.getCreatedAtStart())
                 .le(StrUtil.isNotBlank(queryDTO.getCreatedAtEnd()), UserRole::getCreatedAt, queryDTO.getCreatedAtEnd())

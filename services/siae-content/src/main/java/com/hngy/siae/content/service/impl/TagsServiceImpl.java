@@ -11,11 +11,11 @@ import com.hngy.siae.core.result.ContentResultCodeEnum;
 
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.web.utils.PageConvertUtil;
-import com.hngy.siae.content.dto.request.TagCreateDTO;
-import com.hngy.siae.content.dto.request.TagUpdateDTO;
-import com.hngy.siae.content.dto.request.TagQueryDTO;
-import com.hngy.siae.content.dto.response.TagVO;
+import com.hngy.siae.core.utils.PageConvertUtil;
+import com.hngy.siae.content.dto.request.tag.TagCreateDTO;
+import com.hngy.siae.content.dto.request.tag.TagUpdateDTO;
+import com.hngy.siae.content.dto.request.tag.TagQueryDTO;
+import com.hngy.siae.content.dto.response.tag.TagVO;
 import com.hngy.siae.content.entity.Tag;
 import com.hngy.siae.content.mapper.TagMapper;
 import com.hngy.siae.content.service.TagRelationService;
@@ -98,6 +98,17 @@ public class TagsServiceImpl
 
 
     @Override
+    public TagVO getTagById(Long id) {
+        // 查询标签
+        Tag tag = this.getById(id);
+        AssertUtils.notNull(tag, ContentResultCodeEnum.TAG_NOT_FOUND);
+
+        // 转换为VO对象
+        return BeanConvertUtil.to(tag, TagVO.class);
+    }
+
+
+    @Override
     public PageVO<TagVO> listTags(PageDTO<TagQueryDTO> pageDTO) {
         // 构建分页对象
         Page<Tag> page = PageConvertUtil.toPage(pageDTO);
@@ -131,13 +142,6 @@ public class TagsServiceImpl
             if (StrUtil.isNotBlank(queryDTO.getCreatedAtEnd())) {
                 queryWrapper.le(Tag::getCreateTime, queryDTO.getCreatedAtEnd());
             }
-        }
-
-        String keyword = pageDTO.getKeyword();
-        if (StrUtil.isNotBlank(keyword) && (queryDTO == null || StrUtil.isBlank(queryDTO.getName()))) {
-            queryWrapper.and(wrapper ->
-                    wrapper.like(Tag::getName, keyword)
-            );
         }
 
         // 执行分页查询

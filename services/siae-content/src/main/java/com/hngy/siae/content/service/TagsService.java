@@ -3,10 +3,10 @@ package com.hngy.siae.content.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.content.dto.request.TagCreateDTO;
-import com.hngy.siae.content.dto.request.TagUpdateDTO;
-import com.hngy.siae.content.dto.request.TagQueryDTO;
-import com.hngy.siae.content.dto.response.TagVO;
+import com.hngy.siae.content.dto.request.tag.TagCreateDTO;
+import com.hngy.siae.content.dto.request.tag.TagUpdateDTO;
+import com.hngy.siae.content.dto.request.tag.TagQueryDTO;
+import com.hngy.siae.content.dto.response.tag.TagVO;
 import com.hngy.siae.content.entity.Tag;
 
 /**
@@ -40,6 +40,14 @@ public interface TagsService extends IService<Tag> {
      * @param id 标签ID
      */
     void deleteTag(Long id);
+
+    /**
+     * 根据ID查询标签
+     *
+     * @param id 标签ID
+     * @return 标签信息
+     */
+    TagVO getTagById(Long id);
 
     /**
      * 分页查询标签列表

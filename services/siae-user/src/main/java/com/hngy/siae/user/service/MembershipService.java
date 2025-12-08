@@ -54,20 +54,20 @@ public interface MembershipService extends IService<Membership> {
     boolean deleteMembership(Long id);
 
     /**
-     * 根据ID查询成员信息
+     * 根据ID查询成员信息（含用户、部门、职位信息）
      *
      * @param id 成员ID
-     * @return 成员信息
+     * @return 成员详情
      */
-    MembershipVO getMembershipById(Long id);
+    MembershipDetailVO getMembershipById(Long id);
 
     /**
-     * 根据用户ID查询成员信息
+     * 根据用户ID查询成员信息（含用户、部门、职位信息）
      *
      * @param userId 用户ID
-     * @return 成员信息
+     * @return 成员详情
      */
-    MembershipVO getMembershipByUserId(Long userId);
+    MembershipDetailVO getMembershipByUserId(Long userId);
 
     /**
      * 根据ID查询成员详情（含用户、部门、职位信息）
@@ -108,4 +108,20 @@ public interface MembershipService extends IService<Membership> {
      * @return 是否为正式成员
      */
     boolean isOfficialMember(Long userId);
+
+    /**
+     * 审核通过：待审核 -> 候选成员
+     *
+     * @param id 成员ID
+     * @return 是否成功
+     */
+    boolean approveCandidate(Long id);
+
+    /**
+     * 审核拒绝：待审核 -> 已拒绝
+     *
+     * @param id 成员ID
+     * @return 是否成功
+     */
+    boolean rejectCandidate(Long id);
 }

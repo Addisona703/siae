@@ -1,0 +1,26 @@
+package com.hngy.siae.api.content.enums;
+
+import com.hngy.siae.core.enums.BaseEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.io.Serializable;
+
+/**
+ * 内容状态枚举
+ *
+ * @author KEYKB
+ */
+@AllArgsConstructor
+@Getter
+public enum ContentStatusEnum implements BaseEnum, Serializable {
+    //
+    DRAFT(0, "草稿"),
+    PENDING(1, "待审核"),
+    PUBLISHED(2, "已发布"),
+    TRASH(3, "垃圾箱"),
+    DELETED(4, "已删除");
+
+    private final int code;
+    private final String description;
+}

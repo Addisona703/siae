@@ -15,8 +15,9 @@ spring:
   
   cloud:
     nacos:
-      server-addr: localhost:8948
+      server-addr: localhost:8848
       config:
+        enabled: false
         group: SIAE_GROUP
   
   config:

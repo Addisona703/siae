@@ -1,5 +1,6 @@
 package com.hngy.siae.user.dto.response;
 
+import com.hngy.siae.user.enums.UserStatusEnum;
 import lombok.Data;
 
 import java.io.Serial;
@@ -60,15 +61,32 @@ public class UserVO implements Serializable {
     /**
      * 状态：0禁用，1启用
      */
-    private Integer status;
+    private UserStatusEnum status;
+
+    /**
+     * 成员类型：0非协会成员，1协会成员
+     */
+    private Integer memberType;
+
+    /**
+     * 是否为协会成员
+     */
+    public Boolean getIsMember() {
+        return memberType != null && memberType == 1;
+    }
+
+    /**
+     * 是否删除：0否，1是
+     */
+    private Integer isDeleted;
 
     /**
      * 创建时间
      */
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 } 

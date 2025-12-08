@@ -76,7 +76,7 @@ public class UserQueryDTO implements Serializable {
     private LocalDateTime lastLoginTimeEnd;
     
     /**
-     * 是否包含已删除的用户
+     * 是否删除：0未删除，1已删除（默认查未删除）
      */
-    private Boolean includeDeleted = false;
+    private Integer isDeleted = 0;
 } 

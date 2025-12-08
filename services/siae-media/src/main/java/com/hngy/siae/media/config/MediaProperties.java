@@ -27,9 +27,12 @@ public class MediaProperties {
         /**
          * 为避免外部配置缺失导致 NPE，这里提供与 application-dev.yaml 一致的默认值
          */
-        private Long maxFileSize = 104_857_600L;        // 100 MB
-        private Long maxMultipartSize = 536_870_912L;   // 512 MB
-        private Integer presignedUrlExpiry = 900;
+        private Long maxFileSize = 524_288_000L;        // 500 MB (单个文件最大大小，不启用分片时的限制)
+        private Long maxMultipartSize = 2_147_483_648L; // 2 GB (分片上传总大小限制)
+        private Long multipartThreshold = 10_485_760L;  // 10 MB (超过此大小启用分片上传)
+        private Integer defaultPartSize = 10_485_760;   // 10 MB (默认分片大小)
+        private Integer sessionExpiry = 86400;          // 24 小时 (上传会话过期时间，单位：秒)
+        private Integer presignedUrlExpiry = 86400;     // 24 小时 (预签名URL过期时间，单位：秒)
         private List<String> allowedMimeTypes = List.of(
                 "image/jpeg",
                 "image/png",
@@ -58,6 +61,16 @@ public class MediaProperties {
     @Data
     public static class Url {
         /**
+         * 公开文件URL缓存时间（秒），默认7天
+         */
+        private Integer publicTtl = 604800;
+        
+        /**
+         * 私有文件URL缓存时间（秒），默认23小时
+         */
+        private Integer privateTtl = 82800;
+        
+        /**
          * URL默认过期时间（秒），默认24小时
          */
         private Integer expiration = 86400;
@@ -66,11 +79,6 @@ public class MediaProperties {
          * 是否启用缓存
          */
         private Boolean cacheEnabled = true;
-        
-        /**
-         * 缓存TTL（秒），默认23小时（比URL过期时间短1小时）
-         */
-        private Integer cacheTtl = 82800;
     }
 
 }

@@ -3,7 +3,7 @@ package com.hngy.siae.attendance.dto.request;
 import com.hngy.siae.attendance.enums.LeaveType;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -20,14 +20,14 @@ public class LeaveRequestUpdateDTO {
     private LeaveType leaveType;
 
     /**
-     * 开始日期
+     * 开始时间
      */
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     /**
-     * 结束日期
+     * 结束时间
      */
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     /**
      * 请假原因

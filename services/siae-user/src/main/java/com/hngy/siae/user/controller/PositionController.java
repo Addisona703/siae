@@ -1,6 +1,6 @@
 package com.hngy.siae.user.controller;
 
-import com.hngy.siae.core.permissions.RoleConstants;
+import com.hngy.siae.security.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import com.hngy.siae.user.dto.request.PositionCreateDTO;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.hngy.siae.core.permissions.UserPermissions.*;
+import static com.hngy.siae.user.permissions.UserPermissions.*;
 
 /**
  * 职位字典控制器

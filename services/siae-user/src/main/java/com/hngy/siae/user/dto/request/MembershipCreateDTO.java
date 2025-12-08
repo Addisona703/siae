@@ -23,4 +23,16 @@ public class MembershipCreateDTO {
      * 成员大头照文件ID
      */
     private String headshotFileId;
+
+    /**
+     * 部门ID
+     */
+    @NotNull(message = "部门ID不能为空")
+    private Long departmentId;
+
+    /**
+     * 职位ID
+     */
+    @NotNull(message = "职位ID不能为空")
+    private Long positionId;
 }

@@ -5,7 +5,6 @@ import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -18,10 +17,7 @@ import java.io.IOException;
  * @author KEYKB
  */
 @Slf4j
-@RequiredArgsConstructor
-public class JsonAccessDeniedHandler implements AccessDeniedHandler {
-
-    private final ObjectMapper objectMapper;
+public record JsonAccessDeniedHandler(ObjectMapper objectMapper) implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request,

@@ -1,6 +1,8 @@
 package com.hngy.siae.user.dto.request;
 
+import com.hngy.siae.user.enums.GenderEnum;
 import com.hngy.siae.user.enums.MemberTypeEnum;
+import com.hngy.siae.user.enums.UserStatusEnum;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -53,9 +55,9 @@ public class UserCreateDTO implements Serializable {
     private String studentId;
 
     /**
-     * 状态：1启用，0禁用（默认值1）
+     * 状态：1启用，0禁用（默认值：启用）
      */
-    private Integer status = 1;
+    private UserStatusEnum status = UserStatusEnum.ENABLED;
 
     // ==================== 用户详情字段（存储到 user_profile 表） ====================
 
@@ -92,9 +94,7 @@ public class UserCreateDTO implements Serializable {
     /**
      * 性别：0未知，1男，2女
      */
-    @Min(value = 0, message = "性别值不能小于0")
-    @Max(value = 2, message = "性别值不能大于2")
-    private Integer gender;
+    private GenderEnum gender;
 
     /**
      * 出生日期

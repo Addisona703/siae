@@ -12,7 +12,6 @@ import com.hngy.siae.attendance.enums.AttendanceStatus;
 import com.hngy.siae.attendance.enums.AttendanceType;
 import com.hngy.siae.attendance.enums.LeaveStatus;
 import com.hngy.siae.attendance.enums.RuleStatus;
-import com.hngy.siae.attendance.enums.RuleTargetType;
 import com.hngy.siae.attendance.mapper.AttendanceAnomalyMapper;
 import com.hngy.siae.attendance.mapper.AttendanceRecordMapper;
 import com.hngy.siae.attendance.mapper.AttendanceRuleMapper;
@@ -20,7 +19,7 @@ import com.hngy.siae.attendance.mapper.LeaveRequestMapper;
 import com.hngy.siae.attendance.service.IAnomalyDetectionService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -611,7 +610,7 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
                 attendanceAnomalyMapper.selectPage(page, queryWrapper);
         
         // 转换为VO
-        return com.hngy.siae.web.utils.PageConvertUtil.convert(
+        return PageConvertUtil.convert(
                 resultPage, 
                 com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO.class
         );

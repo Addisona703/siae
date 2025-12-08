@@ -1,7 +1,7 @@
 package com.hngy.siae.notification.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hngy.siae.core.messaging.SmsMessage;
+import com.hngy.siae.messaging.event.SmsMessage;
 import com.hngy.siae.notification.entity.SmsLog;
 
 /**

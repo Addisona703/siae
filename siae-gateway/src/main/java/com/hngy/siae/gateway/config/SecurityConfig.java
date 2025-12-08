@@ -40,7 +40,7 @@ public class SecurityConfig {
      * 注入 GatewayAuthFilter 以确保其被正确初始化
      * 虽然 GlobalFilter 会自动执行，但注入可以确保配置正确性
      */
-    @Autowired
+//    @Autowired
     private GatewayAuthFilter gatewayAuthFilter;
 
     // @Autowired

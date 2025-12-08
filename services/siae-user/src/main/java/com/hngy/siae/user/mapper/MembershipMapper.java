@@ -69,4 +69,12 @@ public interface MembershipMapper extends BaseMapper<Membership> {
      * @return 职位列表
      */
     List<MemberPositionVO> selectPositionsByMembershipId(@Param("membershipId") Long membershipId);
+
+    /**
+     * 根据用户ID查询成员详情
+     *
+     * @param userId 用户ID
+     * @return 成员详情
+     */
+    MembershipDetailVO selectMembershipDetailByUserId(@Param("userId") Long userId);
 }

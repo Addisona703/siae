@@ -13,6 +13,12 @@ import lombok.Data;
 public class UserRoleQueryDTO {
 
     /**
+     * 用户ID（精确查询）
+     */
+    @Schema(description = "用户ID", example = "1")
+    private Long userId;
+
+    /**
      * 角色ID（精确查询）
      */
     @Schema(description = "角色ID", example = "1")

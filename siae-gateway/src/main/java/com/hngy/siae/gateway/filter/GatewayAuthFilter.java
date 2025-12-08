@@ -2,8 +2,8 @@ package com.hngy.siae.gateway.filter;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import com.hngy.siae.core.dto.GatewayUserInfo;
 import com.hngy.siae.core.config.AuthProperties;
+import com.hngy.siae.core.dto.GatewayUserInfo;
 import com.hngy.siae.core.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,10 +1,9 @@
 package com.hngy.siae.user.service.impl;
 
-import com.hngy.siae.core.result.Result;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
 import com.hngy.siae.user.dto.response.statistics.*;
-import com.hngy.siae.user.feign.MediaFeignClient;
-import com.hngy.siae.user.feign.dto.BatchUrlRequest;
-import com.hngy.siae.user.feign.dto.BatchUrlResponse;
 import com.hngy.siae.user.mapper.StatisticsMapper;
 import com.hngy.siae.user.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
@@ -119,15 +118,14 @@ public class StatisticsServiceImpl implements StatisticsService {
         if (!fileIds.isEmpty()) {
             try {
                 // 批量获取文件URL
-                BatchUrlRequest request = BatchUrlRequest.builder()
-                        .fileIds(fileIds)
-                        .expirySeconds(86400) // 24小时过期
-                        .build();
+                BatchUrlDTO request = new BatchUrlDTO();
+                request.setFileIds(fileIds);
+                request.setExpirySeconds(86400); // 24小时过期
                 
-                Result<BatchUrlResponse> result = mediaFeignClient.batchGetFileUrls(request);
+                BatchUrlVO result = mediaFeignClient.batchGetFileUrls(request);
                 
-                if (result != null && result.getCode() == 200 && result.getData() != null) {
-                    Map<String, String> urlMap = result.getData().getUrls();
+                if (result != null && result.getUrls() != null) {
+                    Map<String, String> urlMap = result.getUrls();
                     
                     // 将文件ID替换为实际的URL
                     ranking.forEach(rank -> {
@@ -139,8 +137,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     
                     log.info("Successfully converted {} file IDs to URLs", urlMap.size());
                 } else {
-                    log.warn("Failed to get file URLs from media service: {}", 
-                            result != null ? result.getMessage() : "null result");
+                    log.warn("Failed to get file URLs from media service: empty result");
                 }
             } catch (Exception e) {
                 log.error("Error calling media service to get file URLs", e);

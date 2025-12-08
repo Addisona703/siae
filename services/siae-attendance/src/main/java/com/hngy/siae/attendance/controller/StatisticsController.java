@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static com.hngy.siae.core.permissions.AttendancePermissions.Statistics;
+import static com.hngy.siae.attendance.permissions.AttendancePermissions.Statistics;
 
 /**
  * 考勤统计控制器

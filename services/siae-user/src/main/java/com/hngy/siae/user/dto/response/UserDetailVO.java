@@ -1,6 +1,8 @@
 package com.hngy.siae.user.dto.response;
 
+import com.hngy.siae.user.enums.GenderEnum;
 import com.hngy.siae.user.enums.MemberTypeEnum;
+import com.hngy.siae.user.enums.UserStatusEnum;
 import lombok.Data;
 
 import java.io.Serial;
@@ -51,7 +53,7 @@ public class UserDetailVO implements Serializable {
     /**
      * 状态：0禁用，1启用
      */
-    private Integer status;
+    private UserStatusEnum status;
 
     /**
      * 创建时间
@@ -93,7 +95,7 @@ public class UserDetailVO implements Serializable {
     /**
      * 性别：0未知，1男，2女
      */
-    private Integer gender;
+    private GenderEnum gender;
 
     /**
      * 出生日期

@@ -35,9 +35,26 @@ public class MembershipVO {
     private String headshotUrl;
 
     /**
-     * 生命周期状态：0候选，1正式
+     * 生命周期状态：0待审核，1候选，2正式，3已拒绝
      */
     private LifecycleStatusEnum lifecycleStatus;
+
+    /**
+     * 状态名称（待审核/候选成员/正式成员/已拒绝）
+     */
+    public String getStatusName() {
+        return lifecycleStatus != null ? lifecycleStatus.getDescription() : null;
+    }
+
+    /**
+     * 是否为正式成员
+     */
+    private Boolean isOfficial;
+
+    /**
+     * 是否为候选成员
+     */
+    private Boolean isCandidate;
 
     /**
      * 加入日期（成为正式成员的日期）

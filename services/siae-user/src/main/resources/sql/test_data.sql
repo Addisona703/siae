@@ -181,43 +181,43 @@ INSERT INTO `major_class_enrollment` (`major_id`, `entry_year`, `class_no`, `use
     (203, 2024, 1, 32, 1, 1),
     (201, 2024, 1, 33, 1, 1);
 
--- 成员统一表数据（正式成员：lifecycle_status=1）
+-- 成员统一表数据（正式成员：lifecycle_status=2）
 INSERT INTO `membership` (`user_id`, `headshot_file_id`, `lifecycle_status`, `join_date`) VALUES
-    (1, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-01'),
-    (2, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (3, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (4, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (5, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-09-15'),
-    (6, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-09-15'),
-    (7, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-09-15'),
-    (11, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (12, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (13, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2022-09-10'),
-    (14, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-10-01'),
-    (15, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-10-05'),
-    (16, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-10-10'),
-    (17, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-10-15'),
-    (18, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-10-20'),
-    (19, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-11-01'),
-    (20, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-11-05'),
-    (21, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-11-10'),
-    (22, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2023-11-15'),
-    (23, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-01'),
-    (24, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-05'),
-    (25, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-10'),
-    (26, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-15'),
-    (27, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-20'),
-    (28, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-09-25'),
-    (29, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-10-01'),
-    (33, 'cb3c3c0ceecb49afafae3e9219117bee', 1, '2024-10-10');
+    (1, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-01'),
+    (2, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (3, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (4, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (5, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-09-15'),
+    (6, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-09-15'),
+    (7, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-09-15'),
+    (11, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (12, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (13, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2022-09-10'),
+    (14, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-10-01'),
+    (15, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-10-05'),
+    (16, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-10-10'),
+    (17, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-10-15'),
+    (18, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-10-20'),
+    (19, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-11-01'),
+    (20, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-11-05'),
+    (21, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-11-10'),
+    (22, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2023-11-15'),
+    (23, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-01'),
+    (24, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-05'),
+    (25, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-10'),
+    (26, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-15'),
+    (27, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-20'),
+    (28, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-09-25'),
+    (29, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-10-01'),
+    (33, 'cb3c3c0ceecb49afafae3e9219117bee', 2, '2024-10-10');
 
--- 候选成员数据（lifecycle_status=0）
+-- 候选成员数据（lifecycle_status=1）
 INSERT INTO `membership` (`user_id`, `headshot_file_id`, `lifecycle_status`, `join_date`) VALUES
-    (8, NULL, 0, NULL),
-    (9, NULL, 0, NULL),
-    (30, NULL, 0, NULL),
-    (31, NULL, 0, NULL),
-    (32, NULL, 0, NULL);
+    (8, NULL, 1, '2024-11-01'),
+    (9, NULL, 1, '2024-11-01'),
+    (30, NULL, 1, '2024-11-15'),
+    (31, NULL, 1, '2024-11-15'),
+    (32, NULL, 1, '2024-11-15');
 
 -- 部门归属数据
 INSERT INTO `member_department` (`membership_id`, `department_id`, `join_date`, `has_position`) VALUES

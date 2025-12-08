@@ -1,7 +1,7 @@
 package com.hngy.siae.attendance.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.hngy.siae.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum AnomalyType {
+public enum AnomalyType implements BaseEnum {
 
     /**
      * 迟到
@@ -40,7 +40,11 @@ public enum AnomalyType {
     MISSING_CHECK_OUT(4, "漏签退");
 
     @EnumValue
-    @JsonValue
-    private final Integer value;
+    private final Integer code;
     private final String description;
+
+    @Override
+    public int getCode() {
+        return code;
+    }
 }

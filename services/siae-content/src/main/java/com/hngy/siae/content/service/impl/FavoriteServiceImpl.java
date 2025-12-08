@@ -1,27 +1,25 @@
 package com.hngy.siae.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.ContentResultCodeEnum;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.content.dto.request.*;
-import com.hngy.siae.content.dto.response.FavoriteFolderVO;
-import com.hngy.siae.content.dto.response.FavoriteItemVO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteFolderCreateDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteFolderUpdateDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteItemAddDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteItemUpdateDTO;
+import com.hngy.siae.content.dto.response.favorite.FavoriteFolderVO;
+import com.hngy.siae.content.dto.response.favorite.FavoriteItemVO;
 import com.hngy.siae.content.entity.Content;
 import com.hngy.siae.content.entity.FavoriteFolder;
 import com.hngy.siae.content.entity.FavoriteItem;
-import com.hngy.siae.content.entity.UserAction;
 import com.hngy.siae.content.mapper.FavoriteFolderMapper;
 import com.hngy.siae.content.mapper.FavoriteItemMapper;
 import com.hngy.siae.content.service.ContentService;
 import com.hngy.siae.content.service.FavoriteService;
-import com.hngy.siae.content.service.InteractionsService;
-import com.hngy.siae.web.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,23 +78,6 @@ public class FavoriteServiceImpl
         AssertUtils.notNull(folder, ContentResultCodeEnum.FAVORITE_FOLDER_NOT_FOUND);
         AssertUtils.isTrue(folder.getStatus() == 1, ContentResultCodeEnum.FAVORITE_FOLDER_DELETED);
 
-        // 从Security上下文获取当前用户信息
-        org.springframework.security.core.Authentication authentication = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        
-        // 获取用户ID（从Details中获取，由ServiceAuthenticationFilter设置）
-        Long currentUserId = (Long) authentication.getDetails();
-        
-        // 判断是否为管理员（检查是否有ROLE_ADMIN或ROLE_ROOT角色）
-        boolean isAdmin = authentication.getAuthorities().stream()
-            .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN") || auth.getAuthority().equals("ROLE_ROOT"));
-        
-        // 权限检查：非管理员只能更新自己的收藏夹
-        if (!isAdmin) {
-            AssertUtils.isTrue(folder.getUserId().equals(currentUserId), 
-                ContentResultCodeEnum.FAVORITE_FOLDER_NO_PERMISSION);
-        }
-
         // 如果修改名称，检查是否重复
         if (updateDTO.getName() != null && !updateDTO.getName().equals(folder.getName())) {
             LambdaQueryWrapper<FavoriteFolder> queryWrapper = new LambdaQueryWrapper<>();
@@ -133,23 +114,6 @@ public class FavoriteServiceImpl
         FavoriteFolder folder = favoriteFolderMapper.selectById(folderId);
         AssertUtils.notNull(folder, ContentResultCodeEnum.FAVORITE_FOLDER_NOT_FOUND);
         AssertUtils.isTrue(folder.getIsDefault() == 0, ContentResultCodeEnum.FAVORITE_FOLDER_DEFAULT_CANNOT_DELETE);
-
-        // 从Security上下文获取当前用户信息
-        org.springframework.security.core.Authentication authentication = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        
-        // 获取用户ID（从Details中获取，由ServiceAuthenticationFilter设置）
-        Long currentUserId = (Long) authentication.getDetails();
-        
-        // 判断是否为管理员（检查是否有ROLE_ADMIN或ROLE_ROOT角色）
-        boolean isAdmin = authentication.getAuthorities().stream()
-            .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN") || auth.getAuthority().equals("ROLE_ROOT"));
-        
-        // 权限检查：非管理员只能删除自己的收藏夹
-        if (!isAdmin) {
-            AssertUtils.isTrue(folder.getUserId().equals(currentUserId), 
-                ContentResultCodeEnum.FAVORITE_FOLDER_NO_PERMISSION);
-        }
 
         // 软删除收藏夹
         folder.setStatus(0);
@@ -229,23 +193,6 @@ public class FavoriteServiceImpl
     public FavoriteItemVO updateFavorite(FavoriteItemUpdateDTO updateDTO) {
         FavoriteItem item = favoriteItemMapper.selectById(updateDTO.getId());
         AssertUtils.notNull(item, ContentResultCodeEnum.FAVORITE_ITEM_NOT_FOUND);
-
-        // 从Security上下文获取当前用户信息
-        org.springframework.security.core.Authentication authentication = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        
-        // 获取用户ID（从Details中获取，由ServiceAuthenticationFilter设置）
-        Long currentUserId = (Long) authentication.getDetails();
-        
-        // 判断是否为管理员（检查是否有ROLE_ADMIN或ROLE_ROOT角色）
-        boolean isAdmin = authentication.getAuthorities().stream()
-            .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN") || auth.getAuthority().equals("ROLE_ROOT"));
-        
-        // 权限检查：非管理员只能更新自己的收藏
-        if (!isAdmin) {
-            AssertUtils.isTrue(item.getUserId().equals(currentUserId), 
-                ContentResultCodeEnum.FAVORITE_ITEM_UPDATE_FAILED);
-        }
 
         Long oldFolderId = item.getFolderId();
 

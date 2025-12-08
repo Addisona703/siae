@@ -10,7 +10,7 @@ import com.hngy.siae.attendance.enums.LeaveStatus;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 请假服务接口
@@ -97,14 +97,14 @@ public interface ILeaveService {
      * 查询个人请假历史
      *
      * @param userId 用户ID
-     * @param startDate 开始日期
-     * @param endDate 结束日期
+     * @param startDate 开始时间
+     * @param endDate 结束时间
      * @param status 请假状态
      * @param pageNum 页码
      * @param pageSize 每页条数
      * @return 分页结果
      */
-    PageVO<LeaveRequestVO> getMyLeaves(Long userId, LocalDate startDate, LocalDate endDate, 
+    PageVO<LeaveRequestVO> getMyLeaves(Long userId, LocalDateTime startDate, LocalDateTime endDate, 
                                         LeaveStatus status, Integer pageNum, Integer pageSize);
 
     /**

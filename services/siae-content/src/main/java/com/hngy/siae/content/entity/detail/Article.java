@@ -7,9 +7,10 @@ import lombok.Data;
 
 /**
  * 文章详情表
- * @TableName content_article
+ * @TableName article
  */
 @Data
+@TableName("article")
 public class Article {
     /**
      * 主键，自增
@@ -26,11 +27,6 @@ public class Article {
      * 文章正文内容
      */
     private String content;
-
-    /**
-     * 封面图片URL
-     */
-    private String coverUrl;
 
     /**
      * 创建时间，默认当前时间

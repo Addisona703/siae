@@ -1,14 +1,16 @@
 package com.hngy.siae.content.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.content.dto.response.content.ContentQueryResultVO;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.content.dto.request.content.ContentCreateDTO;
 import com.hngy.siae.content.dto.request.content.ContentUpdateDTO;
-import com.hngy.siae.content.dto.request.content.ContentPageDTO;
-import com.hngy.siae.content.dto.response.ContentVO;
-import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
+import com.hngy.siae.content.dto.request.content.ContentQueryDTO;
+import com.hngy.siae.content.dto.response.content.ContentVO;
+import com.hngy.siae.content.dto.response.content.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
+import com.hngy.siae.content.enums.status.ContentStatusEnum;
 
 
 /**
@@ -44,14 +46,11 @@ public interface ContentService extends IService<Content> {
     void deleteContent(Integer id, Integer isTrash);
 
     /**
-     * 删除内容（带权限校验）
+     * 恢复内容（从回收站恢复）
      *
-     * @param id            内容id
-     * @param isTrash       是否放入回收站
-     * @param currentUserId 当前用户ID
-     * @param isAdmin       是否为管理员
+     * @param contentId 内容ID
      */
-    void deleteContent(Integer id, Integer isTrash, Long currentUserId, boolean isAdmin);
+    void restoreContent(Long contentId);
 
     /**
      * 获取内容列表
@@ -59,5 +58,23 @@ public interface ContentService extends IService<Content> {
      * @param dto 分页查询参数
      * @return {@link PageVO }<{@link ContentVO }<{@link EmptyDetailVO }>>
      */
-    PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentPageDTO> dto);
+    PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentQueryDTO> dto);
+
+    /**
+     * 更新内容状态（使用乐观锁）
+     * 用于审核策略模式
+     *
+     * @param contentId 内容ID
+     * @param status    目标状态
+     * @return 是否更新成功（乐观锁冲突时返回 false）
+     */
+    boolean updateStatus(Long contentId, ContentStatusEnum status);
+
+    /**
+     * 查询内容详情（包含分类、标签、统计信息）
+     *
+     * @param contentId 内容ID
+     * @return 内容详情DTO
+     */
+    ContentQueryResultVO getContentDetail(Long contentId);
 }

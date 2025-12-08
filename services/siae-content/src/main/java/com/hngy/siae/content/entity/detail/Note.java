@@ -7,9 +7,10 @@ import lombok.Data;
 
 /**
  * 笔记详情表
- * @TableName content_note
+ * @TableName note
  */
 @Data
+@TableName("note")
 public class Note {
     /**
      * 主键，自增

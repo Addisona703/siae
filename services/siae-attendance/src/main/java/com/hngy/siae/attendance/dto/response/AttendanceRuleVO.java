@@ -1,5 +1,6 @@
 package com.hngy.siae.attendance.dto.response;
 
+import com.hngy.siae.attendance.entity.AttendanceRule;
 import com.hngy.siae.attendance.enums.AttendanceType;
 import com.hngy.siae.attendance.enums.RuleStatus;
 import com.hngy.siae.attendance.enums.RuleTargetType;
@@ -87,6 +88,11 @@ public class AttendanceRuleVO {
      * 是否需要位置验证
      */
     private Boolean locationRequired;
+
+    /**
+     * 允许的位置列表
+     */
+    private List<AttendanceRule.Location> allowedLocations;
 
     /**
      * 位置半径(米)

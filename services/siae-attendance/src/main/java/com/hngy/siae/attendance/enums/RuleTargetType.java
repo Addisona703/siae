@@ -1,7 +1,7 @@
 package com.hngy.siae.attendance.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.hngy.siae.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum RuleTargetType {
+public enum RuleTargetType implements BaseEnum {
 
     /**
      * 全体成员
@@ -30,7 +30,11 @@ public enum RuleTargetType {
     INDIVIDUAL(2, "个人");
 
     @EnumValue
-    @JsonValue
-    private final Integer value;
+    private final Integer code;
     private final String description;
+
+    @Override
+    public int getCode() {
+        return code;
+    }
 }

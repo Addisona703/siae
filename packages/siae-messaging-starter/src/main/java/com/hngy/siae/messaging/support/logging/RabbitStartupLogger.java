@@ -1,7 +1,7 @@
 package com.hngy.siae.messaging.support.logging;
 
-import com.hngy.siae.messaging.autoconfig.SiaeRabbitInstanceManager;
-import com.hngy.siae.messaging.autoconfig.SiaeRabbitInstanceManager.InstanceContext;
+import com.hngy.siae.messaging.autoconfigure.SiaeRabbitInstanceManager;
+import com.hngy.siae.messaging.autoconfigure.SiaeRabbitInstanceManager.InstanceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;

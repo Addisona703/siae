@@ -1,1 +1,1 @@
-com.hngy.siae.messaging.autoconfig.SiaeRabbitAutoConfiguration
+com.hngy.siae.messaging.autoconfigure.SiaeRabbitAutoConfiguration

@@ -85,7 +85,7 @@ springdoc:
 siae:
   auth:
     enable-gateway-auth: true
-    enable-direct-access: false
+    enable-direct-access: true
   security:
     enabled: true
 

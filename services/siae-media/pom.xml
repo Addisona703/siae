@@ -48,10 +48,11 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
-        <!-- OpenFeign -->
+        <!-- OpenFeign (由siae-feign-starter提供) -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-feign-starter</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -90,6 +91,13 @@
             <version>8.5.7</version>
         </dependency>
 
+        <!-- AWS S3 SDK for Multipart Upload API -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.27</version>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -109,18 +117,6 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
-
-        <!-- Flyway 数据库迁移 - 已禁用 -->
-        <!--
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-mysql</artifactId>
-        </dependency>
-        -->
 
         <!-- Spring Boot Actuator for monitoring -->
         <dependency>

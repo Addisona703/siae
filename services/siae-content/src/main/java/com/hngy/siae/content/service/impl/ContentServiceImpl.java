@@ -2,31 +2,34 @@ package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
+import com.hngy.siae.content.dto.response.content.ContentQueryResultVO;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.ContentResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 
 import com.hngy.siae.core.enums.BaseEnum;
 import com.hngy.siae.content.enums.ContentTypeEnum;
 import com.hngy.siae.content.enums.status.ContentStatusEnum;
 import com.hngy.siae.content.dto.request.content.ContentCreateDTO;
 import com.hngy.siae.content.dto.request.content.ContentUpdateDTO;
-import com.hngy.siae.content.dto.request.content.ContentPageDTO;
-import com.hngy.siae.content.dto.response.ContentVO;
-import com.hngy.siae.content.dto.response.detail.EmptyDetailVO;
+import com.hngy.siae.content.dto.request.content.ContentQueryDTO;
+import com.hngy.siae.content.dto.response.content.ContentVO;
+import com.hngy.siae.content.dto.response.content.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
-import com.hngy.siae.content.entity.Category;
-import com.hngy.siae.content.feign.UserFeignClient;
-import com.hngy.siae.content.feign.dto.UserProfileDTO;
 import com.hngy.siae.content.mapper.ContentMapper;
 import com.hngy.siae.content.mapper.CategoryMapper;
 import com.hngy.siae.content.service.ContentService;
+import com.hngy.siae.security.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 /** 
  * 内容服务impl
  *
@@ -50,6 +54,8 @@ public class ContentServiceImpl
 
     private final CategoryMapper categoryMapper;
     private final UserFeignClient userFeignClient;
+    private final MediaFeignClient mediaFeignClient;
+    private final SecurityUtil securityUtil;
 
     @Override
     public Content createContent(ContentCreateDTO dto) {
@@ -63,13 +69,23 @@ public class ContentServiceImpl
         ContentTypeEnum type = BaseEnum.fromDesc(ContentTypeEnum.class, dto.getType());
         AssertUtils.notNull(type, ContentResultCodeEnum.CONTENT_TYPE_NOT_SUPPORTED);
 
-        // 3. 插入主内容，直接按下面的方式拷贝不会报错，遇到类型不同，字段相同的会自动跳过
-        // 在之前的写法中，因为两个类的Type字段类型不同所以开启跳过异常配置，然后在重新设置Type
-        // 或者写出需要忽略的字段
-        Content content = BeanConvertUtil.to(dto, Content.class);
-        // 手动设置type字段，因为DTO和Entity的类型不同
-        content.setType(null);
+        // 3. 状态校验和转换：只允许草稿或发布，发布时设置为待审核
+        ContentStatusEnum status = dto.getStatus();
+        if (status == ContentStatusEnum.DRAFT) {
+            // 草稿状态保持不变
+        } else if (status == ContentStatusEnum.PUBLISHED || status == ContentStatusEnum.PENDING) {
+            // 发布时默认为待审核状态
+            status = ContentStatusEnum.PENDING;
+        } else {
+            // 只允许传入草稿或发布状态
+            AssertUtils.fail(ContentResultCodeEnum.CONTENT_STATUS_INVALID);
+        }
+
+        // 4. 插入主内容，忽略 type 和 status 字段
+        Content content = BeanConvertUtil.to(dto, Content.class, "type", "status");
+        // 手动设置type和status字段
         content.setType(type);
+        content.setStatus(status);
         // 自动回填主键，id
         AssertUtils.isTrue(this.save(content), ContentResultCodeEnum.CONTENT_INSERT_FAILED);
 
@@ -84,8 +100,10 @@ public class ContentServiceImpl
                 .eq(Content::getId, contentUpdateDTO.getId())
                 .exists(), ContentResultCodeEnum.CONTENT_NOT_EXISTS);
 
-        // 2. 拷贝 DTO 到实体，并处理类型转换
-        Content content = BeanConvertUtil.to(contentUpdateDTO, Content.class);
+        // 2. 拷贝 DTO 到实体，忽略 type 字段（需要手动转换枚举）
+        Content content = BeanConvertUtil.to(contentUpdateDTO, Content.class, "type", "status");
+        
+        // 3. 手动处理类型转换（String -> ContentTypeEnum）
         Optional.ofNullable(contentUpdateDTO.getType())
                 .map(typeStr -> {
                     ContentTypeEnum type = BaseEnum.fromDesc(ContentTypeEnum.class, typeStr);
@@ -123,126 +141,44 @@ public class ContentServiceImpl
     }
 
     @Override
-    public void deleteContent(Integer id, Integer isTrash, Long currentUserId, boolean isAdmin) {
-        // 1. 参数校验
-        AssertUtils.isTrue(isTrash == 0 || isTrash == 1, ContentResultCodeEnum.CONTENT_DELETE_INVALID_OPERATION);
-
-        // 2. 查询内容是否存在
-        Content content = this.getById(id);
+    public void restoreContent(Long contentId) {
+        // 1. 查询内容是否存在
+        Content content = this.getById(contentId);
         AssertUtils.notNull(content, ContentResultCodeEnum.CONTENT_NOT_FOUND);
 
-        // 3. 权限校验：非管理员只能删除自己创建的内容
-        if (!isAdmin) {
-            AssertUtils.isTrue(content.getUploadedBy().equals(currentUserId), 
-                    ContentResultCodeEnum.CONTENT_DELETE_PERMISSION_DENIED);
-        }
+        // 2. 检查是否在回收站
+        AssertUtils.isTrue(content.getStatus() == ContentStatusEnum.TRASH, ContentResultCodeEnum.CONTENT_NOT_IN_TRASH);
 
-        // 4. 删除
-        if (isTrash == 1) {
-            // 放入回收站（软删除）
-            content.setStatus(ContentStatusEnum.TRASH);
-            AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_TRASH_FAILED);
-        } else {
-            // 不放入回收站（伪硬删除，通过定时任务实现硬删除）
-            content.setStatus(ContentStatusEnum.DELETED);
-            AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_PERMANENT_DELETE_FAILED);
-        }
+        // 3. 恢复为已发布状态
+        content.setStatus(ContentStatusEnum.PUBLISHED);
+        AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_RESTORE_FAILED);
     }
-
 
     @Override
-    public PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentPageDTO> dto) {
-        // 如果查询条件简单，使用联表查询
-        ContentPageDTO params = dto.getParams();
-        boolean useJoinQuery = StrUtil.isBlank(dto.getKeyword()) 
-                && (params == null || CollUtil.isEmpty(params.getTagIds()));
+    public PageVO<ContentVO<EmptyDetailVO>> getContentPage(PageDTO<ContentQueryDTO> dto) {
+        // 构建分页参数
+        Page<ContentVO<EmptyDetailVO>> page = PageConvertUtil.toPage(dto);
         
-        if (useJoinQuery) {
-            // 使用联表查询
-            Page<ContentVO<EmptyDetailVO>> page = new Page<>(dto.getPageNum(), dto.getPageSize());
-            Content queryContent = new Content();
-            if (params != null) {
-                queryContent.setCategoryId(params.getCategoryId());
-                queryContent.setStatus(params.getStatus());
-                queryContent.setType(params.getType());
-            }
-            
-            Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectContentPageWithDetails(page, queryContent);
-            
-            // 批量填充作者昵称
-            fillAuthorNicknames(resultPage.getRecords());
-            
-            // 设置空的detail对象
-            resultPage.getRecords().forEach(vo -> vo.setDetail(new EmptyDetailVO()));
-            
-            return PageConvertUtil.convert(resultPage);
-        }
-        
-        // 复杂查询使用原有逻辑
-        Page<Content> page = PageConvertUtil.toPage(dto);
-
-        LambdaQueryWrapper<Content> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.isNotNull(Content::getId);
-
-        if (params != null) {
-            if (params.getCategoryId() != null) {
-                queryWrapper.eq(Content::getCategoryId, params.getCategoryId());
-            }
-            if (params.getStatus() != null) {
-                queryWrapper.eq(Content::getStatus, params.getStatus());
-            }
-            if (params.getType() != null) {
-                queryWrapper.eq(Content::getType, params.getType());
-            }
-            if (CollUtil.isNotEmpty(params.getTagIds())) {
-                String tagIdSql = CollUtil.join(params.getTagIds(), ",");
-                queryWrapper.inSql(Content::getId,
-                        "SELECT ctr.content_id FROM content_tag_relation ctr WHERE ctr.tag_id IN (" + tagIdSql + ")");
-            }
+        // 获取查询条件
+        ContentQueryDTO query = dto.getParams();
+        if (query == null) {
+            query = new ContentQueryDTO();
         }
 
-        if (StrUtil.isNotBlank(dto.getKeyword())) {
-            String keyword = dto.getKeyword();
-            queryWrapper.and(wrapper ->
-                    wrapper.like(Content::getTitle, keyword)
-                            .or()
-                            .like(Content::getDescription, keyword)
-            );
-        }
+        // 设置当前用户信息用于权限过滤
+        query.setCurrentUserId(securityUtil.getCurrentUserId());
+        query.setIsAdmin(securityUtil.hasAnyRole("ROOT", "ADMIN"));
 
-        queryWrapper.orderByDesc(Content::getCreateTime);
-
-        Page<Content> resultPage = this.page(page, queryWrapper);
-
-        PageVO<ContentVO<EmptyDetailVO>> pageVO = PageConvertUtil.convert(resultPage, this::convertToContentVO);
+        // 使用 XML 联表查询
+        Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectContentPageByQuery(page, query);
         
         // 批量填充作者昵称
-        fillAuthorNicknames(pageVO.getRecords());
+        fillAuthorNicknames(resultPage.getRecords());
         
-        return pageVO;
-    }
-
-    /**
-     * 将Content实体转换为ContentVO（用于复杂查询场景）
-     */
-    private ContentVO<EmptyDetailVO> convertToContentVO(Content content) {
-        // 使用联表查询获取完整信息
-        Page<ContentVO<EmptyDetailVO>> page = new Page<>(1, 1);
-        Content queryContent = new Content();
-        queryContent.setId(content.getId());
+        // 批量填充封面URL
+        fillCoverUrls(resultPage.getRecords());
         
-        Page<ContentVO<EmptyDetailVO>> result = baseMapper.selectContentPageWithDetails(page, queryContent);
-        
-        if (CollUtil.isNotEmpty(result.getRecords())) {
-            ContentVO<EmptyDetailVO> vo = result.getRecords().get(0);
-            vo.setDetail(new EmptyDetailVO());
-            return vo;
-        }
-        
-        // 降级处理
-        ContentVO<EmptyDetailVO> vo = BeanConvertUtil.to(content, ContentVO.class);
-        vo.setDetail(new EmptyDetailVO());
-        return vo;
+        return PageConvertUtil.convert(resultPage);
     }
 
     /**
@@ -260,18 +196,21 @@ public class ContentServiceImpl
                     .filter(java.util.Objects::nonNull)
                     .distinct()
                     .toList();
+            log.info("收集到的用户ID: {}", userIds);
 
             if (CollUtil.isEmpty(userIds)) {
                 return;
             }
 
             // 批量查询用户信息
-            Map<Long, UserProfileDTO> userMap = userFeignClient.batchGetUserProfiles(userIds);
-            
+            Map<Long, UserProfileSimpleVO> userMap =
+                    userFeignClient.batchGetUserProfiles(userIds);
+
             if (userMap != null && !userMap.isEmpty()) {
                 // 填充昵称
                 contentList.forEach(content -> {
-                    UserProfileDTO userProfile = userMap.get(content.getUploadedBy());
+                    com.hngy.siae.api.user.dto.response.UserProfileSimpleVO userProfile = 
+                            userMap.get(content.getUploadedBy());
                     if (userProfile != null) {
                         content.setAuthorNickname(userProfile.getNickname());
                     }
@@ -279,6 +218,66 @@ public class ContentServiceImpl
             }
         } catch (Exception e) {
             log.warn("批量查询用户信息失败，跳过填充作者昵称", e);
+        }
+    }
+
+    @Override
+    public boolean updateStatus(Long contentId, ContentStatusEnum status) {
+        Content content = this.getById(contentId);
+        AssertUtils.notNull(content, ContentResultCodeEnum.CONTENT_NOT_FOUND);
+        content.setStatus(status);
+        // 使用乐观锁更新，version 字段会由 MyBatis-Plus 自动处理
+        // 如果并发冲突，updateById 会返回 false
+        return this.updateById(content);
+    }
+
+    @Override
+    public ContentQueryResultVO getContentDetail(Long contentId) {
+        ContentQueryResultVO contentQueryResultVO = baseMapper.selectContentDetailById(contentId);
+        AssertUtils.notNull(contentQueryResultVO, ContentResultCodeEnum.CONTENT_NOT_FOUND);
+        return contentQueryResultVO;
+    }
+
+    /**
+     * 批量填充封面URL
+     */
+    private void fillCoverUrls(List<ContentVO<EmptyDetailVO>> contentList) {
+        if (CollUtil.isEmpty(contentList)) {
+            return;
+        }
+
+        try {
+            // 收集所有封面文件ID
+            List<String> coverFileIds = contentList.stream()
+                    .map(ContentVO::getCoverFileId)
+                    .filter(StrUtil::isNotBlank)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            if (CollUtil.isEmpty(coverFileIds)) {
+                return;
+            }
+
+            // 批量获取文件URL
+            BatchUrlDTO request = new BatchUrlDTO();
+            request.setFileIds(coverFileIds);
+            request.setExpirySeconds(86400); // 24小时过期
+
+            BatchUrlVO response = mediaFeignClient.batchGetFileUrls(request);
+
+            if (response != null && response.getUrls() != null && !response.getUrls().isEmpty()) {
+                Map<String, String> urlMap = response.getUrls();
+                // 填充封面URL
+                contentList.forEach(content -> {
+                    String coverFileId = content.getCoverFileId();
+                    if (StrUtil.isNotBlank(coverFileId)) {
+                        String coverUrl = urlMap.get(coverFileId);
+                        content.setCoverUrl(coverUrl);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("批量获取封面URL失败，跳过填充封面URL", e);
         }
     }
 }

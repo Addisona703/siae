@@ -28,12 +28,6 @@ public class PageDTO<Q> {
      */
     private Q params;
 
-    /**
-     * 关键字搜索（兼容旧版本）
-     */
-    private String keyword;
-
-    // 兼容旧版本的字段名
     public Integer getPage() {
         return this.pageNum;
     }

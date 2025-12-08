@@ -1,7 +1,7 @@
 package com.hngy.siae.attendance.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.hngy.siae.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum LeaveStatus {
+public enum LeaveStatus implements BaseEnum {
 
     /**
      * 待审核
@@ -35,7 +35,11 @@ public enum LeaveStatus {
     CANCELLED(3, "已撤销");
 
     @EnumValue
-    @JsonValue
-    private final Integer value;
+    private final Integer code;
     private final String description;
+
+    @Override
+    public int getCode() {
+        return code;
+    }
 }

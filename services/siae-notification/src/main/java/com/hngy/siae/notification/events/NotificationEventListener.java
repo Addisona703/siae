@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
 
+import java.time.LocalDateTime;
+
 /**
  * 事件监听器
  */
@@ -21,10 +23,29 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCreated(NotificationCreatedEvent evt) {
         var n = evt.notification();
-        push.pushToUser(n.getUserId(), new Payload(n.getId(), n.getTitle(), n.getContent()));
+        Payload payload = new Payload(
+                n.getId(),
+                n.getUserId(),
+                n.getType() != null ? n.getType().getCode() : null,
+                n.getTitle(),
+                n.getContent(),
+                n.getLinkUrl(),
+                n.getIsRead() != null ? n.getIsRead() : false,
+                n.getCreatedAt() != null ? n.getCreatedAt() : LocalDateTime.now()
+        );
+        push.pushToUser(n.getUserId(), payload);
         log.info("SSE 推送完成 - userId={}, notificationId={}", n.getUserId(), n.getId());
     }
 
-    /** 轻量传输体，避免把实体直接抛给前端 */
-    record Payload(Long id, String title, String content) {}
+    /** 完整传输体，与前端 normalizeNotification 字段对应 */
+    record Payload(
+            Long id,
+            Long userId,
+            Integer type,
+            String title,
+            String content,
+            String linkUrl,
+            Boolean isRead,
+            LocalDateTime createdAt
+    ) {}
 }

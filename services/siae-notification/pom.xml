@@ -117,6 +117,24 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-user</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- ✅ OpenFeign (由siae-feign-starter提供) -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-feign-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- ✅ Spring Cloud LoadBalancer (required for Feign client) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
 
         <!-- 你可以后续加入短信、MQ 等 -->
         <!-- 示例：RabbitMQ 消息中转 -->

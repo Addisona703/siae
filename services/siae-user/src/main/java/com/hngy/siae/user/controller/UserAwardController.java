@@ -2,7 +2,7 @@ package com.hngy.siae.user.controller;
 
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.permissions.RoleConstants;
+import com.hngy.siae.security.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.user.dto.request.UserAwardCreateDTO;
 import com.hngy.siae.user.dto.request.UserAwardQueryDTO;
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
-import static com.hngy.siae.core.permissions.UserPermissions.*;
+import static com.hngy.siae.user.permissions.UserPermissions.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

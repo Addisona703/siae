@@ -1,16 +1,28 @@
 package com.hngy.siae.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import com.hngy.siae.content.dto.response.*;
+import com.hngy.siae.content.dto.request.content.ContentHotPageDTO;
+import com.hngy.siae.content.dto.response.category.CategoryStatisticsVO;
+import com.hngy.siae.content.dto.response.content.HotContentVO;
+import com.hngy.siae.content.dto.response.statistics.ContentTypeStatisticsVO;
+import com.hngy.siae.content.dto.response.statistics.StatisticsSummaryVO;
+import com.hngy.siae.content.dto.response.statistics.StatisticsVO;
+import com.hngy.siae.content.dto.response.statistics.TrendDataVO;
 import com.hngy.siae.content.enums.ActionTypeEnum;
-import com.hngy.siae.content.dto.request.StatisticsDTO;
+import com.hngy.siae.content.enums.ContentTypeEnum;
+import com.hngy.siae.content.enums.status.ContentStatusEnum;
+import com.hngy.siae.content.dto.request.interaction.StatisticsDTO;
 import com.hngy.siae.content.entity.Statistics;
 import com.hngy.siae.content.mapper.StatisticsMapper;
 import com.hngy.siae.content.service.StatisticsService;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.core.result.ContentResultCodeEnum;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.hngy.siae.core.asserts.AssertUtils;
@@ -45,9 +57,13 @@ public class StatisticsServiceImpl
 
     @Override
     public void incrementStatistics(Long contentId, ActionTypeEnum actionTypeEnum) {
-        // 检查统计表是否存在
+        // 检查统计表是否存在，不存在则自动创建
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
+        if (statistics == null) {
+            statistics = new Statistics();
+            statistics.setContentId(contentId);
+            this.save(statistics);
+        }
 
         // 构建更新SQL
         UpdateWrapper<Statistics> updateWrapper = new UpdateWrapper<>();
@@ -66,9 +82,14 @@ public class StatisticsServiceImpl
 
     @Override
     public void decrementStatistics(Long contentId, ActionTypeEnum actionTypeEnum) {
-        // 检查统计表是否存在
+        // 检查统计表是否存在，不存在则自动创建（虽然递减时不太可能不存在）
         Statistics statistics = this.lambdaQuery().eq(Statistics::getContentId, contentId).one();
-        AssertUtils.notNull(statistics, ContentResultCodeEnum.STATISTICS_NOT_FOUND);
+        if (statistics == null) {
+            statistics = new Statistics();
+            statistics.setContentId(contentId);
+            this.save(statistics);
+            return; // 新创建的统计都是0，无需递减
+        }
 
         // 构建更新SQL
         UpdateWrapper<Statistics> updateWrapper = new UpdateWrapper<>();
@@ -217,5 +238,38 @@ public class StatisticsServiceImpl
             return ((Number) value).longValue();
         }
         return 0L;
+    }
+
+    @Override
+    public PageVO<HotContentVO> queryHotContent(ContentHotPageDTO contentHotPageDTO) {
+        // 1. 参数校验
+        AssertUtils.notNull(contentHotPageDTO, ContentResultCodeEnum.CONTENT_NOT_FOUND);
+        AssertUtils.isTrue(contentHotPageDTO.getPageNum() > 0 && contentHotPageDTO.getPageSize() > 0,
+                ContentResultCodeEnum.CONTENT_NOT_FOUND);
+
+        // 2. 准备查询参数
+        Integer typeCode = java.util.Optional.ofNullable(contentHotPageDTO.getType())
+                .map(ContentTypeEnum::getCode)
+                .orElse(null);
+
+        String sortBy = java.util.Optional.ofNullable(contentHotPageDTO.getSortBy())
+                .map(value -> switch (value) {
+                    case "likeCount", "favoriteCount", "commentCount", "createTime", "viewCount" -> value;
+                    default -> "viewCount";
+                })
+                .orElse("viewCount");
+
+        // 3. 使用 MyBatis-Plus 分页插件查询热门内容
+        Page<HotContentVO> page = PageConvertUtil.toPage(contentHotPageDTO);
+        IPage<HotContentVO> resultPage = baseMapper.selectHotContentPage(
+                page,
+                contentHotPageDTO.getCategoryId(),
+                typeCode,
+                sortBy,
+                ContentStatusEnum.PUBLISHED.getCode()
+        );
+
+        // 4. 使用 PageConvertUtil 转换为 PageVO
+        return PageConvertUtil.convert(resultPage);
     }
 }

@@ -3,9 +3,12 @@ package com.hngy.siae.content.service;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.dto.request.*;
-import com.hngy.siae.content.dto.response.FavoriteFolderVO;
-import com.hngy.siae.content.dto.response.FavoriteItemVO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteFolderCreateDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteFolderUpdateDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteItemAddDTO;
+import com.hngy.siae.content.dto.request.favorite.FavoriteItemUpdateDTO;
+import com.hngy.siae.content.dto.response.favorite.FavoriteFolderVO;
+import com.hngy.siae.content.dto.response.favorite.FavoriteItemVO;
 
 import java.util.List;
 

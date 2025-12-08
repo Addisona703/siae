@@ -56,8 +56,16 @@ public class OperationLogAspect {
         // 创建操作日志对象
         com.hngy.siae.attendance.entity.OperationLog logEntity = new com.hngy.siae.attendance.entity.OperationLog();
         
-        // 获取当前用户ID
+        // 获取当前用户ID，如果未认证则跳过日志记录
         Long userId = securityUtil.getCurrentUserIdOrNull();
+        if (userId == null) {
+            log.warn("未获取到用户ID，跳过操作日志记录");
+            try {
+                return joinPoint.proceed();
+            } catch (Throwable e) {
+                throw e;
+            }
+        }
         logEntity.setUserId(userId);
         
         // 设置操作类型和模块

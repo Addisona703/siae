@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.hngy.siae.core.permissions.AttendancePermissions.Rule;
+import static com.hngy.siae.attendance.permissions.AttendancePermissions.Rule;
 
 /**
  * 考勤规则控制器

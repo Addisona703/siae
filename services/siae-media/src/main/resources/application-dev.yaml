@@ -6,7 +6,6 @@ server:
   port: 8040
   servlet:
     context-path: /api/v1/media
-  shutdown: graceful
 
 spring:
   # 禁用 Nacos
@@ -15,7 +14,7 @@ spring:
       discovery:
         enabled: true
       config:
-        enabled: false
+        enabled: false  
   
   # 排除 Spring Security 自动配置（开发环境）
   autoconfigure:
@@ -82,8 +81,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    username: root
-    password: 123456
+    username: guest
+    password: guest
     virtual-host: /
     listener:
       simple:
@@ -121,22 +120,27 @@ mybatis-plus:
 # 注意：endpoint 应该是 MinIO 的 API 端口，根据你的启动命令是 9000
 # 控制台地址是 http://localhost:9001
 minio:
-  endpoint: http://localhost:9000
+  # 注意：endpoint必须和前端访问MinIO时使用的地址一致，否则签名验证会失败
+  # 本地开发：使用localhost（仅本机访问）
+  # 局域网访问：使用IP地址（需要确保MinIO也监听该IP）
+  endpoint: http://8.134.251.36:9000
   accessKey: root
   secretKey: 123456789
   bucketName: siae-media
   region: us-east-1
   # 外部访问地址（用于替换生成的URL中的endpoint，供前端访问）
   # 如果不配置，则使用 endpoint 的值
-  # 示例：http://your-server-ip:9000 或 https://minio.yourdomain.com
-  external-endpoint: http://192.168.155.107:9000
+#  external-endpoint: http://192.168.155.13:9000
 
 # 5. 媒体业务配置
 media:
   upload:
-    max-file-size: 104857600        # 100 MB
-    max-multipart-size: 536870912   # 512 MB
-    presigned-url-expiry: 900       # 15 分钟
+    max-file-size: 524288000         # 500 MB (单个文件最大大小，不启用分片时的限制)
+    max-multipart-size: 2147483648   # 2 GB (分片上传总大小限制)
+    multipart-threshold: 10485760    # 10 MB (超过此大小启用分片上传)
+    default-part-size: 10485760     # 10 MB (默认分片大小)
+    session-expiry: 86400           # 24 小时 (上传会话过期时间，单位：秒)
+    presigned-url-expiry: 900       # 15 分钟 (预签名URL过期时间，单位：秒)
     allowed-mime-types:
       - image/jpeg
       - image/png
@@ -171,17 +175,18 @@ media:
       - audio/wav
       - audio/ogg
   download:
-    presigned-url-expiry: 900
+    presigned-url-expiry: 900       # 15 分钟 (下载预签名URL过期时间，单位：秒)
   quota:
-    default-max-bytes: 10737418240   # 10 GB
-    default-max-objects: 5000
+    default-max-bytes: 10737418240  # 10 GB (默认存储配额)
+    default-max-objects: 5000       # 默认对象数量限制
   cdn:
-    enabled: false
-    base-url: https://cdn.example.com
+    enabled: false                  # 是否启用CDN
+    base-url: https://cdn.example.com  # CDN基础URL（可选）
   url:
-    expiration: 86400                # URL过期时间：24小时
-    cache-enabled: true              # 启用URL缓存
-    cache-ttl: 82800                 # 缓存TTL：23小时（比URL过期时间短1小时）
+    public-ttl: 604800              # 7 天 (公开文件URL缓存时间，单位：秒)
+    private-ttl: 82800              # 23 小时 (私有文件URL缓存时间，单位：秒)
+    expiration: 86400               # 24 小时 (URL默认过期时间，单位：秒)
+    cache-enabled: true             # 启用URL缓存
 
 # 5. SpringDoc API文档配置
 springdoc:
@@ -230,10 +235,10 @@ management:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: true
-    enable-direct-access: false
+    enable-gateway-auth: false
+    enable-direct-access: true
   security:
-    enabled: true
+    enabled: false
 
 # 日志配置
 logging:

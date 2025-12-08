@@ -8,9 +8,10 @@ import lombok.Data;
 
 /**
  * 内容分类表
- * @TableName content_category
+ * @TableName category
  */
 @Data
+@TableName("category")
 public class Category {
     /**
      * 主键，自增

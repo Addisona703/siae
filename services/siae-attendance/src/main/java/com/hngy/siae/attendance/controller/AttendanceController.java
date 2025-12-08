@@ -9,7 +9,7 @@ import com.hngy.siae.attendance.dto.response.AttendanceRecordVO;
 import com.hngy.siae.attendance.service.IAttendanceService;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.permissions.AttendancePermissions;
+import com.hngy.siae.attendance.permissions.AttendancePermissions;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
-import static com.hngy.siae.core.permissions.AttendancePermissions.*;
+import static com.hngy.siae.attendance.permissions.AttendancePermissions.*;
 
 /**
  * 考勤记录控制器

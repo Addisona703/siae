@@ -8,8 +8,7 @@ import com.hngy.siae.security.filter.ServiceAuthenticationFilter;
 import com.hngy.siae.security.handler.JsonAccessDeniedHandler;
 import com.hngy.siae.security.handler.JsonAuthenticationEntryPoint;
 import com.hngy.siae.security.properties.SecurityProperties;
-import com.hngy.siae.security.service.impl.FallbackPermissionServiceImpl;
-import com.hngy.siae.security.service.impl.RedisPermissionServiceImpl;
+import com.hngy.siae.security.service.impl.SecurityCacheServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -50,8 +49,7 @@ import org.springframework.context.ApplicationContext;
 @EnableConfigurationProperties(SecurityProperties.class)
 @EnableWebSecurity
 @Import({
-    RedisPermissionServiceImpl.class,
-    FallbackPermissionServiceImpl.class,
+    SecurityCacheServiceImpl.class,
     ServiceAuthenticationFilter.class, // 新版本：优化的认证过滤器
     SimpleEnhancedPermissionConfig.class, // 方法级安全控制，根据 siae.security.enabled 自动启用
     SiaeAuthorizeAspect.class
@@ -238,7 +236,6 @@ public class SecurityAutoConfiguration {
         log.info("JWT认证: {}", securityProperties.getJwt().isEnabled() ? "启用" : "禁用");
         log.info("权限缓存: {}", securityProperties.getPermission().isCacheEnabled() ? "启用" : "禁用");
         log.info("Redis权限服务: {}", securityProperties.getPermission().isRedisEnabled() ? "启用" : "禁用");
-        log.info("权限降级服务: {}", securityProperties.getPermission().isFallbackEnabled() ? "启用" : "禁用");
         log.info("简化增强权限控制: {}", securityProperties.getEnhancedPermission().isEnabled() ? "启用" : "禁用");
         log.info("SiaeAuthorize注解支持: 启用");
         log.info("✅ ServiceAuthenticationFilter: 启用（支持网关请求、内部调用、直接访问）");

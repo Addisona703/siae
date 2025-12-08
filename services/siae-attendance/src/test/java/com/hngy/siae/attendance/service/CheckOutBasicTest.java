@@ -76,7 +76,7 @@ public class CheckOutBasicTest {
         checkInDTO.setUserId(userId);
         checkInDTO.setTimestamp(checkInTime);
         checkInDTO.setLocation("test-location");
-        checkInDTO.setAttendanceType(AttendanceType.DAILY.getValue());
+        checkInDTO.setAttendanceType(AttendanceType.DAILY.getCode());
 
         AttendanceRecordVO checkInResult = attendanceService.checkIn(checkInDTO);
 
@@ -137,7 +137,7 @@ public class CheckOutBasicTest {
         checkInDTO.setUserId(userId);
         checkInDTO.setTimestamp(checkInTime);
         checkInDTO.setLocation("test-location");
-        checkInDTO.setAttendanceType(AttendanceType.DAILY.getValue());
+        checkInDTO.setAttendanceType(AttendanceType.DAILY.getCode());
 
         attendanceService.checkIn(checkInDTO);
 
@@ -172,7 +172,7 @@ public class CheckOutBasicTest {
         checkInDTO.setUserId(userId);
         checkInDTO.setTimestamp(checkInTime);
         checkInDTO.setLocation("test-location");
-        checkInDTO.setAttendanceType(AttendanceType.DAILY.getValue());
+        checkInDTO.setAttendanceType(AttendanceType.DAILY.getCode());
 
         attendanceService.checkIn(checkInDTO);
 
@@ -210,7 +210,7 @@ public class CheckOutBasicTest {
         checkInDTO.setUserId(userId);
         checkInDTO.setTimestamp(checkInTime);
         checkInDTO.setLocation("test-location");
-        checkInDTO.setAttendanceType(AttendanceType.DAILY.getValue());
+        checkInDTO.setAttendanceType(AttendanceType.DAILY.getCode());
 
         attendanceService.checkIn(checkInDTO);
 

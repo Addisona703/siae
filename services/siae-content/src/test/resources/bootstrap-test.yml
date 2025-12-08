@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: siae-content-test
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false

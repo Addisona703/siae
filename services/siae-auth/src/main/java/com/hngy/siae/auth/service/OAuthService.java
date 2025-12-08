@@ -1,7 +1,9 @@
 package com.hngy.siae.auth.service;
 
+import com.hngy.siae.auth.dto.request.OAuthRegisterDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
 import com.hngy.siae.auth.dto.response.OAuthAccountVO;
+import com.hngy.siae.auth.dto.response.OAuthCallbackVO;
 
 import java.util.List;
 
@@ -21,7 +23,28 @@ public interface OAuthService {
     String generateAuthUrl(String provider);
     
     /**
-     * 处理第三方授权回调
+     * 处理第三方授权回调（新版本，支持新用户注册流程）
+     * 
+     * @param provider 第三方平台标识
+     * @param code 授权码
+     * @param state 状态参数
+     * @return OAuth回调响应（区分已绑定用户和新用户）
+     */
+    OAuthCallbackVO handleCallbackV2(String provider, String code, String state);
+    
+    /**
+     * OAuth新用户完善信息并注册
+     * 
+     * @param registerDTO 注册信息
+     * @param clientIp 客户端IP
+     * @param browser 浏览器信息
+     * @param os 操作系统信息
+     * @return 登录响应
+     */
+    LoginVO completeOAuthRegister(OAuthRegisterDTO registerDTO, String clientIp, String browser, String os);
+    
+    /**
+     * 处理第三方授权回调（旧版本，自动注册）
      * 
      * @param provider 第三方平台标识
      * @param code 授权码

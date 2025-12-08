@@ -128,7 +128,7 @@ public class CheckInPropertyTest {
                             .plusMinutes(timestamp.getMinute() % 60);
                     dto.setTimestamp(adjustedTime);
                     dto.setLocation(location);
-                    dto.setAttendanceType(AttendanceType.DAILY.getValue());
+                    dto.setAttendanceType(AttendanceType.DAILY.getCode());
                     dto.setRelatedId(null);
                     return dto;
                 });

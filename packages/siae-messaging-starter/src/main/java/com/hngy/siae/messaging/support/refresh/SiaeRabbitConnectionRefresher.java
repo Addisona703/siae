@@ -1,6 +1,6 @@
 package com.hngy.siae.messaging.support.refresh;
 
-import com.hngy.siae.messaging.autoconfig.SiaeRabbitProperties;
+import com.hngy.siae.messaging.autoconfigure.SiaeRabbitProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;

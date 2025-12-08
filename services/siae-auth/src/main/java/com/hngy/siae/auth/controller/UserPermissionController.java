@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.AuthPermissions.*;
+import static com.hngy.siae.auth.permissions.AuthPermissions.*;
 
 /**
  * 用户权限关联控制器

@@ -126,11 +126,6 @@ public class SecurityProperties {
         private boolean redisEnabled = true;
 
         /**
-         * Redis不可用时是否使用降级服务
-         */
-        private boolean fallbackEnabled = true;
-
-        /**
          * 权限检查失败时是否抛出异常
          */
         private boolean throwExceptionOnFailure = true;

@@ -3,20 +3,19 @@ package com.hngy.siae.content.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
-import com.hngy.siae.content.enums.TypeEnum;
-import com.hngy.siae.content.dto.request.AuditDTO;
-import com.hngy.siae.content.dto.request.AuditQueryDTO;
-import com.hngy.siae.content.dto.response.AuditVO;
-import com.hngy.siae.content.entity.Audit;
+import com.hngy.siae.content.dto.request.audit.AuditDTO;
+import com.hngy.siae.content.dto.request.audit.AuditQueryDTO;
+import com.hngy.siae.content.dto.response.audit.AuditVO;
+import com.hngy.siae.content.entity.AuditLog;
 
 /**
  * 内容审核服务
+ * 使用 AuditLog 实体记录审核历史
  *
  * @author KEYKB
  * &#064;date: 2025/05/20
  */
-public interface AuditsService extends IService<Audit> {
+public interface AuditsService extends IService<AuditLog> {
 
     /**
      * 提交审核

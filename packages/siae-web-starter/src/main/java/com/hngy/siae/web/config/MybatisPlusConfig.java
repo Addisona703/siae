@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.IllegalSQLInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.hngy.siae.web.properties.WebProperties;
 import lombok.RequiredArgsConstructor;
@@ -50,11 +50,12 @@ public class MybatisPlusConfig {
             log.info("MyBatis Plus 分页插件已启用，最大限制：{}", config.getMaxLimit());
         }
         
+        // 乐观锁插件（用于并发控制，需要在实体类字段上添加 @Version 注解）
+        interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+        log.info("MyBatis Plus 乐观锁插件已启用");
+        
         // 防止全表更新与删除插件
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
-        
-        // 非法 SQL 拦截插件（开发环境可以注释掉，允许无 WHERE 条件的查询）
-        // interceptor.addInnerInterceptor(new IllegalSQLInnerInterceptor());
         
         return interceptor;
     }

@@ -1,33 +1,37 @@
 package com.hngy.siae.user.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.result.UserResultCodeEnum;
-import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.user.dto.request.MembershipCreateDTO;
 import com.hngy.siae.user.dto.request.MembershipPromoteDTO;
 import com.hngy.siae.user.dto.request.MembershipQueryDTO;
 import com.hngy.siae.user.dto.request.MembershipUpdateDTO;
 import com.hngy.siae.user.dto.response.MembershipDetailVO;
 import com.hngy.siae.user.dto.response.MembershipVO;
+import com.hngy.siae.user.entity.MemberDepartment;
+import com.hngy.siae.user.entity.MemberPosition;
 import com.hngy.siae.user.entity.Membership;
 import com.hngy.siae.user.enums.LifecycleStatusEnum;
-import com.hngy.siae.user.feign.MediaFeignClient;
-import com.hngy.siae.user.feign.dto.BatchUrlRequest;
-import com.hngy.siae.user.feign.dto.BatchUrlResponse;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
+import com.hngy.siae.user.mapper.MemberDepartmentMapper;
+import com.hngy.siae.user.mapper.MemberPositionMapper;
 import com.hngy.siae.user.mapper.MembershipMapper;
 import com.hngy.siae.user.service.MembershipService;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,27 +51,130 @@ public class MembershipServiceImpl
         implements MembershipService {
 
     private final MembershipMapper membershipMapper;
+    private final MemberDepartmentMapper memberDepartmentMapper;
+    private final MemberPositionMapper memberPositionMapper;
     private final MediaFeignClient mediaFeignClient;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createCandidate(MembershipCreateDTO createDTO) {
-        log.info("创建候选成员，用户ID: {}", createDTO.getUserId());
+        log.info("创建候选成员，用户ID: {}, 部门ID: {}, 职位ID: {}", 
+                createDTO.getUserId(), createDTO.getDepartmentId(), createDTO.getPositionId());
 
-        // 检查用户是否已经是成员
+        // 检查用户是否已经是成员（包含已删除的记录）
         Membership existing = membershipMapper.selectByUserId(createDTO.getUserId());
-        AssertUtils.isNull(existing, UserResultCodeEnum.MEMBERSHIP_ALREADY_EXISTS);
+        
+        Membership membership;
+        if (existing != null) {
+            // 如果记录存在且未删除，则不允许重复申请
+            AssertUtils.isTrue(existing.getIsDeleted() == 1, UserResultCodeEnum.MEMBERSHIP_ALREADY_EXISTS);
+            
+            // 如果是已删除的记录，恢复并更新
+            membership = existing;
+            membership.setIsDeleted(0);
+            membership.setHeadshotFileId(createDTO.getHeadshotFileId());
+            membership.setLifecycleStatus(LifecycleStatusEnum.PENDING);
+            membership.setJoinDate(null); // 待审核状态暂无加入日期
+            updateById(membership);
+            log.info("恢复已删除的成员记录，成员ID: {}", membership.getId());
+        } else {
+            // 创建新的待审核成员
+            membership = new Membership();
+            membership.setUserId(createDTO.getUserId());
+            membership.setHeadshotFileId(createDTO.getHeadshotFileId());
+            membership.setLifecycleStatus(LifecycleStatusEnum.PENDING);
+            membership.setJoinDate(null); // 待审核状态暂无加入日期
+            save(membership);
+        }
 
-        // 创建候选成员
-        Membership membership = new Membership();
-        membership.setUserId(createDTO.getUserId());
-        membership.setHeadshotFileId(createDTO.getHeadshotFileId());
-        membership.setLifecycleStatus(LifecycleStatusEnum.CANDIDATE);
-        membership.setJoinDate(null); // 候选成员暂无加入日期
+        // 检查部门关联是否已存在
+        MemberDepartment existingDept = memberDepartmentMapper.selectOne(
+                new LambdaQueryWrapper<MemberDepartment>()
+                        .eq(MemberDepartment::getMembershipId, membership.getId())
+                        .eq(MemberDepartment::getDepartmentId, createDTO.getDepartmentId())
+        );
+        
+        if (existingDept == null) {
+            // 创建部门关联
+            MemberDepartment memberDepartment = new MemberDepartment();
+            memberDepartment.setMembershipId(membership.getId());
+            memberDepartment.setDepartmentId(createDTO.getDepartmentId());
+            memberDepartment.setJoinDate(LocalDate.now());
+            memberDepartment.setHasPosition(1); // 有职位
+            memberDepartmentMapper.insert(memberDepartment);
+        } else {
+            // 更新部门关联
+            existingDept.setJoinDate(LocalDate.now());
+            existingDept.setHasPosition(1);
+            memberDepartmentMapper.updateById(existingDept);
+        }
 
-        save(membership);
-        log.info("候选成员创建成功，成员ID: {}", membership.getId());
+        // 检查职位关联是否已存在
+        MemberPosition existingPos = memberPositionMapper.selectOne(
+                new LambdaQueryWrapper<MemberPosition>()
+                        .eq(MemberPosition::getMembershipId, membership.getId())
+                        .eq(MemberPosition::getPositionId, createDTO.getPositionId())
+                        .isNull(MemberPosition::getEndDate) // 只检查未结束的职位
+        );
+        
+        if (existingPos == null) {
+            // 创建职位关联
+            MemberPosition memberPosition = new MemberPosition();
+            memberPosition.setMembershipId(membership.getId());
+            memberPosition.setPositionId(createDTO.getPositionId());
+            memberPosition.setDepartmentId(createDTO.getDepartmentId());
+            memberPosition.setStartDate(LocalDate.now());
+            memberPositionMapper.insert(memberPosition);
+        } else {
+            // 更新职位关联
+            existingPos.setDepartmentId(createDTO.getDepartmentId());
+            existingPos.setStartDate(LocalDate.now());
+            memberPositionMapper.updateById(existingPos);
+        }
+
+        log.info("成员申请创建成功（待审核），成员ID: {}", membership.getId());
         return membership.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean approveCandidate(Long id) {
+        log.info("审核通过，成员ID: {}", id);
+
+        Membership membership = getById(id);
+        AssertUtils.notNull(membership, UserResultCodeEnum.MEMBERSHIP_NOT_FOUND);
+        AssertUtils.isTrue(LifecycleStatusEnum.isPending(membership.getLifecycleStatus().getCode()),
+                UserResultCodeEnum.MEMBERSHIP_STATUS_INVALID);
+
+        // 更新为候选成员
+        membership.setLifecycleStatus(LifecycleStatusEnum.CANDIDATE);
+        membership.setJoinDate(LocalDate.now());
+
+        boolean success = updateById(membership);
+        if (success) {
+            log.info("审核通过成功，成员ID: {}", id);
+        }
+        return success;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean rejectCandidate(Long id) {
+        log.info("审核拒绝，成员ID: {}", id);
+
+        Membership membership = getById(id);
+        AssertUtils.notNull(membership, UserResultCodeEnum.MEMBERSHIP_NOT_FOUND);
+        AssertUtils.isTrue(LifecycleStatusEnum.isPending(membership.getLifecycleStatus().getCode()),
+                UserResultCodeEnum.MEMBERSHIP_STATUS_INVALID);
+
+        // 更新为已拒绝
+        membership.setLifecycleStatus(LifecycleStatusEnum.REJECTED);
+
+        boolean success = updateById(membership);
+        if (success) {
+            log.info("审核拒绝成功，成员ID: {}", id);
+        }
+        return success;
     }
 
     @Override
@@ -118,25 +225,32 @@ public class MembershipServiceImpl
     }
 
     @Override
-    public MembershipVO getMembershipById(Long id) {
-        Membership membership = getById(id);
-        MembershipVO membershipVO = BeanConvertUtil.to(membership, MembershipVO.class);
-        
-        // 填充大头照URL
-        enrichMembershipWithHeadshotUrl(membershipVO);
-        
-        return membershipVO;
+    public MembershipDetailVO getMembershipById(Long id) {
+        // 复用getMembershipDetailById的逻辑，返回完整的成员详情
+        return getMembershipDetailById(id);
     }
 
     @Override
-    public MembershipVO getMembershipByUserId(Long userId) {
-        Membership membership = membershipMapper.selectByUserId(userId);
-        MembershipVO membershipVO = BeanConvertUtil.to(membership, MembershipVO.class);
+    public MembershipDetailVO getMembershipByUserId(Long userId) {
+        log.info("根据用户ID查询成员详情，用户ID: {}", userId);
         
-        // 填充大头照URL
-        enrichMembershipWithHeadshotUrl(membershipVO);
+        // 查询成员基本信息
+        MembershipDetailVO detail = membershipMapper.selectMembershipDetailByUserId(userId);
+        AssertUtils.notNull(detail, UserResultCodeEnum.MEMBERSHIP_NOT_FOUND);
         
-        return membershipVO;
+        // 查询部门列表
+        detail.setDepartments(membershipMapper.selectDepartmentsByMembershipId(detail.getId()));
+        
+        // 查询职位列表
+        detail.setPositions(membershipMapper.selectPositionsByMembershipId(detail.getId()));
+        
+        // 查询荣誉成就列表
+        detail.setAwards(membershipMapper.selectAwardsByUserId(userId));
+        
+        // 填充头像和大头照URL
+        enrichMembershipDetailWithMediaUrls(detail);
+        
+        return detail;
     }
 
     @Override
@@ -164,6 +278,18 @@ public class MembershipServiceImpl
 
     @Override
     public PageVO<MembershipVO> pageMemberships(PageDTO<MembershipQueryDTO> pageDTO) {
+        // 确保查询参数不为空
+        MembershipQueryDTO query = pageDTO.getParams();
+        if (query == null) {
+            query = new MembershipQueryDTO();
+            pageDTO.setParams(query);
+        }
+        
+        // 默认排除待审核成员（PENDING=0），除非显式指定了lifecycleStatus
+        if (query.getLifecycleStatus() == null) {
+            query.setExcludePending(true);
+        }
+        
         Page<Membership> page = PageConvertUtil.toPage(pageDTO);
         Page<Membership> resultPage = membershipMapper.selectMembershipPage(page, pageDTO.getParams());
         PageVO<MembershipVO> pageVO = PageConvertUtil.convert(resultPage, MembershipVO.class);
@@ -205,9 +331,9 @@ public class MembershipServiceImpl
         }
 
         try {
-            Result<String> result = mediaFeignClient.getFileUrl(membershipVO.getHeadshotFileId(), 86400);
-            if (result != null && result.getCode() == 200 && result.getData() != null) {
-                membershipVO.setHeadshotUrl(result.getData());
+            String url = mediaFeignClient.getFileUrl(membershipVO.getHeadshotFileId(), 86400);
+            if (url != null) {
+                membershipVO.setHeadshotUrl(url);
             }
         } catch (Exception e) {
             log.warn("Failed to get headshot URL for membership: {}, error: {}", 
@@ -293,17 +419,16 @@ public class MembershipServiceImpl
         }
 
         try {
-            BatchUrlRequest request = BatchUrlRequest.builder()
-                    .fileIds(fileIds)
-                    .expirySeconds(86400) // 24小时
-                    .build();
+            BatchUrlDTO request = new BatchUrlDTO();
+            request.setFileIds(fileIds);
+            request.setExpirySeconds(86400); // 24小时
 
-            Result<BatchUrlResponse> result = mediaFeignClient.batchGetFileUrls(request);
+            BatchUrlVO result = mediaFeignClient.batchGetFileUrls(request);
             
-            if (result != null && result.getCode() == 200 && result.getData() != null) {
-                return result.getData().getUrls();
+            if (result != null && result.getUrls() != null) {
+                return result.getUrls();
             } else {
-                log.warn("Media service returned unsuccessful result: {}", result);
+                log.warn("Media service returned empty result");
                 return Collections.emptyMap();
             }
         } catch (Exception e) {

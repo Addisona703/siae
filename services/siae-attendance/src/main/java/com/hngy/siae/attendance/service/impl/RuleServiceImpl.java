@@ -48,12 +48,6 @@ public class RuleServiceImpl implements IRuleService {
         // 创建规则实体
         AttendanceRule rule = BeanConvertUtil.to(dto, AttendanceRule.class);
         
-        // 解析允许的位置列表（如果有）
-        if (dto.getAllowedLocations() != null && !dto.getAllowedLocations().isEmpty()) {
-            List<AttendanceRule.Location> locations = JSONUtil.toList(dto.getAllowedLocations(), AttendanceRule.Location.class);
-            rule.setAllowedLocations(locations);
-        }
-        
         // 设置默认值
         if (rule.getStatus() == null) {
             rule.setStatus(RuleStatus.ENABLED);
@@ -93,12 +87,6 @@ public class RuleServiceImpl implements IRuleService {
         // 查询规则是否存在
         AttendanceRule rule = attendanceRuleMapper.selectById(id);
         AssertUtils.notNull(rule, AttendanceResultCodeEnum.RULE_NOT_FOUND);
-
-        // 处理允许的位置列表（如果有）
-        if (dto.getAllowedLocations() != null && !dto.getAllowedLocations().isEmpty()) {
-            List<AttendanceRule.Location> locations = JSONUtil.toList(dto.getAllowedLocations(), AttendanceRule.Location.class);
-            dto.setAllowedLocations(JSONUtil.toJsonStr(locations));
-        }
 
         // 使用 XML 动态 SQL 更新（只更新非空字段）
         attendanceRuleMapper.updateRuleSelective(id, dto);

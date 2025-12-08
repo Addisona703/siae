@@ -22,6 +22,10 @@ public enum ContentResultCodeEnum implements IResultCode {
     AUDIT_TARGET_ID_NULL(30008, "目标对象ID不能为空"),
     AUDIT_TARGET_TYPE_NULL(30009, "目标对象类型不能为空"),
     AUDIT_VIEW_NO_PERMISSION(30010, "无权查看审核信息，非管理员只能查看自己的审核记录"),
+    AUDIT_LOG_INSERT_FAILED(30011, "审核历史记录插入失败"),
+    AUDIT_HANDLER_NOT_FOUND(30012, "未找到对应类型的审核处理器"),
+    AUDIT_LOG_NOT_FOUND(30013, "审核历史记录不存在"),
+    AUDIT_LOG_QUERY_FAILED(30014, "查询审核历史记录失败"),
 
     // ========== 内容相关 30100-30199 ==========
     CONTENT_NOT_FOUND(30100, "内容不存在"),
@@ -35,6 +39,10 @@ public enum ContentResultCodeEnum implements IResultCode {
     CONTENT_TRASH_FAILED(30108, "放入回收站操作失败"),
     CONTENT_PERMANENT_DELETE_FAILED(30109, "永久删除操作失败"),
     CONTENT_DELETE_PERMISSION_DENIED(30110, "无权删除该内容，只能删除自己创建的内容"),
+    CONTENT_STATUS_INVALID(30111, "状态无效，创建内容时只能选择草稿(DRAFT)或发布(PUBLISHED)"),
+    CONTENT_NOT_IN_TRASH(30112, "内容不在回收站中"),
+    CONTENT_RESTORE_FAILED(30113, "恢复内容失败"),
+    CONTENT_NOT_PUBLISHED(30114, "内容未发布，无法进行此操作"),
 
     // ========== 评论相关 30200-30299 ==========
     COMMENT_NOT_FOUND(30200, "评论不存在"),

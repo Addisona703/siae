@@ -30,6 +30,11 @@
             <artifactId>siae-security-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
 
         <!-- Spring Boot Web Starter 由 siae-web-starter 提供 -->
@@ -46,10 +51,15 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
-        <!-- OpenFeign (由siae-web-starter提供，但需要显式声明以确保可用) -->
+        <!-- OpenFeign (由siae-feign-starter提供) -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-feign-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -98,6 +108,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-media</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>siae-messaging-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

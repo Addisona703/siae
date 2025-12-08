@@ -95,7 +95,7 @@ public class StatisticsServiceImpl implements IStatisticsService {
         List<LeaveRequest> leaves = leaveRequestMapper.selectList(
             new LambdaQueryWrapper<LeaveRequest>()
                 .eq(LeaveRequest::getUserId, userId)
-                .eq(LeaveRequest::getStatus, LeaveStatus.APPROVED.getValue())
+                .eq(LeaveRequest::getStatus, LeaveStatus.APPROVED.getCode())
                 .le(LeaveRequest::getStartDate, endDate)
                 .ge(LeaveRequest::getEndDate, startDate)
                 .eq(LeaveRequest::getDeleted, 0)
@@ -281,7 +281,7 @@ public class StatisticsServiceImpl implements IStatisticsService {
         List<LeaveRequest> leaves = leaveRequestMapper.selectList(
             new LambdaQueryWrapper<LeaveRequest>()
                 .eq(LeaveRequest::getUserId, userId)
-                .eq(LeaveRequest::getStatus, LeaveStatus.APPROVED.getValue())
+                .eq(LeaveRequest::getStatus, LeaveStatus.APPROVED.getCode())
                 .le(LeaveRequest::getStartDate, endDate)
                 .ge(LeaveRequest::getEndDate, startDate)
                 .eq(LeaveRequest::getDeleted, 0)

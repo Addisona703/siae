@@ -10,9 +10,10 @@ import lombok.Data;
 
 /**
  * 内容行为表
- * @TableName content_user_action
+ * @TableName user_action
  */
 @Data
+@TableName("user_action")
 public class UserAction {
     /**
      * 主键

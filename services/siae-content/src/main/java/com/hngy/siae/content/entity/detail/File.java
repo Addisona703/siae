@@ -6,10 +6,14 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 /**
- * 文件详情表
- * @TableName content_file
+ * 文件详情表（精简版）
+ * 移除了 fileName、fileSize、fileType 字段，这些信息通过 Media 服务获取
+ * 
+ * @TableName file
+ * @see com.hngy.siae.api.media.client.MediaFeignClient
  */
 @Data
+@TableName("file")
 public class File {
     /**
      * 主键，自增
@@ -23,27 +27,13 @@ public class File {
     private Long contentId;
 
     /**
-     * 文件名称
+     * 文件ID（UUID字符串），关联 media 服务
+     * 通过此 ID 调用 MediaFeignClient 获取文件元数据（文件名、大小、类型等）
      */
-    private String fileName;
+    private String fileId;
 
     /**
-     * 文件存储路径
-     */
-    private String filePath;
-
-    /**
-     * 文件大小，单位：字节
-     */
-    private Long fileSize;
-
-    /**
-     * 文件MIME类型
-     */
-    private String fileType;
-
-    /**
-     * 下载次数
+     * 下载次数（业务统计）
      */
     private Integer downloadCount = 0;
 

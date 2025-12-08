@@ -15,7 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.AttendancePermissions.Anomaly;
+import static com.hngy.siae.attendance.permissions.AttendancePermissions.Anomaly;
 
 /**
  * 考勤异常控制器

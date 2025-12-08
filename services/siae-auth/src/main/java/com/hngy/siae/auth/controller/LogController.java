@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.AuthPermissions.*;
+import static com.hngy.siae.auth.permissions.AuthPermissions.*;
 
 /**
  * 日志控制器
@@ -59,27 +59,6 @@ public class LogController {
             @Parameter(description = "分页查询参数，params.username支持模糊查询，params.status筛选状态（1成功/0失败/不传全部）")
             @Valid @RequestBody PageDTO<LoginQueryDTO> pageDTO) {
         PageVO<LoginLogVO> pageResult = logService.getLoginLogs(pageDTO);
-        return Result.success(pageResult);
-    }
-
-    /**
-     * 获取登录失败日志
-     * <p>
-     * 专门用于查询登录失败记录，用于安全审计
-     *
-     * @param pageDTO 分页查询参数
-     * @return 登录失败日志分页结果
-     */
-    @Operation(
-            summary = "获取登录失败日志",
-            description = "分页查询登录失败记录，用于安全审计和风险分析"
-    )
-    @PostMapping("/login/fail")
-    @SiaeAuthorize("hasAuthority('" + AUTH_LOG_QUERY + "')")
-    public Result<PageVO<LoginFailVO>> getLoginFailLogs(
-            @Parameter(description = "分页查询参数，params.username支持模糊查询")
-            @Valid @RequestBody PageDTO<LoginQueryDTO> pageDTO) {
-        PageVO<LoginFailVO> pageResult = logService.getLoginFailLogs(pageDTO);
         return Result.success(pageResult);
     }
 

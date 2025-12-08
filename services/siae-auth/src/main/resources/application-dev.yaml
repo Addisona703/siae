@@ -12,14 +12,6 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
   
-  # 禁用 Nacos
-  cloud:
-    nacos:
-      discovery:
-        enabled: true
-      config:
-        enabled: false
-  
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -60,6 +52,13 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+
 # MyBatis Plus 配置
 mybatis-plus:
   configuration:
@@ -96,6 +95,24 @@ siae:
     enabled: true  # 必须启用，否则缺少 PasswordEncoder Bean
     jwt:
       enabled: true
+    # 白名单路径（相对于context-path，不需要/api/v1/auth前缀）
+    whitelist-paths:
+      - /login
+      - /register
+      - /refresh-token
+      - /validate-token
+      - /logout
+      - /oauth/**
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /favicon.ico
+      - /error
+      - /login.html
+      - /static/**
+      - /*.html
+      - /*.css
+      - /*.js
   
   # OAuth 第三方登录配置（本地开发）
   oauth:

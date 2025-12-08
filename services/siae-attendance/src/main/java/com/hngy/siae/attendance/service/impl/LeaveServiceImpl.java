@@ -22,14 +22,14 @@ import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.security.utils.SecurityUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -99,16 +99,16 @@ public class LeaveServiceImpl implements ILeaveService {
     /**
      * 验证日期范围
      * 
-     * Requirement 5.2, 5.4: 结束日期必须晚于或等于开始日期
+     * Requirement 5.2, 5.4: 结束时间必须晚于或等于开始时间
      *
-     * @param startDate 开始日期
-     * @param endDate 结束日期
+     * @param startDate 开始时间
+     * @param endDate 结束时间
      */
-    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
+    private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         AssertUtils.notNull(startDate, AttendanceResultCodeEnum.LEAVE_DATE_INVALID);
         AssertUtils.notNull(endDate, AttendanceResultCodeEnum.LEAVE_DATE_INVALID);
         
-        // 结束日期必须晚于或等于开始日期
+        // 结束时间必须晚于或等于开始时间
         boolean isValidRange = !endDate.isBefore(startDate);
         AssertUtils.isTrue(isValidRange, AttendanceResultCodeEnum.LEAVE_DATE_INVALID);
         
@@ -121,10 +121,10 @@ public class LeaveServiceImpl implements ILeaveService {
      * Requirement 5.3: 检查是否与已批准的请假冲突
      *
      * @param userId 用户ID
-     * @param startDate 开始日期
-     * @param endDate 结束日期
+     * @param startDate 开始时间
+     * @param endDate 结束时间
      */
-    private void checkLeaveConflict(Long userId, LocalDate startDate, LocalDate endDate) {
+    private void checkLeaveConflict(Long userId, LocalDateTime startDate, LocalDateTime endDate) {
         // 查询该用户所有已批准的请假申请
         LambdaQueryWrapper<LeaveRequest> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(LeaveRequest::getUserId, userId)
@@ -151,38 +151,34 @@ public class LeaveServiceImpl implements ILeaveService {
     }
 
     /**
-     * 判断两个日期范围是否重叠
+     * 判断两个日期时间范围是否重叠
      *
-     * @param start1 范围1开始日期
-     * @param end1 范围1结束日期
-     * @param start2 范围2开始日期
-     * @param end2 范围2结束日期
+     * @param start1 范围1开始时间
+     * @param end1 范围1结束时间
+     * @param start2 范围2开始时间
+     * @param end2 范围2结束时间
      * @return 是否重叠
      */
-    private boolean isDateRangeOverlap(LocalDate start1, LocalDate end1, 
-                                      LocalDate start2, LocalDate end2) {
-        // 两个日期范围重叠的条件：
+    private boolean isDateRangeOverlap(LocalDateTime start1, LocalDateTime end1, 
+                                      LocalDateTime start2, LocalDateTime end2) {
+        // 两个时间范围重叠的条件：
         // start1 <= end2 && start2 <= end1
         return !start1.isAfter(end2) && !start2.isAfter(end1);
     }
 
     /**
-     * 计算请假天数
+     * 计算请假天数（按小时计算，精确到小数）
      * 
-     * 包含开始日期和结束日期，例如：
-     * - 2024-01-01 到 2024-01-01 = 1天
-     * - 2024-01-01 到 2024-01-03 = 3天
-     *
-     * @param startDate 开始日期
-     * @param endDate 结束日期
-     * @return 请假天数
+     * @param startDate 开始时间
+     * @param endDate 结束时间
+     * @return 请假天数（小时数/24）
      */
-    private BigDecimal calculateLeaveDays(LocalDate startDate, LocalDate endDate) {
-        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
-        // 加1是因为包含开始和结束日期
-        BigDecimal days = BigDecimal.valueOf(daysBetween + 1);
+    private BigDecimal calculateLeaveDays(LocalDateTime startDate, LocalDateTime endDate) {
+        long hours = ChronoUnit.HOURS.between(startDate, endDate);
+        // 转换为天数，保留一位小数
+        BigDecimal days = BigDecimal.valueOf(hours).divide(BigDecimal.valueOf(24), 1, BigDecimal.ROUND_HALF_UP);
         
-        log.debug("计算请假天数: startDate={}, endDate={}, days={}", startDate, endDate, days);
+        log.debug("计算请假天数: startDate={}, endDate={}, hours={}, days={}", startDate, endDate, hours, days);
         return days;
     }
 
@@ -586,7 +582,7 @@ public class LeaveServiceImpl implements ILeaveService {
      * @return 分页结果
      */
     @Override
-    public PageVO<LeaveRequestVO> getMyLeaves(Long userId, LocalDate startDate, LocalDate endDate,
+    public PageVO<LeaveRequestVO> getMyLeaves(Long userId, LocalDateTime startDate, LocalDateTime endDate,
                                                LeaveStatus status, Integer pageNum, Integer pageSize) {
         log.info("查询个人请假历史: userId={}, startDate={}, endDate={}, status={}, pageNum={}, pageSize={}",
                 userId, startDate, endDate, status, pageNum, pageSize);
@@ -653,8 +649,8 @@ public class LeaveServiceImpl implements ILeaveService {
         }
 
         Long userId = leaveRequest.getUserId();
-        LocalDate startDate = leaveRequest.getStartDate();
-        LocalDate endDate = leaveRequest.getEndDate();
+        LocalDateTime startDate = leaveRequest.getStartDate();
+        LocalDateTime endDate = leaveRequest.getEndDate();
 
         log.info("处理已批准的请假: userId={}, startDate={}, endDate={}", userId, startDate, endDate);
 
@@ -683,15 +679,15 @@ public class LeaveServiceImpl implements ILeaveService {
      * @param endDate 结束日期
      * @param leaveRequestId 请假申请ID
      */
-    private void markExcusedAbsence(Long userId, LocalDate startDate, LocalDate endDate, Long leaveRequestId) {
+    private void markExcusedAbsence(Long userId, LocalDateTime startDate, LocalDateTime endDate, Long leaveRequestId) {
         log.debug("标记准假: userId={}, startDate={}, endDate={}, leaveRequestId={}", 
                 userId, startDate, endDate, leaveRequestId);
 
         // 查询请假期间内的所有考勤记录
         LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AttendanceRecord::getUserId, userId)
-                .ge(AttendanceRecord::getAttendanceDate, startDate)
-                .le(AttendanceRecord::getAttendanceDate, endDate);
+                .ge(AttendanceRecord::getAttendanceDate, startDate.toLocalDate())
+                .le(AttendanceRecord::getAttendanceDate, endDate.toLocalDate());
 
         List<AttendanceRecord> records = attendanceRecordMapper.selectList(queryWrapper);
 
@@ -729,7 +725,7 @@ public class LeaveServiceImpl implements ILeaveService {
      * @param endDate 结束日期
      * @param leaveRequestId 请假申请ID
      */
-    private void suppressAbsenceAnomalies(Long userId, LocalDate startDate, LocalDate endDate, Long leaveRequestId) {
+    private void suppressAbsenceAnomalies(Long userId, LocalDateTime startDate, LocalDateTime endDate, Long leaveRequestId) {
         log.debug("抑制缺勤异常: userId={}, startDate={}, endDate={}, leaveRequestId={}", 
                 userId, startDate, endDate, leaveRequestId);
 
@@ -737,8 +733,8 @@ public class LeaveServiceImpl implements ILeaveService {
         LambdaQueryWrapper<AttendanceAnomaly> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AttendanceAnomaly::getUserId, userId)
                 .eq(AttendanceAnomaly::getAnomalyType, AnomalyType.ABSENCE)
-                .ge(AttendanceAnomaly::getAnomalyDate, startDate)
-                .le(AttendanceAnomaly::getAnomalyDate, endDate)
+                .ge(AttendanceAnomaly::getAnomalyDate, startDate.toLocalDate())
+                .le(AttendanceAnomaly::getAnomalyDate, endDate.toLocalDate())
                 .isNull(AttendanceAnomaly::getSuppressedByLeave); // 只处理未被抑制的异常
 
         List<AttendanceAnomaly> anomalies = attendanceAnomalyMapper.selectList(queryWrapper);
@@ -814,8 +810,8 @@ public class LeaveServiceImpl implements ILeaveService {
     public com.hngy.siae.core.dto.PageVO<LeaveRequestVO> getMyLeaves(com.hngy.siae.core.dto.PageDTO<LeaveQueryDTO> pageDTO) {
         Long currentUserId = securityUtil.getCurrentUserId();
         LeaveQueryDTO params = pageDTO.getParams();
-        LocalDate startDate = params != null ? params.getStartDate() : null;
-        LocalDate endDate = params != null ? params.getEndDate() : null;
+        LocalDateTime startDate = params != null ? params.getStartDate() : null;
+        LocalDateTime endDate = params != null ? params.getEndDate() : null;
         LeaveStatus status = params != null ? params.getStatus() : null;
         return getMyLeaves(currentUserId, startDate, endDate, status, pageDTO.getPageNum(), pageDTO.getPageSize());
     }

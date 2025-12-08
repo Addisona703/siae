@@ -4,17 +4,21 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
+import com.hngy.siae.api.user.dto.response.UserFaceAuthVO;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.result.UserResultCodeEnum;
 import com.hngy.siae.core.utils.BeanConvertUtil;
-import com.hngy.siae.web.utils.PageConvertUtil;
+import com.hngy.siae.user.dto.response.user.UserBasicInfoVO;
+import com.hngy.siae.core.utils.PageConvertUtil;
 import com.hngy.siae.user.dto.request.UserCreateDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
-import com.hngy.siae.user.dto.response.UserAuthVO;
 import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
 import com.hngy.siae.user.entity.MajorClassEnrollment;
@@ -22,10 +26,11 @@ import com.hngy.siae.user.entity.User;
 import com.hngy.siae.user.entity.UserProfile;
 import com.hngy.siae.user.enums.ClassUserStatusEnum;
 import com.hngy.siae.user.enums.MemberTypeEnum;
-import com.hngy.siae.user.feign.MediaFeignClient;
-import com.hngy.siae.user.feign.dto.BatchUrlRequest;
-import com.hngy.siae.user.feign.dto.BatchUrlResponse;
+import com.hngy.siae.user.enums.UserStatusEnum;
+import com.hngy.siae.user.entity.Membership;
 import com.hngy.siae.user.mapper.MajorClassEnrollmentMapper;
+import com.hngy.siae.user.mapper.MajorMapper;
+import com.hngy.siae.user.mapper.MembershipMapper;
 import com.hngy.siae.user.mapper.UserMapper;
 import com.hngy.siae.user.mapper.UserProfileMapper;
 import com.hngy.siae.user.service.UserService;
@@ -39,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,6 +64,8 @@ public class UserServiceImpl
 
     private final UserProfileMapper userProfileMapper;
     private final MajorClassEnrollmentMapper majorClassEnrollmentMapper;
+    private final MajorMapper majorMapper;
+    private final MembershipMapper membershipMapper;
     private final MediaFeignClient mediaFeignClient;
 
     /**
@@ -91,7 +97,11 @@ public class UserServiceImpl
 
         // 创建用户基本信息
         User user = BeanConvertUtil.to(userCreateDTO, User.class);
-        user.setStatus(userCreateDTO.getStatus() != null ? userCreateDTO.getStatus() : 1);
+        // 空字符串转null，避免唯一索引冲突
+        if (StrUtil.isBlank(user.getStudentId())) {
+            user.setStudentId(null);
+        }
+        user.setStatus(userCreateDTO.getStatus() != null ? userCreateDTO.getStatus() : UserStatusEnum.ENABLED);
         user.setIsDeleted(0);
         save(user);
 
@@ -107,6 +117,10 @@ public class UserServiceImpl
         if (userCreateDTO.getMajorId() != null 
                 && userCreateDTO.getEntryYear() != null 
                 && userCreateDTO.getClassNo() != null) {
+            
+            // 校验专业是否存在
+            AssertUtils.notNull(majorMapper.selectById(userCreateDTO.getMajorId()), 
+                    UserResultCodeEnum.MAJOR_NOT_FOUND);
             
             MajorClassEnrollment enrollment = BeanConvertUtil.to(userCreateDTO, MajorClassEnrollment.class);
             enrollment.setUserId(user.getId());
@@ -178,14 +192,18 @@ public class UserServiceImpl
                 && userDTO.getEntryYear() != null 
                 && userDTO.getClassNo() != null) {
             
+            // 校验专业是否存在
+            AssertUtils.notNull(majorMapper.selectById(userDTO.getMajorId()), 
+                    UserResultCodeEnum.MAJOR_NOT_FOUND);
+            
             LambdaQueryWrapper<MajorClassEnrollment> enrollmentWrapper = new LambdaQueryWrapper<>();
             enrollmentWrapper.eq(MajorClassEnrollment::getUserId, userDTO.getId())
                     .eq(MajorClassEnrollment::getIsDeleted, 0);
             MajorClassEnrollment enrollment = majorClassEnrollmentMapper.selectOne(enrollmentWrapper);
 
             if (enrollment != null) {
-                // 更新已存在的班级关联
-                BeanConvertUtil.to(userDTO, enrollment, "id", "userId", "isDeleted", "createdAt");
+                // 更新已存在的班级关联（排除status，因为用户status和班级status类型不同）
+                BeanConvertUtil.to(userDTO, enrollment, "id", "userId", "status", "isDeleted", "createdAt");
                 majorClassEnrollmentMapper.updateById(enrollment);
             } else {
                 // 如果班级关联不存在，则创建
@@ -285,12 +303,12 @@ public class UserServiceImpl
      * @return 用户认证信息（包含密码），如果不存在则返回null
      */
     @Override
-    public UserAuthVO getUserAuthByUsername(String username) {
+    public UserBasicInfoVO getUserAuthByUsername(String username) {
         User user = lambdaQuery()
                 .eq(User::getUsername, username)
                 .eq(User::getIsDeleted, 0)
                 .one();
-        return BeanConvertUtil.to(user, UserAuthVO.class);
+        return BeanConvertUtil.to(user, UserBasicInfoVO.class);
     }
 
     /**
@@ -302,18 +320,14 @@ public class UserServiceImpl
     @Override
     public PageVO<UserVO> listUsersByPage(PageDTO<UserQueryDTO> pageDTO) {
         // 获取查询参数
-        UserQueryDTO params = pageDTO.getParams() != null ? pageDTO.getParams() : new UserQueryDTO();
+        UserQueryDTO params = pageDTO.getParams();
+        if (params == null) {
+            params = new UserQueryDTO();
+        }
 
         // 使用 XML 方式进行联表分页查询
         Page<UserVO> page = PageConvertUtil.toPage(pageDTO);
-        IPage<UserVO> resultPage = baseMapper.selectUsersByPage(
-                page, 
-                params.getUsername(), 
-                params.getStudentId(), 
-                params.getRealName(), 
-                params.getEmail(), 
-                params.getStatus()
-        );
+        IPage<UserVO> resultPage = baseMapper.selectUsersByPage(page, params);
         
         PageVO<UserVO> pageVO = PageConvertUtil.convert(resultPage, UserVO.class);
         
@@ -325,18 +339,27 @@ public class UserServiceImpl
 
     /**
      * 根据ID删除用户（逻辑删除）
+     * <p>
+     * 同时标记删除该用户的成员记录（如果存在）
      *
      * @param id 用户ID
      * @return 删除结果，true表示删除成功，false表示删除失败
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteUser(Long id) {
         User user = getById(id);
         AssertUtils.notNull(user, UserResultCodeEnum.USER_NOT_FOUND);
 
-        // 逻辑删除用户
-        user.setIsDeleted(1);
-        return updateById(user);
+        // 标记删除用户的成员记录（如果存在）
+        Membership membership = membershipMapper.selectByUserId(id);
+        if (membership != null) {
+            membershipMapper.deleteById(membership.getId());
+            log.info("用户 {} 的成员记录已标记删除", id);
+        }
+
+        // 使用 removeById 触发 MyBatis-Plus 的逻辑删除
+        return removeById(id);
     }
 
     /**
@@ -351,6 +374,17 @@ public class UserServiceImpl
     public void assertUserExists(Long userId) {
         boolean exists = lambdaQuery().eq(User::getId, userId).exists();
         AssertUtils.isTrue(exists, UserResultCodeEnum.USER_NOT_FOUND);
+    }
+
+    @Override
+    public boolean isUserIdExists(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        return lambdaQuery()
+                .eq(User::getId, userId)
+                .eq(User::getIsDeleted, 0)
+                .exists();
     }
 
     @Override
@@ -441,9 +475,9 @@ public class UserServiceImpl
 
         try {
             // 单个用户查询使用单个接口更简洁
-            Result<String> result = mediaFeignClient.getFileUrl(userVO.getAvatarFileId(), 86400);
-            if (result != null && result.getCode() == 200 && result.getData() != null) {
-                userVO.setAvatarUrl(result.getData());
+            String url = mediaFeignClient.getFileUrl(userVO.getAvatarFileId(), 86400);
+            if (url != null) {
+                userVO.setAvatarUrl(url);
             }
         } catch (Exception e) {
             log.warn("Failed to get avatar URL for user: {}, error: {}", userVO.getId(), e.getMessage());
@@ -528,17 +562,16 @@ public class UserServiceImpl
         }
 
         try {
-            BatchUrlRequest request = BatchUrlRequest.builder()
-                    .fileIds(fileIds)
-                    .expirySeconds(86400) // 24小时
-                    .build();
+            BatchUrlDTO request = new BatchUrlDTO();
+            request.setFileIds(fileIds);
+            request.setExpirySeconds(86400); // 24小时
 
-            Result<BatchUrlResponse> result = mediaFeignClient.batchGetFileUrls(request);
+            BatchUrlVO result = mediaFeignClient.batchGetFileUrls(request);
             
-            if (result != null && result.getCode() == 200 && result.getData() != null) {
-                return result.getData().getUrls();
+            if (result != null && result.getUrls() != null) {
+                return result.getUrls();
             } else {
-                log.warn("Media service returned unsuccessful result: {}", result);
+                log.warn("Media service returned empty result");
                 return Collections.emptyMap();
             }
         } catch (Exception e) {
@@ -548,7 +581,7 @@ public class UserServiceImpl
     }
 
     @Override
-    public Map<Long, com.hngy.siae.user.dto.response.UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds) {
+    public Map<Long, UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -573,19 +606,72 @@ public class UserServiceImpl
         Map<Long, UserProfile> profileMap = profiles.stream()
                 .collect(Collectors.toMap(UserProfile::getUserId, p -> p));
 
+        // 收集所有头像文件ID，批量查询URL
+        List<String> avatarFileIds = users.stream()
+                .map(User::getAvatarFileId)
+                .filter(StrUtil::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<String, String> avatarUrlMap = Collections.emptyMap();
+        if (!avatarFileIds.isEmpty()) {
+            try {
+                avatarUrlMap = batchGetMediaUrls(avatarFileIds);
+            } catch (Exception e) {
+                log.warn("Failed to batch get avatar URLs", e);
+            }
+        }
+
         // 组装结果
+        Map<String, String> finalAvatarUrlMap = avatarUrlMap;
         return users.stream()
                 .collect(Collectors.toMap(
                         User::getId,
                         user -> {
                             UserProfile profile = profileMap.get(user.getId());
-                            return com.hngy.siae.user.dto.response.UserProfileSimpleVO.builder()
+                            String avatarUrl = null;
+                            if (StrUtil.isNotBlank(user.getAvatarFileId())) {
+                                avatarUrl = finalAvatarUrlMap.get(user.getAvatarFileId());
+                            }
+                            return UserProfileSimpleVO.builder()
                                     .userId(user.getId())
                                     .username(user.getUsername())
                                     .nickname(profile != null ? profile.getNickname() : null)
                                     .avatarFileId(user.getAvatarFileId())
+                                    .avatarUrl(avatarUrl)
                                     .build();
                         }
                 ));
+    }
+
+    @Override
+    public List<Long> getAllUserIds() {
+        return this.lambdaQuery()
+                .select(User::getId)
+                .eq(User::getIsDeleted, 0)
+                .eq(User::getStatus, UserStatusEnum.ENABLED)
+                .list()
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserFaceAuthVO getUserFaceAuthInfo(Long userId) {
+        // 检查用户是否存在
+        User user = getById(userId);
+        AssertUtils.notNull(user, UserResultCodeEnum.USER_NOT_FOUND);
+
+        // 查询用户详情获取真实姓名和身份证号
+        LambdaQueryWrapper<UserProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserProfile::getUserId, userId)
+                .select(UserProfile::getRealName, UserProfile::getIdCard);
+        UserProfile profile = userProfileMapper.selectOne(wrapper);
+
+        return UserFaceAuthVO.builder()
+                .userId(userId)
+                .realName(profile != null ? profile.getRealName() : null)
+                .idCard(profile != null ? profile.getIdCard() : null)
+                .build();
     }
 }

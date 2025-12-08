@@ -3,10 +3,10 @@ package com.hngy.siae.content.controller;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
-import com.hngy.siae.content.dto.request.TagCreateDTO;
-import com.hngy.siae.content.dto.request.TagUpdateDTO;
-import com.hngy.siae.content.dto.request.TagQueryDTO;
-import com.hngy.siae.content.dto.response.TagVO;
+import com.hngy.siae.content.dto.request.tag.TagCreateDTO;
+import com.hngy.siae.content.dto.request.tag.TagUpdateDTO;
+import com.hngy.siae.content.dto.request.tag.TagQueryDTO;
+import com.hngy.siae.content.dto.response.tag.TagVO;
 import com.hngy.siae.content.service.TagsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.hngy.siae.core.permissions.ContentPermissions.*;
+import static com.hngy.siae.content.permissions.ContentPermissions.*;
 
 
 /**

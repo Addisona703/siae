@@ -1,14 +1,14 @@
 package com.hngy.siae.content;
 
-import com.hngy.siae.web.feign.DefaultFeignConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
-@EnableFeignClients(basePackages = "com.hngy.siae.content", defaultConfiguration = DefaultFeignConfig.class)
+@EnableFeignClients(basePackages = "com.hngy.siae.api")
 @EnableScheduling
+@EnableAsync
 // @EnableMethodSecurity(prePostEnabled = true)  // 开发环境禁用，由 siae.security.enabled 控制
 @SpringBootApplication(scanBasePackages = "com.hngy.siae")
 public class SiaeContentApplication {

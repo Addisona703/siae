@@ -1,6 +1,8 @@
 package com.hngy.siae.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.api.user.dto.response.UserFaceAuthVO;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.user.dto.request.UserCreateDTO;
@@ -8,8 +10,10 @@ import com.hngy.siae.user.dto.request.UserCreateDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
 import com.hngy.siae.user.dto.response.UserAuthVO;
+import com.hngy.siae.user.dto.response.UserBasicVO;
 import com.hngy.siae.user.dto.response.UserDetailVO;
 import com.hngy.siae.user.dto.response.UserVO;
+import com.hngy.siae.user.dto.response.user.UserBasicInfoVO;
 import com.hngy.siae.user.entity.User;
 
 import java.util.List;
@@ -97,7 +101,7 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @return 用户认证信息（包含密码），如果不存在则返回null
      */
-    UserAuthVO getUserAuthByUsername(String username);
+    UserBasicInfoVO getUserAuthByUsername(String username);
 
 
 
@@ -126,6 +130,14 @@ public interface UserService extends IService<User> {
      * @throws RuntimeException 如果用户不存在
      */
     void assertUserExists(Long userId);
+
+    /**
+     * 检查用户ID是否存在
+     *
+     * @param userId 用户ID
+     * @return true表示用户存在，false表示用户不存在
+     */
+    boolean isUserIdExists(Long userId);
 
     /**
      * 根据学号查询用户
@@ -167,5 +179,22 @@ public interface UserService extends IService<User> {
      * @param userIds 用户ID列表
      * @return 用户ID -> 用户简要信息的映射
      */
-    Map<Long, com.hngy.siae.user.dto.response.UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds);
+    Map<Long, UserProfileSimpleVO> batchGetUserProfiles(List<Long> userIds);
+
+    /**
+     * 获取所有用户ID列表
+     *
+     * @return 所有用户ID列表
+     */
+    List<Long> getAllUserIds();
+
+    /**
+     * 获取用户人脸认证信息
+     * <p>
+     * 用于人脸识别打卡场景，返回用户的真实姓名和身份证号
+     *
+     * @param userId 用户ID
+     * @return 用户人脸认证信息
+     */
+    UserFaceAuthVO getUserFaceAuthInfo(Long userId);
 } 
