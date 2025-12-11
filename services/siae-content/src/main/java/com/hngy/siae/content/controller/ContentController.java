@@ -35,7 +35,7 @@ import static com.hngy.siae.content.permissions.ContentPermissions.*;
  */
 @Tag(name = "内容管理", description = "内容的发布、编辑、删除和查询等操作")
 @RestController
-@RequestMapping("/")
+@RequestMapping
 @Validated
 @RequiredArgsConstructor
 public class ContentController {
@@ -45,7 +45,7 @@ public class ContentController {
 
 
     @Operation(summary = "发布内容", description = "创建并发布新的内容，支持文章、笔记、提问、文件、视频等多种类型")
-    @PostMapping("/")
+    @PostMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_PUBLISH + "')")
     public Result<ContentVO<ContentDetailVO>> createContent(
             @Parameter(description = "内容发布请求数据，包含标题、类型、描述、分类等信息", required = true)
@@ -55,7 +55,7 @@ public class ContentController {
 
 
     @Operation(summary = "编辑内容", description = "修改已存在的内容信息，包括标题、描述、分类等，需要提供内容ID")
-    @PutMapping("/")
+    @PutMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_EDIT + "')")
     public Result<ContentVO<ContentDetailVO>> updateContent(
             @Parameter(description = "内容编辑请求数据，必须包含内容ID和要修改的字段", required = true)
@@ -65,7 +65,7 @@ public class ContentController {
 
 
     @Operation(summary = "删除内容", description = "删除指定的内容，可选择永久删除或移至垃圾箱")
-    @DeleteMapping("/")
+    @DeleteMapping
     @SiaeAuthorize("hasAuthority('" + CONTENT_DELETE + "')")
     public Result<Void> deleteContent(
             @Parameter(description = "内容ID", required = true, example = "1")
@@ -98,13 +98,23 @@ public class ContentController {
     }
 
 
-    @Operation(summary = "查询内容列表", description = "分页查询内容列表，支持按分类、标签、状态等条件筛选")
+    @Operation(summary = "查询内容列表", description = "查询已发布的内容 + 当前用户自己的草稿和待审核内容")
     @PostMapping("/page")
     @SiaeAuthorize("hasAuthority('" + CONTENT_LIST_VIEW + "')")
     public Result<PageVO<ContentVO<EmptyDetailVO>>> queryContentList(
             @Parameter(description = "分页查询参数", required = true)
             @RequestBody @Valid PageDTO<ContentQueryDTO> contentPageDTO) {
         return Result.success(contentReadFacade.searchContent(contentPageDTO));
+    }
+
+
+    @Operation(summary = "管理员查询待审核内容", description = "管理员查询所有待审核的内容（不包括草稿）")
+    @PostMapping("/admin/pending")
+    @SiaeAuthorize("hasAuthority('" + CONTENT_AUDIT_VIEW + "')")
+    public Result<PageVO<ContentVO<EmptyDetailVO>>> queryPendingContent(
+            @Parameter(description = "分页查询参数", required = true)
+            @RequestBody @Valid PageDTO<ContentQueryDTO> contentPageDTO) {
+        return Result.success(contentReadFacade.searchPendingContent(contentPageDTO));
     }
 
 

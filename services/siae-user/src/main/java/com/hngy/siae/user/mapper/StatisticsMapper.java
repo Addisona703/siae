@@ -154,4 +154,9 @@ public interface StatisticsMapper {
             @Param("startPeriod") String startPeriod,
             @Param("endPeriod") String endPeriod,
             @Param("limit") Integer limit);
+
+    /**
+     * 按年份统计获奖数量（AI服务使用）
+     */
+    List<java.util.Map<String, Object>> getAwardCountByYear();
 }

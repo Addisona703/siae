@@ -105,6 +105,16 @@ public interface StorageService {
     void deleteObject(String bucket, String objectKey);
 
     /**
+     * 获取文件字节数据
+     * 从对象存储中读取文件内容
+     * 
+     * @param bucket 存储桶名称
+     * @param objectKey 对象键（存储路径）
+     * @return 文件字节数组
+     */
+    byte[] getObjectBytes(String bucket, String objectKey);
+
+    /**
      * 批量生成分片上传预签名 URL（并行生成，提升性能）
      * 
      * @param bucket 存储桶名称

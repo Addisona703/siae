@@ -113,4 +113,13 @@ public interface IFileService {
      */
     BatchDeleteVO batchDeleteFiles(List<String> fileIds);
 
+    /**
+     * 获取文件字节数据
+     * 供内部服务调用，用于获取文件内容（如AI服务分析图片）
+     * 
+     * @param fileId 文件ID
+     * @return 文件字节数组
+     */
+    byte[] getFileBytes(String fileId);
+
 }

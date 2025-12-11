@@ -571,6 +571,35 @@ public class FileServiceImpl implements IFileService {
     }
 
     /**
+     * 获取文件字节数据
+     * 供内部服务调用，用于获取文件内容（如AI服务分析图片）
+     * 
+     * @param fileId 文件ID
+     * @return 文件字节数组
+     */
+    @Override
+    public byte[] getFileBytes(String fileId) {
+        log.info("Getting file bytes: fileId={}", fileId);
+        
+        // 查询文件信息
+        FileEntity fileEntity = fileMapper.selectById(fileId);
+        AssertUtils.notNull(fileEntity, MediaResultCodeEnum.FILE_NOT_FOUND);
+        AssertUtils.isNull(fileEntity.getDeletedAt(), MediaResultCodeEnum.FILE_ALREADY_DELETED);
+        AssertUtils.isTrue(fileEntity.getStatus() == FileStatus.COMPLETED, 
+                MediaResultCodeEnum.FILE_STATUS_INVALID);
+        
+        try {
+            // 从对象存储获取文件字节数据
+            byte[] bytes = storageService.getObjectBytes(fileEntity.getBucket(), fileEntity.getStorageKey());
+            log.info("Retrieved file bytes: fileId={}, size={} bytes", fileId, bytes.length);
+            return bytes;
+        } catch (Exception e) {
+            log.error("Failed to get file bytes: fileId={}", fileId, e);
+            throw new RuntimeException("Failed to get file bytes: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * 构建URL缓存Key
      */
     private String buildUrlCacheKey(String fileId) {

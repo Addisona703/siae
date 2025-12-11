@@ -266,4 +266,38 @@
           AND m.is_deleted = 0
     </select>
 
+    <!-- AI服务查询成员信息 -->
+    <select id="searchMembersForAi" resultType="com.hngy.siae.api.ai.dto.response.MemberInfo">
+        SELECT DISTINCT
+            u.id AS userId,
+            up.real_name AS name,
+            u.student_id AS studentId,
+            d.name AS department,
+            p.name AS position,
+            CONCAT(mce.entry_year, '级') AS grade,
+            maj.name AS major
+        FROM membership m
+        LEFT JOIN user u ON m.user_id = u.id
+        LEFT JOIN user_profile up ON m.user_id = up.user_id
+        LEFT JOIN member_department md ON m.id = md.membership_id
+        LEFT JOIN department d ON md.department_id = d.id
+        LEFT JOIN member_position mp ON m.id = mp.membership_id AND mp.end_date IS NULL
+        LEFT JOIN position p ON mp.position_id = p.id
+        LEFT JOIN major_class_enrollment mce ON m.user_id = mce.user_id AND mce.is_deleted = 0
+        LEFT JOIN major maj ON mce.major_id = maj.id
+        WHERE m.is_deleted = 0
+          AND u.is_deleted = 0
+        <if test="name != null and name != ''">
+            AND up.real_name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="department != null and department != ''">
+            AND d.name LIKE CONCAT('%', #{department}, '%')
+        </if>
+        <if test="position != null and position != ''">
+            AND p.name LIKE CONCAT('%', #{position}, '%')
+        </if>
+        ORDER BY m.created_at DESC
+        LIMIT 50
+    </select>
+
 </mapper>

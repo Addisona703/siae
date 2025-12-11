@@ -60,4 +60,5 @@ public interface FavoriteItemMapper extends BaseMapper<FavoriteItem> {
      * @return 收藏数量
      */
     Long countFavoriteItemsByUserId(@Param("userId") Long userId);
+
 }

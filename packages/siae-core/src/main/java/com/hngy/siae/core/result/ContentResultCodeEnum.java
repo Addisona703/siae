@@ -43,6 +43,7 @@ public enum ContentResultCodeEnum implements IResultCode {
     CONTENT_NOT_IN_TRASH(30112, "内容不在回收站中"),
     CONTENT_RESTORE_FAILED(30113, "恢复内容失败"),
     CONTENT_NOT_PUBLISHED(30114, "内容未发布，无法进行此操作"),
+    CONTENT_NO_PERMISSION(30115, "无权编辑该内容，只能编辑自己创建的内容"),
 
     // ========== 评论相关 30200-30299 ==========
     COMMENT_NOT_FOUND(30200, "评论不存在"),

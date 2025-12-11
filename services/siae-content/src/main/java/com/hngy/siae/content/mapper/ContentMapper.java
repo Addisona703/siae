@@ -2,6 +2,7 @@ package com.hngy.siae.content.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hngy.siae.api.ai.dto.response.ContentInfo;
 import com.hngy.siae.content.dto.request.content.ContentQueryDTO;
 import com.hngy.siae.content.dto.response.content.ContentQueryResultVO;
 import com.hngy.siae.content.dto.response.content.ContentVO;
@@ -9,6 +10,8 @@ import com.hngy.siae.content.dto.response.content.detail.EmptyDetailVO;
 import com.hngy.siae.content.entity.Content;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 内容表 Mapper
@@ -39,11 +42,38 @@ public interface ContentMapper extends BaseMapper<Content> {
     Page<ContentVO<EmptyDetailVO>> selectContentPageWithDetails(Page<ContentVO<EmptyDetailVO>> page, @Param("content") Content content);
 
     /**
-     * 分页查询内容列表（支持所有查询条件）
+     * 分页查询内容列表（已发布的内容 + 当前用户的草稿和待审核）
+     *
+     * @param page 分页参数
+     * @param query 查询条件DTO
+     * @param currentUserId 当前用户ID
+     * @return 内容VO分页结果
+     */
+    Page<ContentVO<EmptyDetailVO>> selectContentPageByQuery(Page<ContentVO<EmptyDetailVO>> page, @Param("query") ContentQueryDTO query, @Param("currentUserId") Long currentUserId);
+
+    /**
+     * 管理员分页查询待审核内容（不包括草稿）
      *
      * @param page 分页参数
      * @param query 查询条件DTO
      * @return 内容VO分页结果
      */
-    Page<ContentVO<EmptyDetailVO>> selectContentPageByQuery(Page<ContentVO<EmptyDetailVO>> page, @Param("query") ContentQueryDTO query);
+    Page<ContentVO<EmptyDetailVO>> selectPendingContentPage(Page<ContentVO<EmptyDetailVO>> page, @Param("query") ContentQueryDTO query);
+
+    // ==================== AI 服务接口 ====================
+
+    /**
+     * AI搜索内容
+     */
+    List<ContentInfo> searchForAi(@Param("keyword") String keyword, @Param("categoryName") String categoryName, @Param("limit") Integer limit);
+
+    /**
+     * AI获取热门内容
+     */
+    List<ContentInfo> getHotContentForAi(@Param("limit") Integer limit);
+
+    /**
+     * AI获取最新内容
+     */
+    List<ContentInfo> getLatestContentForAi(@Param("limit") Integer limit);
 }

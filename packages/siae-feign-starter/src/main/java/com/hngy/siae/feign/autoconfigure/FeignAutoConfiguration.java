@@ -120,7 +120,10 @@ public class FeignAutoConfiguration {
     public RequestInterceptor feignAuthenticationInterceptor(
             AuthProperties authProperties,
             @Value("${spring.application.name:unknown}") String applicationName) {
-        log.debug("[SIAE-Feign] Registering FeignAuthenticationInterceptor for service: {}", applicationName);
+        log.info("[SIAE-Feign] Registering FeignAuthenticationInterceptor for service: {}", applicationName);
+        log.info("[SIAE-Feign] AuthProperties internalSecretKey: {}", 
+                authProperties.getInternalSecretKey() != null ? 
+                authProperties.getInternalSecretKey().substring(0, Math.min(8, authProperties.getInternalSecretKey().length())) + "..." : "NULL");
         return new FeignAuthenticationInterceptor(authProperties, applicationName);
     }
 }

@@ -42,6 +42,10 @@ public enum UserResultCodeEnum implements IResultCode {
     MEMBERSHIP_ALREADY_EXISTS(1901, "用户已经是成员，无法重复申请"),
     MEMBERSHIP_NOT_CANDIDATE(1902, "该成员不是候选成员，无法转正"),
     MEMBERSHIP_STATUS_INVALID(1903, "成员状态不正确，无法执行此操作"),
+
+    // ==================== 简历相关错误码 (2000-2099) ====================
+    RESUME_NOT_FOUND(2000, "简历不存在"),
+    RESUME_ALREADY_EXISTS(2001, "简历已存在"),
     ;
 
     private final int code;

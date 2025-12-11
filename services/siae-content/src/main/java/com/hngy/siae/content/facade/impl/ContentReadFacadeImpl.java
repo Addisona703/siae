@@ -151,8 +151,14 @@ public class ContentReadFacadeImpl implements ContentReadFacade {
 
     @Override
     public PageVO<ContentVO<EmptyDetailVO>> searchContent(@NotNull PageDTO<ContentQueryDTO> contentPageDTO) {
-        // 调用 ContentService 进行分页查询
+        // 调用 ContentService 查询已发布的内容 + 当前用户的草稿和待审核
         return contentService.getContentPage(contentPageDTO);
+    }
+
+    @Override
+    public PageVO<ContentVO<EmptyDetailVO>> searchPendingContent(@NotNull PageDTO<ContentQueryDTO> contentPageDTO) {
+        // 调用 ContentService 查询所有待审核的内容（管理员）
+        return contentService.getPendingContentPage(contentPageDTO);
     }
 
     /**

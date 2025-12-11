@@ -44,6 +44,11 @@ public class FavoriteItem {
     private Integer sortOrder;
 
     /**
+     * 状态：0-已删除，1-正常
+     */
+    private Integer status;
+
+    /**
      * 收藏时间
      */
     @TableField(fill = FieldFill.INSERT)

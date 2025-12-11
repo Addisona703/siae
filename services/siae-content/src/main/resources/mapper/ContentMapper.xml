@@ -122,7 +122,7 @@
         ORDER BY c.create_time DESC
     </select>
 
-    <!-- 分页查询内容列表（支持所有查询条件） -->
+    <!-- 分页查询内容列表（已发布的内容 + 当前用户的草稿和待审核） -->
     <select id="selectContentPageByQuery" resultMap="ContentPageResultMap">
         SELECT 
             c.id,
@@ -151,26 +151,30 @@
             </foreach>
         </if>
         <where>
-            <if test="query.categoryId != null">
-                AND c.category_id = #{query.categoryId}
-            </if>
             <choose>
-                <!-- 如果指定了状态，直接按状态查询 -->
-                <when test="query.status != null">
+                <!-- 如果指定了草稿或待审核状态，只查询当前用户的内容 -->
+                <when test="query.status != null and (query.status.code == 0 or query.status.code == 1)">
                     AND c.status = #{query.status}
+                    AND c.uploaded_by = #{currentUserId}
                 </when>
-                <!-- 管理员：可以看到所有内容（排除回收站和已删除） -->
-                <when test="query.isAdmin != null and query.isAdmin == true">
-                    AND c.status NOT IN (3, 4)
+                <!-- 如果指定了已发布状态，只查询已发布的内容 -->
+                <when test="query.status != null and query.status.code == 2">
+                    AND c.status = 2
                 </when>
-                <!-- 普通用户：只能看到已发布的 + 自己的待审核/草稿 -->
+                <!-- 如果没有指定状态，查询已发布的内容 + 当前用户的草稿和待审核 -->
                 <otherwise>
                     AND (
                         c.status = 2
-                        OR (c.status IN (0, 1) AND c.uploaded_by = #{query.currentUserId})
+                        OR (c.status IN (0, 1) AND c.uploaded_by = #{currentUserId})
                     )
                 </otherwise>
             </choose>
+            <if test="query.categoryId != null">
+                AND c.category_id = #{query.categoryId}
+            </if>
+            <if test="query.uploadedBy != null">
+                AND c.uploaded_by = #{query.uploadedBy}
+            </if>
             <if test="query.type != null">
                 AND c.type = #{query.type}
             </if>
@@ -181,6 +185,143 @@
         </where>
         GROUP BY c.id
         ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 管理员分页查询待审核内容（不包括草稿） -->
+    <select id="selectPendingContentPage" resultMap="ContentPageResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            c.cover_file_id,
+            c.uploaded_by,
+            cat.name as category_name,
+            c.status,
+            c.create_time,
+            c.update_time,
+            s.content_id,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        <if test="query.tagIds != null and query.tagIds.size() > 0">
+            INNER JOIN tag_relation ctr ON c.id = ctr.content_id
+            AND ctr.tag_id IN
+            <foreach collection="query.tagIds" item="tagId" open="(" separator="," close=")">
+                #{tagId}
+            </foreach>
+        </if>
+        <where>
+            <!-- 只查询待审核状态（不包括草稿） -->
+            AND c.status = 1
+            <if test="query.categoryId != null">
+                AND c.category_id = #{query.categoryId}
+            </if>
+            <if test="query.uploadedBy != null">
+                AND c.uploaded_by = #{query.uploadedBy}
+            </if>
+            <if test="query.type != null">
+                AND c.type = #{query.type}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (c.title LIKE CONCAT('%', #{query.keyword}, '%')
+                OR c.description LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+        </where>
+        GROUP BY c.id
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- ==================== AI 服务接口 ==================== -->
+
+    <!-- AI内容信息结果映射 -->
+    <resultMap id="ContentInfoResultMap" type="com.hngy.siae.api.ai.dto.response.ContentInfo">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="description" column="description"/>
+        <result property="authorNickname" column="author_nickname"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="publishTime" column="create_time"/>
+    </resultMap>
+
+    <!-- AI搜索内容（模糊匹配标题、描述、标签、分类） -->
+    <select id="searchForAi" resultMap="ContentInfoResultMap">
+        SELECT DISTINCT
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            NULL as author_nickname,
+            cat.name as category_name,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            c.create_time
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        LEFT JOIN tag_relation tr ON c.id = tr.content_id
+        LEFT JOIN tag t ON tr.tag_id = t.id
+        WHERE c.status = 2
+        <if test="keyword != null and keyword != ''">
+            AND (
+                c.title LIKE CONCAT('%', #{keyword}, '%')
+                OR c.description LIKE CONCAT('%', #{keyword}, '%')
+                OR t.name LIKE CONCAT('%', #{keyword}, '%')
+                OR cat.name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="categoryName != null and categoryName != ''">
+            AND cat.name LIKE CONCAT('%', #{categoryName}, '%')
+        </if>
+        ORDER BY s.view_count DESC, c.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- AI获取热门内容 -->
+    <select id="getHotContentForAi" resultMap="ContentInfoResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            NULL as author_nickname,
+            cat.name as category_name,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            c.create_time
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        WHERE c.status = 2
+        ORDER BY s.view_count DESC, s.like_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- AI获取最新内容 -->
+    <select id="getLatestContentForAi" resultMap="ContentInfoResultMap">
+        SELECT 
+            c.id,
+            c.title,
+            c.type,
+            c.description,
+            NULL as author_nickname,
+            cat.name as category_name,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            c.create_time
+        FROM content c
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
+        WHERE c.status = 2
+        ORDER BY c.create_time DESC
+        LIMIT #{limit}
     </select>
 
 </mapper>

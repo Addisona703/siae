@@ -29,24 +29,18 @@ spring:
           uri: lb://siae-auth
           predicates:
             - Path=/api/v1/auth/**
-          # filters:
-          #   - RewritePath=/api/v1/auth/(?<segment>.*),/${segment}
 
         # 用户服务路由
         - id: siae-user-route
           uri: lb://siae-user
           predicates:
             - Path=/api/v1/user/**
-          # filters:
-          #   - RewritePath=/api/v1/user/(?<segment>.*),/${segment}
 
         # 内容服务路由
         - id: siae-content-route
           uri: lb://siae-content
           predicates:
             - Path=/api/v1/content/**
-          # filters:
-          #   - RewritePath=/api/v1/content/(?<segment>.*),/${segment}
 
         # 通知服务路由
         - id: siae-notification-route
@@ -59,25 +53,35 @@ spring:
           uri: lb://siae-media
           predicates:
             - Path=/api/v1/media/**
-          # filters:
-          #   # 限流配置：每秒最多100个请求
-          #   - name: RequestRateLimiter
-          #     args:
-          #       key-resolver: "#{@gatewayUserKeyResolver}"
-          #       redis-rate-limiter.replenishRate: 100
-          #       redis-rate-limiter.burstCapacity: 200
-          #       redis-rate-limiter.requestedTokens: 1
-          #   # 熔断配置
-          #   - name: CircuitBreaker
-          #     args:
-          #       name: mediaServiceCircuitBreaker
-          #       fallbackUri: forward:/fallback/media
 
         # 考勤服务路由
         - id: siae-attendance-route
           uri: lb://siae-attendance
           predicates:
             - Path=/api/v1/attendance/**
+
+        # AI服务路由 - 流式聊天（SSE）
+        - id: siae-ai-stream-route
+          uri: lb://siae-ai
+          predicates:
+            - Path=/api/v1/ai/chat/stream
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+                methods: GET
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # AI服务路由 - 其他接口
+        - id: siae-ai-route
+          uri: lb://siae-ai
+          predicates:
+            - Path=/api/v1/ai/**
 
         # OpenAPI文档路由
         - id: openapi-route
@@ -134,6 +138,8 @@ springdoc:
         name: 媒体服务
       - url: /v3/api-docs/siae-attendance
         name: 考勤服务
+      - url: /v3/api-docs/siae-ai
+        name: AI服务
 
 # 日志配置
 logging:

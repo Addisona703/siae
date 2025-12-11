@@ -95,15 +95,19 @@ public class ContentServiceImpl
 
     @Override
     public Content updateContent(ContentUpdateDTO contentUpdateDTO) {
-        // 1. 校验内容是否存在
-        AssertUtils.isTrue(this.lambdaQuery()
-                .eq(Content::getId, contentUpdateDTO.getId())
-                .exists(), ContentResultCodeEnum.CONTENT_NOT_EXISTS);
+        // 1. 查询内容是否存在
+        Content existingContent = this.getById(contentUpdateDTO.getId());
+        AssertUtils.notNull(existingContent, ContentResultCodeEnum.CONTENT_NOT_EXISTS);
 
-        // 2. 拷贝 DTO 到实体，忽略 type 字段（需要手动转换枚举）
+        // 2. 校验是否是内容所有者（只有创建者本人才能编辑）
+        Long currentUserId = securityUtil.getCurrentUserId();
+        AssertUtils.isTrue(existingContent.getUploadedBy().equals(currentUserId), 
+                ContentResultCodeEnum.CONTENT_NO_PERMISSION);
+
+        // 3. 拷贝 DTO 到实体，忽略 type 字段（需要手动转换枚举）
         Content content = BeanConvertUtil.to(contentUpdateDTO, Content.class, "type", "status");
         
-        // 3. 手动处理类型转换（String -> ContentTypeEnum）
+        // 4. 手动处理类型转换（String -> ContentTypeEnum）
         Optional.ofNullable(contentUpdateDTO.getType())
                 .map(typeStr -> {
                     ContentTypeEnum type = BaseEnum.fromDesc(ContentTypeEnum.class, typeStr);
@@ -112,7 +116,7 @@ public class ContentServiceImpl
                 })
                 .ifPresent(content::setType);
 
-        // 3. 更新数据库
+        // 5. 更新数据库
         AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_UPDATE_FAILED);
 
         return content;
@@ -165,12 +169,34 @@ public class ContentServiceImpl
             query = new ContentQueryDTO();
         }
 
-        // 设置当前用户信息用于权限过滤
-        query.setCurrentUserId(securityUtil.getCurrentUserId());
-        query.setIsAdmin(securityUtil.hasAnyRole("ROOT", "ADMIN"));
+        // 获取当前用户ID
+        Long currentUserId = securityUtil.getCurrentUserId();
 
-        // 使用 XML 联表查询
-        Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectContentPageByQuery(page, query);
+        // 使用 XML 联表查询（已发布的内容 + 当前用户的草稿和待审核）
+        Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectContentPageByQuery(page, query, currentUserId);
+        
+        // 批量填充作者昵称
+        fillAuthorNicknames(resultPage.getRecords());
+        
+        // 批量填充封面URL
+        fillCoverUrls(resultPage.getRecords());
+        
+        return PageConvertUtil.convert(resultPage);
+    }
+
+    @Override
+    public PageVO<ContentVO<EmptyDetailVO>> getPendingContentPage(PageDTO<ContentQueryDTO> dto) {
+        // 构建分页参数
+        Page<ContentVO<EmptyDetailVO>> page = PageConvertUtil.toPage(dto);
+        
+        // 获取查询条件
+        ContentQueryDTO query = dto.getParams();
+        if (query == null) {
+            query = new ContentQueryDTO();
+        }
+
+        // 使用 XML 联表查询所有待审核的内容（管理员）
+        Page<ContentVO<EmptyDetailVO>> resultPage = baseMapper.selectPendingContentPage(page, query);
         
         // 批量填充作者昵称
         fillAuthorNicknames(resultPage.getRecords());
@@ -279,5 +305,22 @@ public class ContentServiceImpl
         } catch (Exception e) {
             log.warn("批量获取封面URL失败，跳过填充封面URL", e);
         }
+    }
+
+    // ==================== AI 服务接口实现 ====================
+
+    @Override
+    public List<com.hngy.siae.api.ai.dto.response.ContentInfo> searchForAi(String keyword, String categoryName, Integer limit) {
+        return baseMapper.searchForAi(keyword, categoryName, limit);
+    }
+
+    @Override
+    public List<com.hngy.siae.api.ai.dto.response.ContentInfo> getHotContentForAi(Integer limit) {
+        return baseMapper.getHotContentForAi(limit);
+    }
+
+    @Override
+    public List<com.hngy.siae.api.ai.dto.response.ContentInfo> getLatestContentForAi(Integer limit) {
+        return baseMapper.getLatestContentForAi(limit);
     }
 }

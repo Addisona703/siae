@@ -74,4 +74,14 @@ public interface MediaFeignClient {
      */
     @PostMapping("/files/batch-delete")
     BatchDeleteVO batchDeleteFiles(@Valid @RequestBody java.util.List<@NotBlank String> fileIds);
+
+    /**
+     * 获取文件字节数据
+     * 用于获取文件内容（如AI服务分析图片）
+     *
+     * @param fileId 文件ID
+     * @return 文件字节数组
+     */
+    @GetMapping("/files/{fileId}/bytes")
+    byte[] getFileBytes(@NotBlank @PathVariable("fileId") String fileId);
 }

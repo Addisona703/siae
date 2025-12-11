@@ -364,4 +364,15 @@
         ORDER BY period ASC, levelName ASC
     </select>
 
+    <!-- 按年份统计获奖数量（AI服务使用） -->
+    <select id="getAwardCountByYear" resultType="java.util.HashMap">
+        SELECT
+            CAST(YEAR(awarded_at) AS CHAR) AS `key`,
+            COUNT(*) AS `value`
+        FROM user_award
+        WHERE is_deleted = 0
+        GROUP BY YEAR(awarded_at)
+        ORDER BY YEAR(awarded_at) DESC
+    </select>
+
 </mapper>

@@ -15,9 +15,14 @@ import com.hngy.siae.content.dto.request.interaction.ActionDTO;
 import com.hngy.siae.content.entity.UserAction;
 import com.hngy.siae.content.mapper.CommentMapper;
 import com.hngy.siae.content.mapper.ContentMapper;
+import com.hngy.siae.content.mapper.FavoriteItemMapper;
+import com.hngy.siae.content.mapper.FavoriteFolderMapper;
 import com.hngy.siae.content.mapper.UserActionMapper;
+import com.hngy.siae.content.entity.FavoriteItem;
+import com.hngy.siae.content.entity.FavoriteFolder;
 import com.hngy.siae.content.service.InteractionsService;
 import com.hngy.siae.content.service.StatisticsService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -40,6 +45,8 @@ public class InteractionsServiceImpl
     private final StatisticsService statisticsService;
     private final CommentMapper commentMapper;
     private final ContentMapper contentMapper;
+    private final FavoriteItemMapper favoriteItemMapper;
+    private final FavoriteFolderMapper favoriteFolderMapper;
 
 
     @Override
@@ -61,6 +68,11 @@ public class InteractionsServiceImpl
             }
             // 恢复为激活状态
             updateStatus(existing, ActionStatusEnum.ACTIVATED);
+            
+            // 如果是恢复收藏行为，同步恢复收藏夹记录
+            if (actionType == ActionTypeEnum.FAVORITE && targetType == TypeEnum.CONTENT) {
+                restoreFavoriteItem(userId, targetId);
+            }
         } else {
             // 新建记录
             createUserAction(actionDTO);
@@ -116,8 +128,114 @@ public class InteractionsServiceImpl
 
         updateStatus(existing, ActionStatusEnum.CANCELLED);
 
+        // 如果是取消收藏行为，同步删除收藏夹中的记录
+        if (actionType == ActionTypeEnum.FAVORITE && targetType == TypeEnum.CONTENT) {
+            removeFavoriteItems(userId, targetId);
+        }
+
         // 异步更新统计，不阻塞主流程
         updateStatisticsAsync(targetId, targetType, actionType, false);
+    }
+
+    /**
+     * 物理删除用户对指定内容的所有收藏记录，并更新相关收藏夹的计数
+     */
+    private void removeFavoriteItems(Long userId, Long contentId) {
+        // 查询所有收藏记录
+        LambdaQueryWrapper<FavoriteItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FavoriteItem::getUserId, userId)
+                .eq(FavoriteItem::getContentId, contentId);
+        
+        java.util.List<FavoriteItem> items = favoriteItemMapper.selectList(queryWrapper);
+        
+        if (!items.isEmpty()) {
+            java.util.Set<Long> affectedFolderIds = items.stream()
+                    .map(FavoriteItem::getFolderId)
+                    .collect(java.util.stream.Collectors.toSet());
+            
+            // 物理删除收藏记录
+            favoriteItemMapper.delete(queryWrapper);
+            
+            // 更新受影响收藏夹的计数
+            for (Long folderId : affectedFolderIds) {
+                updateFolderItemCount(folderId);
+            }
+        }
+    }
+
+    /**
+     * 恢复收藏项到默认收藏夹
+     */
+    private void restoreFavoriteItem(Long userId, Long contentId) {
+        // 检查是否已存在收藏记录
+        LambdaQueryWrapper<FavoriteItem> checkWrapper = new LambdaQueryWrapper<>();
+        checkWrapper.eq(FavoriteItem::getUserId, userId)
+                .eq(FavoriteItem::getContentId, contentId);
+        
+        if (favoriteItemMapper.selectCount(checkWrapper) > 0) {
+            // 已存在，无需创建
+            return;
+        }
+        
+        // 获取或创建默认收藏夹
+        Long defaultFolderId = getOrCreateDefaultFolder(userId);
+        
+        // 创建收藏项
+        FavoriteItem item = new FavoriteItem();
+        item.setFolderId(defaultFolderId);
+        item.setUserId(userId);
+        item.setContentId(contentId);
+        item.setSortOrder(0);
+        item.setStatus(1);
+        
+        favoriteItemMapper.insert(item);
+        
+        // 更新收藏夹计数
+        updateFolderItemCount(defaultFolderId);
+    }
+
+    /**
+     * 获取或创建默认收藏夹
+     */
+    private Long getOrCreateDefaultFolder(Long userId) {
+        LambdaQueryWrapper<FavoriteFolder> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FavoriteFolder::getUserId, userId)
+                .eq(FavoriteFolder::getIsDefault, 1)
+                .eq(FavoriteFolder::getStatus, 1);
+
+        FavoriteFolder defaultFolder = favoriteFolderMapper.selectOne(queryWrapper);
+
+        if (defaultFolder == null) {
+            // 创建默认收藏夹
+            defaultFolder = new FavoriteFolder();
+            defaultFolder.setUserId(userId);
+            defaultFolder.setName("默认收藏夹");
+            defaultFolder.setDescription("系统自动创建的默认收藏夹");
+            defaultFolder.setIsDefault(1);
+            defaultFolder.setIsPublic(0);
+            defaultFolder.setSortOrder(0);
+            defaultFolder.setItemCount(0);
+            defaultFolder.setStatus(1);
+
+            favoriteFolderMapper.insert(defaultFolder);
+        }
+
+        return defaultFolder.getId();
+    }
+
+    /**
+     * 更新收藏夹的内容数量
+     */
+    private void updateFolderItemCount(Long folderId) {
+        LambdaQueryWrapper<FavoriteItem> countWrapper = new LambdaQueryWrapper<>();
+        countWrapper.eq(FavoriteItem::getFolderId, folderId);
+        Long count = favoriteItemMapper.selectCount(countWrapper);
+
+        FavoriteFolder folder = favoriteFolderMapper.selectById(folderId);
+        if (folder != null) {
+            folder.setItemCount(count.intValue());
+            favoriteFolderMapper.updateById(folder);
+        }
     }
 
     /**

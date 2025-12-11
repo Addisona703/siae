@@ -1,0 +1,12 @@
+# ===================================================================
+# BASE APPLICATION CONFIGURATION
+# Location: siae-ai/src/main/resources/application.yaml
+# ===================================================================
+
+spring:
+  application:
+    name: siae-ai
+  
+  profiles:
+    active: ${ENV:dev}
+

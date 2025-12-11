@@ -50,4 +50,10 @@ public class MediaFeignClientFallback implements MediaFeignClient {
                 fileIds != null ? fileIds.size() : 0);
         throw new ServiceException(503, "媒体服务暂时不可用，请稍后重试");
     }
+
+    @Override
+    public byte[] getFileBytes(String fileId) {
+        log.error("媒体服务不可用，获取文件字节数据失败，fileId: {}", fileId);
+        throw new ServiceException(503, "媒体服务暂时不可用，请稍后重试");
+    }
 }

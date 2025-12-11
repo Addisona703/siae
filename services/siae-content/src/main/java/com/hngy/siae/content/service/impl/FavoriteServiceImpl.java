@@ -178,6 +178,7 @@ public class FavoriteServiceImpl
         item.setContentId(addDTO.getContentId());
         item.setNote(addDTO.getNote());
         item.setSortOrder(0);
+        item.setStatus(1);
 
         AssertUtils.isTrue(favoriteItemMapper.insert(item) > 0, ContentResultCodeEnum.FAVORITE_ITEM_ADD_FAILED);
 

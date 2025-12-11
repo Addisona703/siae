@@ -22,6 +22,7 @@
         <module>api/api-user</module>
         <module>api/api-content</module>
         <module>api/api-media</module>
+        <module>api/api-ai</module>
         <module>siae-gateway</module>
         <module>services/siae-auth</module>
         <module>services/siae-user</module>
@@ -29,6 +30,7 @@
         <module>services/siae-notification</module>
         <module>services/siae-media</module>
         <module>services/siae-attendance</module>
+        <module>services/siae-ai</module>
     </modules>
 
     <!-- 3. 统一属性配置 -->
@@ -37,9 +39,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- 核心版本 -->
-        <spring-boot.version>3.2.5</spring-boot.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
-        <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
+        <spring-boot.version>3.4.1</spring-boot.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
 
         <!-- 数据库相关 -->
         <mybatis-plus.version>3.5.6</mybatis-plus.version>

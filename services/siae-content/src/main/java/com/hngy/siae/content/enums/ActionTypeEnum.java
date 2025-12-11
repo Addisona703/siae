@@ -11,7 +11,8 @@ public enum ActionTypeEnum implements BaseEnum {
     //
     VIEW(0, "view"),
     LIKE(1, "like"),
-    FAVORITE(2, "favorite");
+    FAVORITE(2, "favorite"),
+    COMMENT(3, "comment");
 
     @EnumValue
     private final int code;

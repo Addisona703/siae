@@ -25,22 +25,30 @@ public class FeignAuthenticationInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
         try {
+            log.info("[Feign拦截器] 开始添加认证头, 服务: {}, 目标URL: {}", currentServiceName, template.url());
+            
             // 1. 添加内部服务调用标识
-            template.header("X-Internal-Service-Call", authProperties.getInternalSecretKey());
+            String secretKey = authProperties.getInternalSecretKey();
+            log.info("[Feign拦截器] internalSecretKey: {}", secretKey != null ? secretKey.substring(0, Math.min(8, secretKey.length())) + "..." : "NULL");
+            
+            template.header("X-Internal-Service-Call", secretKey);
             template.header("X-Caller-Service", currentServiceName);
             template.header("X-Call-Timestamp", String.valueOf(System.currentTimeMillis()));
+            
+            // 2. 添加 User-Agent 标识，用于 Security 过滤器识别服务间调用
+            template.header("User-Agent", "Feign/" + currentServiceName);
 
-            // 2. 如果当前有用户上下文，传递用户ID
+            // 3. 如果当前有用户上下文，传递用户ID
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated()) {
                 Object details = authentication.getDetails();
                 if (details instanceof Long) {
                     template.header("X-On-Behalf-Of-User", details.toString());
-                    log.debug("Adding user context to service call: user={}", details);
+                    log.info("[Feign拦截器] 添加用户上下文: user={}", details);
                 }
             }
 
-            log.debug("Added internal auth headers for service call: {} -> target", currentServiceName);
+            log.info("[Feign拦截器] 认证头添加完成: {} -> {}", currentServiceName, template.url());
 
         } catch (Exception e) {
             log.error("Failed to add authentication headers for Feign request", e);

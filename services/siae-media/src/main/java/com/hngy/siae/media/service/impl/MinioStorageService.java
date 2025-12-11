@@ -458,6 +458,37 @@ public class MinioStorageService implements StorageService {
     }
 
     /**
+     * 获取文件字节数据
+     * 从对象存储中读取文件内容
+     * 
+     * @param bucket 存储桶名称
+     * @param objectKey 对象键（存储路径）
+     * @return 文件字节数组
+     */
+    @Override
+    public byte[] getObjectBytes(String bucket, String objectKey) {
+        try {
+            log.debug("Getting object bytes: bucket={}, objectKey={}", bucket, objectKey);
+            
+            try (var stream = minioClient.getObject(
+                    io.minio.GetObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(objectKey)
+                        .build())) {
+                
+                byte[] bytes = stream.readAllBytes();
+                log.info("Retrieved object bytes: bucket={}, objectKey={}, size={} bytes", 
+                        bucket, objectKey, bytes.length);
+                return bytes;
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to get object bytes: bucket={}, objectKey={}", bucket, objectKey, e);
+            throw new StorageException("Failed to get object bytes", e);
+        }
+    }
+
+    /**
      * 存储异常
      * 封装所有与对象存储交互相关的异常
      */

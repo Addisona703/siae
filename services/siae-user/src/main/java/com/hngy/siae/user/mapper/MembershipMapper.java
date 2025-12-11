@@ -77,4 +77,17 @@ public interface MembershipMapper extends BaseMapper<Membership> {
      * @return 成员详情
      */
     MembershipDetailVO selectMembershipDetailByUserId(@Param("userId") Long userId);
+
+    /**
+     * AI服务查询成员信息
+     *
+     * @param name 成员姓名，支持模糊匹配
+     * @param department 部门名称
+     * @param position 职位名称
+     * @return 成员信息列表
+     */
+    List<com.hngy.siae.api.ai.dto.response.MemberInfo> searchMembersForAi(
+            @Param("name") String name,
+            @Param("department") String department,
+            @Param("position") String position);
 }

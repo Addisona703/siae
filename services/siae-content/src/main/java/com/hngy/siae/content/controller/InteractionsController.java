@@ -50,8 +50,16 @@ public class InteractionsController {
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/action")
     public Result<Void> cancelAction(
-            @Parameter(description = "用户行为请求数据，包含目标ID、行为类型等", required = true)
-            @Valid @RequestBody ActionDTO actionDTO) {
+            @Parameter(description = "目标ID", required = true)
+            @RequestParam Long targetId,
+            @Parameter(description = "目标类型：CONTENT或COMMENT", required = true)
+            @RequestParam TypeEnum targetType,
+            @Parameter(description = "行为类型：LIKE、FAVORITE、VIEW等", required = true)
+            @RequestParam ActionTypeEnum actionType) {
+        ActionDTO actionDTO = new ActionDTO();
+        actionDTO.setTargetId(targetId);
+        actionDTO.setTargetType(targetType);
+        actionDTO.setActionType(actionType);
         actionDTO.setUserId(securityUtil.getCurrentUserId());
         interactionsService.cancelAction(actionDTO);
         return Result.success();

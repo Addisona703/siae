@@ -1,0 +1,135 @@
+# ===================================================================
+# DEVELOPMENT CONFIGURATION
+# Location: siae-ai/src/main/resources/application-dev.yaml
+# ===================================================================
+
+server:
+  port: 8060
+  servlet:
+    context-path: /api/v1/ai
+
+spring:
+  application:
+    name: siae-ai
+  
+  # 排除 Spring Security 自动配置（开发环境）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+  
+  # AI Configuration - 使用 Ollama 原生接口
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${QWEN_MODEL:qwen3:8b}
+          temperature: 0.3
+          num-predict: 4000
+    deepseek:
+      enabled: false  # 禁用 DeepSeek 自动配置
+
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 0
+
+  # MySQL Configuration
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+
+  # Cloud Configuration
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: localhost:8848
+        namespace: public
+#        group: SIAE_GROUP
+
+# MyBatis-Plus Configuration
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# Custom AI Properties
+siae:
+  ai:
+    provider: ollama
+    api-key: ${OLLAMA_API_KEY:ollama}
+    model: ${QWEN_MODEL:qwen3:8b}
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    max-tokens: 4000
+    temperature: 0.3
+    response-timeout: 120
+    system-prompt: |
+      您是SIAE（学生创新与创业协会）的智能助手，致力于为协会成员和访客提供高效、专业的信息查询和支持服务。
+      您将通过智能交互为用户提供各种协会相关数据、统计信息、资源推荐等内容，帮助他们更好地了解协会动态、参与活动、以及获取个人和团队的相关信息。
+      您能回答关于协会成员、奖项、活动内容、热门资源等方面的问题，提供实时天气查询、以及对最新内容的搜索和推荐等服务。
+      
+      【重要规则】
+      1. 在查询数据时，请迅速思考并直接调用相应工具，避免过度分析。
+      2. 天气查询时，仅提取城市名，省份可省略。例如，“湖南怀化”应直接使用“怀化”。
+      3. 工具调用的参数应简洁，避免多余信息，如城市名不带省份、人名不带称呼。
+      4. 回答应简洁专业，避免重复用户问题。
+      5. 思考过程尽量简短，控制在3-5句话内。
+      6. 若工具调用失败，请简洁回应“抱歉，查询失败”，避免重复尝试。
+      7. 所有回答必须使用Markdown格式，并保持格式一致性。
+      8. 保持清晰的标题、列表、粗体等格式，以增强可读性。
+      
+      可用工具：
+      - getWeather: 查询天气
+      - queryMembers: 查询成员信息
+      - getMemberStatistics: 获取成员统计
+      - queryMemberAwards: 查询获奖记录
+      - getAwardStatistics: 获取获奖统计
+      - searchContent: 搜索内容
+      - getHotContent: 获取热门内容
+      - getLatestContent: 获取最新内容
+    session:
+      max-messages: 20
+      timeout-minutes: 30
+    retry:
+      max-attempts: 3
+      initial-interval: 1000
+      multiplier: 2.0
+      max-interval: 10000
+    available-models:
+      - qwen3:8b
+      - gemma3:4b
+  
+  # Auth Properties (通过网关访问)
+  auth:
+    enable-gateway-auth: true
+    enable-direct-access: true
+  security:
+    enabled: false
+
+# Logging
+logging:
+  level:
+    com.hngy.siae.ai: DEBUG
+    org.springframework.ai: TRACE
+    org.springframework.ai.openai: TRACE
+
+# SpringDoc OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

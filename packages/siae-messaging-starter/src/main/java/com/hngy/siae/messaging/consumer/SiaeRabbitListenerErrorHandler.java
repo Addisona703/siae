@@ -1,5 +1,6 @@
 package com.hngy.siae.messaging.consumer;
 
+import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -13,10 +14,22 @@ public class SiaeRabbitListenerErrorHandler implements RabbitListenerErrorHandle
 
     private static final Logger log = LoggerFactory.getLogger(SiaeRabbitListenerErrorHandler.class);
 
-    @Override
     public Object handleError(Message amqpMessage,
                               org.springframework.messaging.Message<?> message,
                               ListenerExecutionFailedException exception) {
+        return handleErrorInternal(amqpMessage, message, exception);
+    }
+
+    public Object handleError(Message amqpMessage,
+                              Channel channel,
+                              org.springframework.messaging.Message<?> message,
+                              ListenerExecutionFailedException exception) {
+        return handleErrorInternal(amqpMessage, message, exception);
+    }
+
+    private Object handleErrorInternal(Message amqpMessage,
+                                       org.springframework.messaging.Message<?> message,
+                                       ListenerExecutionFailedException exception) {
         String queue = amqpMessage.getMessageProperties().getConsumerQueue();
         String messageId = amqpMessage.getMessageProperties().getMessageId();
         MessageHeaders headers = message != null ? message.getHeaders() : null;

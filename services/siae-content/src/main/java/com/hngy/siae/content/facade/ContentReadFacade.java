@@ -36,10 +36,18 @@ public interface ContentReadFacade {
     PageVO<HotContentVO> queryHotContent(@NotNull ContentHotPageDTO contentHotPageDTO);
 
     /**
-     * 搜索内容（分页查询）
+     * 搜索内容（已发布的内容 + 当前用户的草稿和待审核）
      *
      * @param contentPageDTO 内容分页查询参数
      * @return {@link PageVO}<{@link ContentVO}<{@link EmptyDetailVO}>>
      */
     PageVO<ContentVO<EmptyDetailVO>> searchContent(@NotNull PageDTO<ContentQueryDTO> contentPageDTO);
+
+    /**
+     * 管理员查询待审核内容（不包括草稿）
+     *
+     * @param contentPageDTO 内容分页查询参数
+     * @return {@link PageVO}<{@link ContentVO}<{@link EmptyDetailVO}>>
+     */
+    PageVO<ContentVO<EmptyDetailVO>> searchPendingContent(@NotNull PageDTO<ContentQueryDTO> contentPageDTO);
 }

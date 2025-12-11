@@ -87,7 +87,7 @@ siae:
     enable-gateway-auth: true
     enable-direct-access: true
   security:
-    enabled: true
+    enabled: false
 
 # 日志配置
 logging:

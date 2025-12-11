@@ -140,4 +140,26 @@ public final class UserPermissions {
      * 用户获奖记录删除权限
      */
     public static final String USER_AWARD_DELETE = "user:award:delete";
+
+    // ==================== 用户简历管理权限 ====================
+    
+    /**
+     * 用户简历创建权限
+     */
+    public static final String USER_RESUME_CREATE = "user:resume:create";
+    
+    /**
+     * 用户简历查看权限
+     */
+    public static final String USER_RESUME_VIEW = "user:resume:view";
+    
+    /**
+     * 用户简历更新权限
+     */
+    public static final String USER_RESUME_UPDATE = "user:resume:update";
+    
+    /**
+     * 用户简历删除权限
+     */
+    public static final String USER_RESUME_DELETE = "user:resume:delete";
 }

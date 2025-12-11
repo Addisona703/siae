@@ -132,4 +132,23 @@ public class MediaFeignController {
         BatchDeleteVO response = fileService.batchDeleteFiles(fileIds);
         return Result.success(response);
     }
+
+    // ==================== 文件内容接口 ====================
+
+    /**
+     * 获取文件字节数据
+     * 供其他服务调用，用于获取文件内容（如AI服务分析图片）
+     *
+     * @param fileId 文件ID
+     * @return 文件字节数组
+     */
+    @Operation(summary = "获取文件字节数据", description = "获取文件内容的字节数组，供Feign调用")
+    @GetMapping("/files/{fileId}/bytes")
+    public Result<byte[]> getFileBytes(
+            @Parameter(description = "文件ID", required = true)
+            @NotBlank @PathVariable String fileId) {
+        log.info("Feign call: get file bytes, fileId={}", fileId);
+        byte[] bytes = fileService.getFileBytes(fileId);
+        return Result.success(bytes);
+    }
 }

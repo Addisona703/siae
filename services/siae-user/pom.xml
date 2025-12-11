@@ -35,6 +35,11 @@
             <artifactId>api-user</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-ai</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
 
         <!-- Spring Boot Web Starter 由 siae-web-starter 提供 -->

@@ -25,6 +25,7 @@ import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.content.service.AuditsService;
 import com.hngy.siae.content.service.CommentsService;
 import com.hngy.siae.content.service.ContentService;
+import com.hngy.siae.content.service.StatisticsService;
 import com.hngy.siae.messaging.event.MessagingConstants;
 import com.hngy.siae.messaging.event.NotificationMessage;
 import com.hngy.siae.messaging.producer.SiaeMessagingTemplate;
@@ -55,15 +56,18 @@ public class CommentsServiceImpl
     private final AuditsService auditsService;
     private final UserFeignClient userFeignClient;
     private final SiaeMessagingTemplate messagingTemplate;
+    private final StatisticsService statisticsService;
 
     public CommentsServiceImpl(ContentService contentService,
                                @Lazy AuditsService auditsService,
                                UserFeignClient userFeignClient,
-                               SiaeMessagingTemplate messagingTemplate) {
+                               SiaeMessagingTemplate messagingTemplate,
+                               StatisticsService statisticsService) {
         this.contentService = contentService;
         this.auditsService = auditsService;
         this.userFeignClient = userFeignClient;
         this.messagingTemplate = messagingTemplate;
+        this.statisticsService = statisticsService;
     }
 
     @Override
@@ -230,7 +234,8 @@ public class CommentsServiceImpl
                 .auditBy(1L).build();
         auditsService.submitAudit(auditDTO);
 
-        // TODO:内容的统计信息更新
+        // 更新内容的统计信息（评论数+1）
+        statisticsService.incrementStatistics(contentId, com.hngy.siae.content.enums.ActionTypeEnum.COMMENT);
 
         CommentVO commentVO = BeanConvertUtil.to(comment, CommentVO.class);
         
@@ -356,7 +361,10 @@ public class CommentsServiceImpl
         // 删除评论
         deleteComment(id);
 
-        // TODO:删除审核记录 + 统计信息更新
+        // 更新内容的统计信息（评论数-1）
+        statisticsService.decrementStatistics(comment.getContentId(), com.hngy.siae.content.enums.ActionTypeEnum.COMMENT);
+
+        // TODO:删除审核记录
     }
 
     @Override

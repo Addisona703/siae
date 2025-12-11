@@ -28,6 +28,9 @@ public class ContentQueryDTO {
     @Schema(description = "标签ID列表", example = "[1, 2, 3]")
     private List<Long> tagIds;
 
+    @Schema(description = "查询指定用户发布的内容", example = "1")
+    private Long uploadedBy;
+
     @Schema(description = "内容类型：ARTICLE-文章，NOTE-笔记，QUESTION-问题，VIDEO-视频，FILE-文件", example = "ARTICLE")
     private ContentTypeEnum type;
 
@@ -36,10 +39,4 @@ public class ContentQueryDTO {
 
     @Schema(description = "搜索关键词", example = "Spring Boot")
     private String keyword;
-
-    @Schema(description = "当前用户ID（后端自动填充，用于权限过滤）", accessMode = Schema.AccessMode.READ_ONLY)
-    private Long currentUserId;
-
-    @Schema(description = "是否为管理员（后端自动填充，用于权限过滤）", accessMode = Schema.AccessMode.READ_ONLY)
-    private Boolean isAdmin;
 }

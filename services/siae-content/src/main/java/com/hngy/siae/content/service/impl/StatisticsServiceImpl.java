@@ -73,6 +73,7 @@ public class StatisticsServiceImpl
             case VIEW -> updateWrapper.setSql("view_count = view_count + 1");
             case LIKE -> updateWrapper.setSql("like_count = like_count + 1");
             case FAVORITE -> updateWrapper.setSql("favorite_count = favorite_count + 1");
+            case COMMENT -> updateWrapper.setSql("comment_count = comment_count + 1");
             default -> throw new IllegalArgumentException("不支持的操作类型: " + actionTypeEnum);
         }
     
@@ -99,6 +100,7 @@ public class StatisticsServiceImpl
             case VIEW -> updateWrapper.setSql("view_count = GREATEST(view_count - 1, 0)");
             case LIKE -> updateWrapper.setSql("like_count = GREATEST(like_count - 1, 0)");
             case FAVORITE -> updateWrapper.setSql("favorite_count = GREATEST(favorite_count - 1, 0)");
+            case COMMENT -> updateWrapper.setSql("comment_count = GREATEST(comment_count - 1, 0)");
             default -> throw new IllegalArgumentException("不支持的操作类型: " + actionTypeEnum);
         }
     
