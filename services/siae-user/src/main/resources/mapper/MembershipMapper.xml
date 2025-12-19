@@ -159,6 +159,9 @@
         <if test="query.positionId != null">
             AND mp.position_id = #{query.positionId}
         </if>
+        <if test="query.positionName != null and query.positionName != ''">
+            AND p.name LIKE CONCAT('%', #{query.positionName}, '%')
+        </if>
         <if test="query.joinDateStart != null">
             AND m.join_date &gt;= #{query.joinDateStart}
         </if>

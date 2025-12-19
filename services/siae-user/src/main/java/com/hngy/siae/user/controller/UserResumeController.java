@@ -82,12 +82,12 @@ public class UserResumeController {
     /**
      * 删除简历
      * <p>
-     * 逻辑删除当前登录用户的简历
+     * 物理删除当前登录用户的简历
      *
      * @return 删除结果
      */
     @DeleteMapping
-    @Operation(summary = "删除简历", description = "删除当前用户的简历（逻辑删除）")
+    @Operation(summary = "删除简历", description = "删除当前用户的简历（物理删除）")
     @SiaeAuthorize("hasAuthority('" + USER_RESUME_DELETE + "')")
     public Result<Boolean> deleteResume() {
         boolean result = userResumeService.deleteResume();

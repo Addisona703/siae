@@ -5,6 +5,7 @@ import com.hngy.siae.content.entity.Statistics;
 import com.hngy.siae.content.enums.ContentTypeEnum;
 import com.hngy.siae.content.enums.TypeEnum;
 import com.hngy.siae.content.enums.status.ContentStatusEnum;
+import com.hngy.siae.content.service.ContentNotificationService;
 import com.hngy.siae.content.service.ContentService;
 import com.hngy.siae.content.service.StatisticsService;
 import com.hngy.siae.content.strategy.audit.AuditHandler;
@@ -39,6 +40,7 @@ public class ContentAuditHandlerPropertyTest {
 
     private ContentService contentService;
     private StatisticsService statisticsService;
+    private ContentNotificationService contentNotificationService;
     private ContentAuditHandler contentAuditHandler;
     private AuditHandlerContext auditHandlerContext;
 
@@ -48,6 +50,7 @@ public class ContentAuditHandlerPropertyTest {
     private void setupMocks(Content content, boolean updateSuccess) {
         contentService = Mockito.mock(ContentService.class);
         statisticsService = Mockito.mock(StatisticsService.class);
+        contentNotificationService = Mockito.mock(ContentNotificationService.class);
         
         // Mock getById to return the content
         when(contentService.getById(content.getId())).thenReturn(content);
@@ -57,7 +60,7 @@ public class ContentAuditHandlerPropertyTest {
             .thenReturn(updateSuccess);
         
         // Create the handler with mocked dependencies
-        contentAuditHandler = new ContentAuditHandler(contentService, statisticsService);
+        contentAuditHandler = new ContentAuditHandler(contentService, statisticsService, contentNotificationService);
         
         // Create the context with the handler
         auditHandlerContext = new AuditHandlerContext(List.of(contentAuditHandler));
@@ -65,11 +68,12 @@ public class ContentAuditHandlerPropertyTest {
 
     /**
      * **Feature: content-service-refactor, Property 1: 内容审核通过后状态一致性**
-     * **Validates: Requirements 2.2**
+     * **Validates: Requirements 2.2, 1.1**
      * 
      * For any pending content, when audit is approved:
      * - The handler should call updateStatus with PUBLISHED status
      * - If updateStatus succeeds, statistics should be created
+     * - If updateStatus succeeds, notification should be sent
      * - The handler should return true
      */
     @Property(tries = 100)
@@ -91,15 +95,19 @@ public class ContentAuditHandlerPropertyTest {
         
         // And: Statistics should be created for this content
         verify(statisticsService).addContentStatistics(pendingContent.getId());
+        
+        // And: Notification should be sent for this content (Requirements 1.1)
+        verify(contentNotificationService).sendContentApprovedNotification(pendingContent);
     }
 
     /**
      * **Feature: content-service-refactor, Property 1 (edge case): 审核通过但更新失败时不创建统计**
-     * **Validates: Requirements 2.2**
+     * **Validates: Requirements 2.2, 1.1**
      * 
      * For any pending content, when audit approval fails due to optimistic lock:
      * - The handler should return false
      * - Statistics should NOT be created
+     * - Notification should NOT be sent
      */
     @Property(tries = 100)
     void contentApprovalFailureShouldNotCreateStatistics(
@@ -120,6 +128,9 @@ public class ContentAuditHandlerPropertyTest {
         
         // And: Statistics should NOT be created
         verify(statisticsService, never()).addContentStatistics(any());
+        
+        // And: Notification should NOT be sent (Requirements 1.1)
+        verify(contentNotificationService, never()).sendContentApprovedNotification(any());
     }
 
     /**

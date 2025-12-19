@@ -233,12 +233,13 @@ public class ContentServiceImpl
                     userFeignClient.batchGetUserProfiles(userIds);
 
             if (userMap != null && !userMap.isEmpty()) {
-                // 填充昵称
+                // 填充昵称和头像
                 contentList.forEach(content -> {
                     com.hngy.siae.api.user.dto.response.UserProfileSimpleVO userProfile = 
                             userMap.get(content.getUploadedBy());
                     if (userProfile != null) {
                         content.setAuthorNickname(userProfile.getNickname());
+                        content.setAuthorAvatarUrl(userProfile.getAvatarUrl());
                     }
                 });
             }

@@ -357,10 +357,10 @@ A: 考勤记录一旦创建不建议修改。如有特殊情况，可以通过�
 
 ## 相关文档
 
-- [考勤服务总体设计文档](./README.md)
-- [考勤规则配置指南](./MULTI_SHIFT_GUIDE.md)
-- [权限配置说明](./PERMISSION_GUIDE.md)
-- [操作日志使用说明](./OPERATION_LOG_USAGE.md)
+- [考勤服务总体设计文档](README.md)
+- [考勤规则配置指南](MULTI_SHIFT_GUIDE.md)
+- [权限配置说明](PERMISSION_GUIDE.md)
+- [操作日志使用说明](OPERATION_LOG_USAGE.md)
 
 ## 联系支持
 

@@ -29,9 +29,9 @@ spring:
     username: root
     password: 123456
     druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 20
+      initial-size: 1
+      min-idle: 1
+      max-active: 3
   
   # Redis 配置
   data:

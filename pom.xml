@@ -8,7 +8,7 @@
     <groupId>com.hngy</groupId>
     <artifactId>siae-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging> <!-- 定义为父项目 -->
+    <packaging>pom</packaging>
     <name>siae-parent</name>
     <description>软件协会官网</description>
 
@@ -31,6 +31,7 @@
         <module>services/siae-media</module>
         <module>services/siae-attendance</module>
         <module>services/siae-ai</module>
+        <module>services/resourceManagement</module>
     </modules>
 
     <!-- 3. 统一属性配置 -->

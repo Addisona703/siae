@@ -1,6 +1,6 @@
 package com.hngy.siae.ai.tool;
 
-import com.hngy.siae.ai.config.AiConfig;
+import com.hngy.siae.ai.config.LlmClientConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -12,11 +12,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 
  * @author SIAE Team
  */
-@SpringBootTest(classes = {AiConfig.class, AwardQueryTool.class, MemberQueryTool.class})
+@SpringBootTest(classes = {LlmClientConfig.class, AwardQueryTool.class, MemberQueryTool.class})
 @TestPropertySource(properties = {
-    "siae.ai.system-prompt=You are a helpful AI assistant for SIAE.",
-    "siae.ai.retry.max-attempts=3",
-    "siae.ai.retry.initial-interval=1000"
+    "siae.ai.chat.system-prompt=You are a helpful AI assistant for SIAE.",
+    "siae.ai.default-provider=zhipu"
 })
 class ToolRegistrationTest {
 

@@ -113,6 +113,18 @@ public class NotificationServiceImpl extends ServiceImpl<SystemNotificationMappe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public int deleteReadNotifications(Long userId) {
+        LambdaQueryWrapper<SystemNotification> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SystemNotification::getUserId, userId)
+               .eq(SystemNotification::getIsRead, true);
+
+        int deletedCount = getBaseMapper().delete(wrapper);
+        log.info("批量删除已读通知 - 用户ID: {}, 删除数量: {}", userId, deletedCount);
+        return deletedCount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateReadStatus(Long notificationId, Long userId, Boolean isRead) {
         LambdaUpdateWrapper<SystemNotification> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SystemNotification::getId, notificationId)

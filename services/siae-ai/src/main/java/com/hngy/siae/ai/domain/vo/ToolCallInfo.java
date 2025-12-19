@@ -23,14 +23,24 @@ import java.util.Map;
 public class ToolCallInfo {
 
     /**
+     * 工具调用ID（用于关联工具调用和结果）
+     */
+    private String id;
+
+    /**
      * 工具名称
      */
     private String toolName;
 
     /**
-     * 调用参数
+     * 调用参数（JSON字符串或Map）
      */
     private Map<String, Object> parameters;
+
+    /**
+     * 调用参数（原始JSON字符串）
+     */
+    private String argumentsJson;
 
     /**
      * 执行结果
@@ -41,4 +51,14 @@ public class ToolCallInfo {
      * 执行耗时（毫秒）
      */
     private Long executionTimeMs;
+
+    /**
+     * 是否执行成功
+     */
+    private Boolean success;
+
+    /**
+     * 错误信息
+     */
+    private String error;
 }

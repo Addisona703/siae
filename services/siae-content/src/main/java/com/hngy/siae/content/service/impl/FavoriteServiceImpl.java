@@ -1,7 +1,14 @@
 package com.hngy.siae.content.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
@@ -21,16 +28,20 @@ import com.hngy.siae.content.mapper.FavoriteItemMapper;
 import com.hngy.siae.content.service.ContentService;
 import com.hngy.siae.content.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 收藏服务实现
  *
  * @author KEYKB
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FavoriteServiceImpl
@@ -40,6 +51,8 @@ public class FavoriteServiceImpl
     private final FavoriteFolderMapper favoriteFolderMapper;
     private final FavoriteItemMapper favoriteItemMapper;
     private final ContentService contentService;
+    private final UserFeignClient userFeignClient;
+    private final MediaFeignClient mediaFeignClient;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -265,6 +278,10 @@ public class FavoriteServiceImpl
                 folderId, offset, limit
         );
 
+        // 批量填充作者昵称和封面URL
+        fillAuthorNicknames(items);
+        fillCoverUrls(items);
+
         // 查询总数
         Long total = favoriteItemMapper.countFavoriteItemsByFolderId(folderId);
 
@@ -288,6 +305,10 @@ public class FavoriteServiceImpl
         List<FavoriteItemVO> items = favoriteItemMapper.selectFavoriteItemsWithContentByUserId(
                 userId, offset, limit
         );
+
+        // 批量填充作者昵称和封面URL
+        fillAuthorNicknames(items);
+        fillCoverUrls(items);
 
         // 查询总数
         Long total = favoriteItemMapper.countFavoriteItemsByUserId(userId);
@@ -362,9 +383,97 @@ public class FavoriteServiceImpl
         FavoriteItemVO vo = BeanConvertUtil.to(item, FavoriteItemVO.class);
         if (content != null) {
             vo.setContentTitle(content.getTitle());
-            vo.setContentType(content.getType() != null ? content.getType().toString() : null);
+            vo.setContentType(content.getType());
             vo.setContentDescription(content.getDescription());
+            vo.setCoverFileId(content.getCoverFileId());
+            vo.setUploadedBy(content.getUploadedBy());
+            vo.setContentStatus(content.getStatus());
+            vo.setContentCreateTime(content.getCreateTime());
+            vo.setContentUpdateTime(content.getUpdateTime());
         }
         return vo;
+    }
+
+    /**
+     * 批量填充作者昵称
+     */
+    private void fillAuthorNicknames(List<FavoriteItemVO> items) {
+        if (CollUtil.isEmpty(items)) {
+            return;
+        }
+
+        try {
+            // 收集所有作者ID
+            List<Long> userIds = items.stream()
+                    .map(FavoriteItemVO::getUploadedBy)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            if (CollUtil.isEmpty(userIds)) {
+                return;
+            }
+
+            // 批量查询用户信息
+            Map<Long, UserProfileSimpleVO> userMap = userFeignClient.batchGetUserProfiles(userIds);
+
+            if (userMap != null && !userMap.isEmpty()) {
+                // 填充昵称和头像
+                items.forEach(item -> {
+                    UserProfileSimpleVO userProfile = userMap.get(item.getUploadedBy());
+                    if (userProfile != null) {
+                        item.setAuthorNickname(userProfile.getNickname());
+                        item.setAuthorAvatarUrl(userProfile.getAvatarUrl());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("批量查询用户信息失败，跳过填充作者昵称", e);
+        }
+    }
+
+    /**
+     * 批量填充封面URL
+     */
+    private void fillCoverUrls(List<FavoriteItemVO> items) {
+        if (CollUtil.isEmpty(items)) {
+            return;
+        }
+
+        try {
+            // 收集所有封面文件ID
+            List<String> coverFileIds = items.stream()
+                    .map(FavoriteItemVO::getCoverFileId)
+                    .filter(StrUtil::isNotBlank)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            if (CollUtil.isEmpty(coverFileIds)) {
+                return;
+            }
+
+            // 批量获取文件URL
+            BatchUrlDTO request = new BatchUrlDTO();
+            request.setFileIds(coverFileIds);
+            request.setExpirySeconds(86400); // 24小时过期
+
+            BatchUrlVO response = mediaFeignClient.batchGetFileUrls(request);
+
+            if (response != null && response.getUrls() != null && !response.getUrls().isEmpty()) {
+                Map<String, String> urlMap = response.getUrls();
+                // 填充封面URL
+                items.forEach(item -> {
+                    String coverFileId = item.getCoverFileId();
+                    if (StrUtil.isNotBlank(coverFileId)) {
+                        String coverUrl = urlMap.get(coverFileId);
+                        if (StrUtil.isNotBlank(coverUrl)) {
+                            item.setCoverUrl(coverUrl);
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("批量获取封面URL失败，跳过填充封面URL", e);
+        }
     }
 }

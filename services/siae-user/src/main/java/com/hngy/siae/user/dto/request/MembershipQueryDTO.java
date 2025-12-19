@@ -38,6 +38,11 @@ public class MembershipQueryDTO {
     private Long positionId;
 
     /**
+     * 职位名称（模糊查询担任该职位的成员，如"会长"）
+     */
+    private String positionName;
+
+    /**
      * 加入日期开始
      */
     private LocalDate joinDateStart;

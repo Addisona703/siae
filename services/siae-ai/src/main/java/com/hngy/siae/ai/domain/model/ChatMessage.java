@@ -29,6 +29,7 @@ public class ChatMessage {
      * user: 用户消息
      * assistant: AI助手消息
      * system: 系统消息
+     * tool: 工具执行结果消息
      */
     private String role;
 
@@ -49,11 +50,17 @@ public class ChatMessage {
     private List<ToolCallInfo> toolCalls;
 
     /**
+     * 工具调用ID（仅tool角色消息使用）
+     */
+    private String toolCallId;
+
+    /**
      * 消息角色常量
      */
     public static final String ROLE_USER = "user";
     public static final String ROLE_ASSISTANT = "assistant";
     public static final String ROLE_SYSTEM = "system";
+    public static final String ROLE_TOOL = "tool";
 
     /**
      * 创建用户消息
@@ -94,6 +101,22 @@ public class ChatMessage {
     public static ChatMessage systemMessage(String content) {
         return ChatMessage.builder()
                 .role(ROLE_SYSTEM)
+                .content(content)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * 创建工具执行结果消息
+     *
+     * @param toolCallId 工具调用ID
+     * @param content    执行结果内容
+     * @return 工具结果消息实例
+     */
+    public static ChatMessage toolMessage(String toolCallId, String content) {
+        return ChatMessage.builder()
+                .role(ROLE_TOOL)
+                .toolCallId(toolCallId)
                 .content(content)
                 .timestamp(LocalDateTime.now())
                 .build();

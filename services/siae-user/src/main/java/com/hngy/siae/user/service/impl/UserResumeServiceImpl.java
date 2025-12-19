@@ -13,6 +13,7 @@ import com.hngy.siae.user.entity.UserResume;
 import com.hngy.siae.user.mapper.UserResumeMapper;
 import com.hngy.siae.user.service.UserResumeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
  *
  * @author KEYKB
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserResumeServiceImpl
@@ -33,29 +35,46 @@ public class UserResumeServiceImpl
     private final SecurityUtil securityUtil;
 
     /**
-     * 创建简历
+     * 创建或恢复简历
      * <p>
-     * 为当前登录用户创建简历，如果用户已有简历则抛出异常
+     * 为当前登录用户创建简历：
+     * - 如果已有未删除的简历 → 抛出异常
+     * - 如果已有软删除的简历 → 恢复并更新
+     * - 如果不存在 → 新建
      *
      * @param dto 简历创建参数
-     * @return 创建成功的简历信息
+     * @return 创建或恢复后的简历信息
      */
     @Override
     public UserResumeVO createResume(UserResumeCreateDTO dto) {
         Long userId = securityUtil.getCurrentUserId();
 
-        // 检查用户是否已有简历
-        LambdaQueryWrapper<UserResume> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserResume::getUserId, userId);
-        UserResume existingResume = getOne(queryWrapper);
-        AssertUtils.isNull(existingResume, UserResultCodeEnum.RESUME_ALREADY_EXISTS);
+        // 检查用户是否已有简历（包括软删除的，使用自定义SQL绕过 @TableLogic）
+        UserResume existingResume = getBaseMapper().selectByUserIdIncludeDeleted(userId);
 
-        // 创建简历
-        UserResume resume = BeanConvertUtil.to(dto, UserResume.class);
-        resume.setUserId(userId);
-        resume.setCreatedAt(LocalDateTime.now());
-        resume.setUpdatedAt(LocalDateTime.now());
-        save(resume);
+        UserResume resume;
+        if (existingResume != null) {
+            log.info("简历已存在，现在更新");
+            if (existingResume.getIsDeleted() == 0) {
+                // 未删除的简历已存在，抛出异常
+                AssertUtils.fail(UserResultCodeEnum.RESUME_ALREADY_EXISTS);
+            }
+            // 软删除的简历，恢复并更新
+            resume = existingResume;
+            BeanConvertUtil.to(dto, resume, "id", "userId", "createdAt", "isDeleted");
+            resume.setIsDeleted(0);
+            resume.setUpdatedAt(LocalDateTime.now());
+            // 使用自定义方法更新，绕过 @TableLogic
+            getBaseMapper().updateByIdIgnoreLogic(resume);
+        } else {
+            log.info("简历不存在，重新创建");
+            // 不存在，创建新简历
+            resume = BeanConvertUtil.to(dto, UserResume.class);
+            resume.setUserId(userId);
+            resume.setCreatedAt(LocalDateTime.now());
+            resume.setUpdatedAt(LocalDateTime.now());
+            save(resume);
+        }
 
         return BeanConvertUtil.to(resume, UserResumeVO.class);
     }
@@ -156,7 +175,7 @@ public class UserResumeServiceImpl
     /**
      * 删除简历
      * <p>
-     * 逻辑删除当前登录用户的简历，如果简历不存在则抛出异常
+     * 物理删除当前登录用户的简历，如果简历不存在则抛出异常
      *
      * @return 删除结果，true表示删除成功
      */
@@ -170,7 +189,7 @@ public class UserResumeServiceImpl
         UserResume existingResume = getOne(queryWrapper);
         AssertUtils.notNull(existingResume, UserResultCodeEnum.RESUME_NOT_FOUND);
 
-        // 逻辑删除（MyBatis-Plus @TableLogic 会自动处理）
-        return removeById(existingResume.getId());
+        // 物理删除（绕过 @TableLogic 逻辑删除）
+        return getBaseMapper().deleteById(existingResume.getId()) > 0;
     }
 }

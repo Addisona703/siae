@@ -212,7 +212,7 @@ curl -X GET http://localhost:8080/api/v1/attendance/activity/statistics/12345 \
 
 ## 相关文档
 
-- [活动考勤功能使用指南](./ACTIVITY_ATTENDANCE_GUIDE.md)
+- [活动考勤功能使用指南](ACTIVITY_ATTENDANCE_GUIDE.md)
 - [考勤服务设计文档](../../.kiro/specs/attendance-service/design.md)
 - [考勤服务需求文档](../../.kiro/specs/attendance-service/requirements.md)
 

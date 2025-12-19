@@ -23,9 +23,6 @@ public interface ChatSessionMapper extends BaseMapper<ChatSessionEntity> {
             "FROM ai_chat_session WHERE user_id = #{userId} ORDER BY update_time DESC LIMIT #{limit}")
     List<ChatSessionEntity> selectSessionListByUserId(@Param("userId") Long userId, @Param("limit") int limit);
 
-    /**
-     * 根据sessionId查询
-     */
-    @Select("SELECT * FROM ai_chat_session WHERE session_id = #{sessionId}")
-    ChatSessionEntity selectBySessionId(@Param("sessionId") String sessionId);
+    // selectBySessionId 改用 MyBatis-Plus 的 selectOne + LambdaQueryWrapper
+    // 这样可以正确触发 JacksonTypeHandler
 }
