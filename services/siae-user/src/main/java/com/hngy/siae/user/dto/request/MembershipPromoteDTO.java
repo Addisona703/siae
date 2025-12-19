@@ -16,7 +16,6 @@ public class MembershipPromoteDTO {
     /**
      * 成员ID
      */
-    @NotNull(message = "成员ID不能为空")
     private Long id;
 
     /**

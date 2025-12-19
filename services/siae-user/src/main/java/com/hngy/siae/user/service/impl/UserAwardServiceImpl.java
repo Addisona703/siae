@@ -122,6 +122,14 @@ public class UserAwardServiceImpl
         
         UserAwardVO vo = BeanConvertUtil.to(userAward, UserAwardVO.class);
         
+        // 收集需要获取URL的文件ID
+        List<String> fileIdsToFetch = new java.util.ArrayList<>();
+        
+        // 证书文件ID
+        if (StrUtil.isNotBlank(vo.getCertificateFileId())) {
+            fileIdsToFetch.add(vo.getCertificateFileId());
+        }
+        
         // 填充团队成员信息
         if (StrUtil.isNotBlank(vo.getTeamMembers())) {
             try {
@@ -135,31 +143,39 @@ public class UserAwardServiceImpl
                     // 批量查询用户信息
                     List<UserVO> members = baseMapper.selectUsersByIds(memberIds);
                     
-                    // 批量获取头像URL
-                    List<String> avatarFileIds = members.stream()
+                    // 收集头像文件ID
+                    members.stream()
                             .map(UserVO::getAvatarFileId)
                             .filter(StrUtil::isNotBlank)
                             .distinct()
-                            .collect(Collectors.toList());
+                            .forEach(fileIdsToFetch::add);
                     
-                    if (!avatarFileIds.isEmpty()) {
+                    // 批量获取文件URL
+                    Map<String, String> urlMap = new java.util.HashMap<>();
+                    if (!fileIdsToFetch.isEmpty()) {
                         try {
                             BatchUrlDTO request = new BatchUrlDTO();
-                            request.setFileIds(avatarFileIds);
+                            request.setFileIds(fileIdsToFetch);
                             request.setExpirySeconds(86400); // 24小时
                             BatchUrlVO urlResult = mediaFeignClient.batchGetFileUrls(request);
                             
                             if (urlResult != null && urlResult.getUrls() != null) {
-                                Map<String, String> urlMap = urlResult.getUrls();
-                                // 将URL设置到用户对象中
-                                for (UserVO user : members) {
-                                    if (StrUtil.isNotBlank(user.getAvatarFileId())) {
-                                        user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
-                                    }
-                                }
+                                urlMap = urlResult.getUrls();
                             }
                         } catch (Exception e) {
-                            log.warn("批量获取头像URL失败: {}", e.getMessage());
+                            log.warn("批量获取文件URL失败: {}", e.getMessage());
+                        }
+                    }
+                    
+                    // 设置证书URL
+                    if (StrUtil.isNotBlank(vo.getCertificateFileId())) {
+                        vo.setCertificateUrl(urlMap.get(vo.getCertificateFileId()));
+                    }
+                    
+                    // 设置头像URL
+                    for (UserVO user : members) {
+                        if (StrUtil.isNotBlank(user.getAvatarFileId())) {
+                            user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
                         }
                     }
                     
@@ -182,6 +198,22 @@ public class UserAwardServiceImpl
             }
         } else {
             vo.setTeamMemberList(new java.util.ArrayList<>());
+            
+            // 即使没有团队成员，也要获取证书URL
+            if (StrUtil.isNotBlank(vo.getCertificateFileId())) {
+                try {
+                    BatchUrlDTO request = new BatchUrlDTO();
+                    request.setFileIds(List.of(vo.getCertificateFileId()));
+                    request.setExpirySeconds(86400);
+                    BatchUrlVO urlResult = mediaFeignClient.batchGetFileUrls(request);
+                    
+                    if (urlResult != null && urlResult.getUrls() != null) {
+                        vo.setCertificateUrl(urlResult.getUrls().get(vo.getCertificateFileId()));
+                    }
+                } catch (Exception e) {
+                    log.warn("获取证书URL失败: {}", e.getMessage());
+                }
+            }
         }
         
         return vo;
@@ -220,7 +252,7 @@ public class UserAwardServiceImpl
     }
     
     /**
-     * 填充团队成员信息（包含头像URL）
+     * 填充团队成员信息（包含头像URL）和证书URL
      *
      * @param awards 获奖记录列表
      */
@@ -254,36 +286,55 @@ public class UserAwardServiceImpl
         Map<Long, UserVO> userMap = users.stream()
                 .collect(Collectors.toMap(UserVO::getId, user -> user));
         
-        // 3. 批量获取头像URL
-        List<String> avatarFileIds = users.stream()
+        // 3. 收集所有需要获取URL的文件ID（头像 + 证书）
+        List<String> allFileIds = new java.util.ArrayList<>();
+        
+        // 头像文件ID
+        users.stream()
                 .map(UserVO::getAvatarFileId)
                 .filter(StrUtil::isNotBlank)
                 .distinct()
-                .collect(Collectors.toList());
+                .forEach(allFileIds::add);
         
-        if (!avatarFileIds.isEmpty()) {
+        // 证书文件ID
+        awards.stream()
+                .map(UserAwardVO::getCertificateFileId)
+                .filter(StrUtil::isNotBlank)
+                .distinct()
+                .forEach(allFileIds::add);
+        
+        // 4. 批量获取文件URL
+        Map<String, String> urlMap = new java.util.HashMap<>();
+        if (!allFileIds.isEmpty()) {
             try {
                 BatchUrlDTO request = new BatchUrlDTO();
-                request.setFileIds(avatarFileIds);
+                request.setFileIds(allFileIds);
                 request.setExpirySeconds(86400); // 24小时
                 BatchUrlVO urlResult = mediaFeignClient.batchGetFileUrls(request);
                 
                 if (urlResult != null && urlResult.getUrls() != null) {
-                    Map<String, String> urlMap = urlResult.getUrls();
-                    // 将URL设置到用户对象中
-                    for (UserVO user : users) {
-                        if (StrUtil.isNotBlank(user.getAvatarFileId())) {
-                            user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
-                        }
-                    }
+                    urlMap = urlResult.getUrls();
                 }
             } catch (Exception e) {
-                log.warn("批量获取头像URL失败: {}", e.getMessage());
+                log.warn("批量获取文件URL失败: {}", e.getMessage());
             }
         }
         
-        // 4. 组装团队成员信息到每个奖项
+        // 5. 设置头像URL
+        for (UserVO user : users) {
+            if (StrUtil.isNotBlank(user.getAvatarFileId())) {
+                user.setAvatarUrl(urlMap.get(user.getAvatarFileId()));
+            }
+        }
+        
+        // 6. 组装团队成员信息和证书URL到每个奖项
         for (UserAwardVO award : awards) {
+            // 设置证书URL
+            if (StrUtil.isNotBlank(award.getCertificateFileId())) {
+                award.setCertificateUrl(urlMap.get(award.getCertificateFileId()));
+            }
+            
+            // 设置团队成员
             if (StrUtil.isNotBlank(award.getTeamMembers())) {
                 try {
                     List<Long> memberIds = cn.hutool.json.JSONUtil.parseArray(award.getTeamMembers())

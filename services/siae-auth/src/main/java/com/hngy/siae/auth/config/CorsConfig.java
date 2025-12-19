@@ -1,43 +1,15 @@
 package com.hngy.siae.auth.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
-
 /**
- * CORS跨域配置（用于本地开发测试）
+ * CORS跨域配置
+ * 
+ * 注意：CORS 已在 Gateway 层统一配置，此处不再重复配置
+ * 避免 Gateway 和微服务都添加 CORS 头导致重复的问题
  * 
  * @author SIAE
  */
-@Configuration
+// @Configuration  // 已禁用，由 Gateway 统一处理 CORS
 public class CorsConfig {
-
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        
-        // 允许的域名
-        config.setAllowedOriginPatterns(Arrays.asList("*"));
-        
-        // 允许的请求方法
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        // 允许的请求头
-        config.setAllowedHeaders(Arrays.asList("*"));
-        
-        // 允许携带凭证
-        config.setAllowCredentials(true);
-        
-        // 预检请求缓存时间
-        config.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        
-        return new CorsFilter(source);
-    }
+    // CORS 配置已移至 siae-gateway 模块
+    // 如需本地单独调试 auth 服务，可取消注释 @Configuration
 }

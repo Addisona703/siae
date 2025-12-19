@@ -14,7 +14,12 @@ import com.hngy.siae.content.enums.status.ContentStatusEnum;
 import com.hngy.siae.content.entity.AuditLog;
 import com.hngy.siae.content.entity.Category;
 import com.hngy.siae.content.entity.Content;
+import com.hngy.siae.content.entity.FavoriteFolder;
+import com.hngy.siae.content.entity.FavoriteItem;
 import com.hngy.siae.content.entity.TagRelation;
+import com.hngy.siae.content.mapper.ContentMapper;
+import com.hngy.siae.content.mapper.FavoriteFolderMapper;
+import com.hngy.siae.content.mapper.FavoriteItemMapper;
 import com.hngy.siae.content.service.AuditsService;
 import com.hngy.siae.content.service.CategoriesService;
 import com.hngy.siae.content.service.ContentService;
@@ -50,6 +55,9 @@ public class SystemCleanupService {
     private final TagRelationService tagRelationService;
     private final ContentStrategyContext strategyContext;
     private final MediaFeignClient mediaFeignClient;
+    private final FavoriteItemMapper favoriteItemMapper;
+    private final FavoriteFolderMapper favoriteFolderMapper;
+    private final ContentMapper contentMapper;
 
     private static final int PAGE_SIZE = 500;
 
@@ -98,6 +106,9 @@ public class SystemCleanupService {
                 boolean tagsRemoved = tagRelationService.remove(queryWrapper);
                 AssertUtils.isTrue(tagsRemoved, "批量删除标签关系失败");
             }
+
+            // 批量删除收藏记录并更新收藏夹计数
+            cleanFavoriteItems(contentIds);
 
             // 收集所有需要删除的媒体文件ID（封面 + 详情中的媒体文件）
             List<String> mediaFileIds = new ArrayList<>();
@@ -245,5 +256,56 @@ public class SystemCleanupService {
 
         stopWatch.stop();
         log.info("【定时任务】分类清理完成，共清理 {} 条数据，耗时：{} ms", categoriesToDelete.size(), stopWatch.getTotalTimeMillis());
+    }
+
+    /**
+     * 清理收藏记录并更新收藏夹计数
+     *
+     * @param contentIds 要清理的内容ID列表
+     */
+    private void cleanFavoriteItems(List<Long> contentIds) {
+        if (CollUtil.isEmpty(contentIds)) {
+            return;
+        }
+
+        // 查询受影响的收藏记录，获取收藏夹ID
+        LambdaQueryWrapper<FavoriteItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(FavoriteItem::getContentId, contentIds);
+        List<FavoriteItem> favoriteItems = favoriteItemMapper.selectList(queryWrapper);
+
+        if (CollUtil.isEmpty(favoriteItems)) {
+            log.info("【定时任务】无需清理的收藏记录");
+            return;
+        }
+
+        // 收集受影响的收藏夹ID
+        List<Long> affectedFolderIds = favoriteItems.stream()
+                .map(FavoriteItem::getFolderId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 删除收藏记录
+        int deletedCount = favoriteItemMapper.delete(queryWrapper);
+        log.info("【定时任务】删除收藏记录 {} 条", deletedCount);
+
+        // 更新受影响收藏夹的计数
+        for (Long folderId : affectedFolderIds) {
+            updateFolderItemCount(folderId);
+        }
+        log.info("【定时任务】更新收藏夹计数 {} 个", affectedFolderIds.size());
+    }
+
+    /**
+     * 更新收藏夹的内容数量（只统计已发布的内容）
+     */
+    private void updateFolderItemCount(Long folderId) {
+        // 只统计已发布状态的内容
+        Long count = contentMapper.countPublishedFavoriteItems(folderId);
+
+        FavoriteFolder folder = favoriteFolderMapper.selectById(folderId);
+        if (folder != null) {
+            folder.setItemCount(count.intValue());
+            favoriteFolderMapper.updateById(folder);
+        }
     }
 }

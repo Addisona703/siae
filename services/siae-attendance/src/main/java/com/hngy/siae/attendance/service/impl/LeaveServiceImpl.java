@@ -1,6 +1,11 @@
 package com.hngy.siae.attendance.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hngy.siae.api.media.client.MediaFeignClient;
+import com.hngy.siae.api.media.dto.request.BatchUrlDTO;
+import com.hngy.siae.api.media.dto.response.BatchUrlVO;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.attendance.dto.request.LeaveApprovalDTO;
 import com.hngy.siae.attendance.dto.request.LeaveQueryDTO;
 import com.hngy.siae.attendance.dto.request.LeaveRequestCreateDTO;
@@ -31,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 请假服务实现
@@ -47,6 +53,8 @@ public class LeaveServiceImpl implements ILeaveService {
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final AttendanceAnomalyMapper attendanceAnomalyMapper;
     private final SecurityUtil securityUtil;
+    private final UserFeignClient userFeignClient;
+    private final MediaFeignClient mediaFeignClient;
 
     /**
      * 创建请假申请
@@ -313,24 +321,15 @@ public class LeaveServiceImpl implements ILeaveService {
      * 
      * Requirement 6.4: 验证审批人是否有权限审批该请假申请
      * 
-     * 当前实现：简化版本，只验证审批人是否是分配的审批人
-     * TODO: 后续可以增加更复杂的权限验证逻辑
-     * 例如：
-     * 1. 验证审批人是否有 LEAVE_APPROVE 权限
-     * 2. 验证审批人是否是申请人的上级
-     * 3. 根据请假天数验证审批人级别
+     * 当前实现：管理员（拥有审批权限的用户）可以审批所有请假申请
+     * 不再限制只能审批指定给自己的请假
      *
      * @param leaveRequest 请假申请
      * @param approverId 审批人ID
      */
     private void validateApproverPermission(LeaveRequest leaveRequest, Long approverId) {
-        // 验证审批人是否是分配的审批人
-        if (!approverId.equals(leaveRequest.getApproverId())) {
-            log.warn("审批人无权限审批该请假申请: leaveRequestId={}, expectedApproverId={}, actualApproverId={}", 
-                    leaveRequest.getId(), leaveRequest.getApproverId(), approverId);
-            AssertUtils.fail(AttendanceResultCodeEnum.LEAVE_APPROVAL_PERMISSION_DENIED);
-        }
-        
+        // 管理员拥有审批权限即可审批所有请假，不再校验是否是指定审批人
+        // 权限校验已在 Controller 层通过 @SiaeAuthorize 完成
         log.debug("审批权限验证通过: leaveRequestId={}, approverId={}", 
                 leaveRequest.getId(), approverId);
     }
@@ -486,8 +485,10 @@ public class LeaveServiceImpl implements ILeaveService {
         LeaveRequest leaveRequest = leaveRequestMapper.selectById(id);
         AssertUtils.notNull(leaveRequest, AttendanceResultCodeEnum.LEAVE_REQUEST_NOT_FOUND);
 
-        // 权限检查在 Controller 层已完成，这里直接返回
-        return BeanConvertUtil.to(leaveRequest, LeaveRequestDetailVO.class);
+        // 转换为 VO 并填充用户信息和附件URL
+        LeaveRequestDetailVO detailVO = BeanConvertUtil.to(leaveRequest, LeaveRequestDetailVO.class);
+        enrichLeaveRequestDetailVO(detailVO);
+        return detailVO;
     }
 
     /**
@@ -538,8 +539,10 @@ public class LeaveServiceImpl implements ILeaveService {
         com.baomidou.mybatisplus.core.metadata.IPage<LeaveRequest> resultPage = 
                 leaveRequestMapper.selectPage(page, queryWrapper);
 
-        // 转换为 VO
-        return PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        // 转换为 VO 并填充用户信息
+        PageVO<LeaveRequestVO> result = PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        enrichLeaveRequestVOList(result.getRecords());
+        return result;
     }
 
     /**
@@ -566,8 +569,10 @@ public class LeaveServiceImpl implements ILeaveService {
         com.baomidou.mybatisplus.core.metadata.IPage<LeaveRequest> resultPage = 
                 leaveRequestMapper.selectPage(page, queryWrapper);
 
-        // 转换为 VO
-        return PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        // 转换为 VO 并填充用户信息
+        PageVO<LeaveRequestVO> result = PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        enrichLeaveRequestVOList(result.getRecords());
+        return result;
     }
 
     /**
@@ -610,8 +615,10 @@ public class LeaveServiceImpl implements ILeaveService {
         com.baomidou.mybatisplus.core.metadata.IPage<LeaveRequest> resultPage = 
                 leaveRequestMapper.selectPage(page, queryWrapper);
 
-        // 转换为 VO
-        return PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        // 转换为 VO 并填充用户信息
+        PageVO<LeaveRequestVO> result = PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        enrichLeaveRequestVOList(result.getRecords());
+        return result;
     }
 
     /**
@@ -795,12 +802,27 @@ public class LeaveServiceImpl implements ILeaveService {
     }
 
     /**
-     * 查询待审核请假列表（自动获取当前用户）
+     * 查询待审核请假列表（管理员查看所有待审核请假）
      */
     @Override
     public com.hngy.siae.core.dto.PageVO<LeaveRequestVO> getPendingLeaves(com.hngy.siae.core.dto.PageDTO<Void> pageDTO) {
-        Long currentUserId = securityUtil.getCurrentUserId();
-        return getPendingLeaves(currentUserId, pageDTO.getPageNum(), pageDTO.getPageSize());
+        log.info("查询所有待审核请假列表: pageNum={}, pageSize={}", pageDTO.getPageNum(), pageDTO.getPageSize());
+
+        // 构建查询条件 - 只查询待审核状态，不限制审批人
+        LambdaQueryWrapper<LeaveRequest> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(LeaveRequest::getStatus, LeaveStatus.PENDING)
+                .orderByAsc(LeaveRequest::getCreatedAt);
+
+        // 分页查询
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<LeaveRequest> page = 
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageDTO.getPageNum(), pageDTO.getPageSize());
+        com.baomidou.mybatisplus.core.metadata.IPage<LeaveRequest> resultPage = 
+                leaveRequestMapper.selectPage(page, queryWrapper);
+
+        // 转换为 VO 并填充用户信息
+        PageVO<LeaveRequestVO> result = PageConvertUtil.convert(resultPage, LeaveRequestVO.class);
+        enrichLeaveRequestVOList(result.getRecords());
+        return result;
     }
 
     /**
@@ -814,5 +836,145 @@ public class LeaveServiceImpl implements ILeaveService {
         LocalDateTime endDate = params != null ? params.getEndDate() : null;
         LeaveStatus status = params != null ? params.getStatus() : null;
         return getMyLeaves(currentUserId, startDate, endDate, status, pageDTO.getPageNum(), pageDTO.getPageSize());
+    }
+
+    // ==================== 辅助方法：填充用户信息和附件URL ====================
+
+    /**
+     * 批量填充请假申请VO的用户信息（申请人和审批人的姓名、头像）
+     *
+     * @param voList 请假申请VO列表
+     */
+    private void enrichLeaveRequestVOList(List<LeaveRequestVO> voList) {
+        if (voList == null || voList.isEmpty()) {
+            return;
+        }
+
+        // 收集所有需要查询的用户ID
+        Set<Long> userIds = new HashSet<>();
+        for (LeaveRequestVO vo : voList) {
+            if (vo.getUserId() != null) {
+                userIds.add(vo.getUserId());
+            }
+            if (vo.getApproverId() != null) {
+                userIds.add(vo.getApproverId());
+            }
+        }
+
+        if (userIds.isEmpty()) {
+            return;
+        }
+
+        // 批量查询用户信息
+        Map<Long, UserProfileSimpleVO> userMap = fetchUserProfiles(userIds);
+
+        // 填充用户信息
+        for (LeaveRequestVO vo : voList) {
+            // 填充申请人信息
+            if (vo.getUserId() != null) {
+                UserProfileSimpleVO userProfile = userMap.get(vo.getUserId());
+                if (userProfile != null) {
+                    vo.setUserName(userProfile.getNickname() != null ? userProfile.getNickname() : userProfile.getUsername());
+                    vo.setUserAvatarUrl(userProfile.getAvatarUrl());
+                }
+            }
+            // 填充审批人信息
+            if (vo.getApproverId() != null) {
+                UserProfileSimpleVO approverProfile = userMap.get(vo.getApproverId());
+                if (approverProfile != null) {
+                    vo.setApproverName(approverProfile.getNickname() != null ? approverProfile.getNickname() : approverProfile.getUsername());
+                    vo.setApproverAvatarUrl(approverProfile.getAvatarUrl());
+                }
+            }
+        }
+    }
+
+    /**
+     * 填充请假详情VO的用户信息和附件URL
+     *
+     * @param detailVO 请假详情VO
+     */
+    private void enrichLeaveRequestDetailVO(LeaveRequestDetailVO detailVO) {
+        if (detailVO == null) {
+            return;
+        }
+
+        // 收集用户ID
+        Set<Long> userIds = new HashSet<>();
+        if (detailVO.getUserId() != null) {
+            userIds.add(detailVO.getUserId());
+        }
+        if (detailVO.getApproverId() != null) {
+            userIds.add(detailVO.getApproverId());
+        }
+
+        // 批量查询用户信息
+        if (!userIds.isEmpty()) {
+            Map<Long, UserProfileSimpleVO> userMap = fetchUserProfiles(userIds);
+
+            // 填充申请人信息
+            if (detailVO.getUserId() != null) {
+                UserProfileSimpleVO userProfile = userMap.get(detailVO.getUserId());
+                if (userProfile != null) {
+                    detailVO.setUserName(userProfile.getNickname() != null ? userProfile.getNickname() : userProfile.getUsername());
+                    detailVO.setUserAvatarUrl(userProfile.getAvatarUrl());
+                }
+            }
+            // 填充审批人信息
+            if (detailVO.getApproverId() != null) {
+                UserProfileSimpleVO approverProfile = userMap.get(detailVO.getApproverId());
+                if (approverProfile != null) {
+                    detailVO.setApproverName(approverProfile.getNickname() != null ? approverProfile.getNickname() : approverProfile.getUsername());
+                    detailVO.setApproverAvatarUrl(approverProfile.getAvatarUrl());
+                }
+            }
+        }
+
+        // 获取附件URL
+        if (detailVO.getAttachmentFileIds() != null && !detailVO.getAttachmentFileIds().isEmpty()) {
+            List<String> attachmentUrls = fetchFileUrls(detailVO.getAttachmentFileIds());
+            detailVO.setAttachmentUrls(attachmentUrls);
+        }
+    }
+
+    /**
+     * 批量获取用户信息
+     *
+     * @param userIds 用户ID集合
+     * @return 用户ID -> 用户信息的映射
+     */
+    private Map<Long, UserProfileSimpleVO> fetchUserProfiles(Set<Long> userIds) {
+        try {
+            return userFeignClient.batchGetUserProfiles(new ArrayList<>(userIds));
+        } catch (Exception e) {
+            log.warn("批量获取用户信息失败: userIds={}, error={}", userIds, e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * 批量获取文件URL
+     *
+     * @param fileIds 文件ID列表
+     * @return 文件URL列表（与fileIds顺序对应）
+     */
+    private List<String> fetchFileUrls(List<String> fileIds) {
+        try {
+            BatchUrlDTO request = new BatchUrlDTO();
+            request.setFileIds(fileIds);
+            request.setExpirySeconds(86400); // 24小时有效期
+            BatchUrlVO response = mediaFeignClient.batchGetFileUrls(request);
+            
+            if (response != null && response.getUrls() != null) {
+                // 按原始fileIds顺序返回URL
+                return fileIds.stream()
+                        .map(fileId -> response.getUrls().get(fileId))
+                        .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.warn("批量获取文件URL失败: fileIds={}, error={}", fileIds, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

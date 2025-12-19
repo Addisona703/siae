@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.databind.type.LogicalType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -54,7 +56,7 @@ public class JacksonConfig {
             
             // 配置 Java 8 时间模块
             JavaTimeModule timeModule = new JavaTimeModule();
-            
+
             // LocalDateTime 格式化
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(jacksonConfig.getDateFormat());
             timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
@@ -69,9 +71,14 @@ public class JacksonConfig {
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
             timeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(timeFormatter));
             timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(timeFormatter));
-            
-            builder.modules(timeModule);
-            
+
+            // Long 类型序列化为字符串（解决雪花ID精度丢失问题）
+            SimpleModule longModule = new SimpleModule();
+            longModule.addSerializer(Long.class, ToStringSerializer.instance);
+            longModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+
+            builder.modules(timeModule, longModule);
+
             // 其他配置
             builder.featuresToDisable(
                 SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
@@ -90,9 +97,15 @@ public class JacksonConfig {
      */
     @Bean
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper mapper = builder.build();
-
         WebProperties.Jackson jacksonConfig = webProperties.getJackson();
+
+        // Long 类型序列化为字符串（解决雪花ID精度丢失问题）
+        SimpleModule longModule = new SimpleModule();
+        longModule.addSerializer(Long.class, ToStringSerializer.instance);
+        longModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+
+        ObjectMapper mapper = builder.build();
+        mapper.registerModule(longModule);
 
         // 忽略未知属性
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

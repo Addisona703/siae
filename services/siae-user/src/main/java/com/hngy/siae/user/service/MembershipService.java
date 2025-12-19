@@ -124,4 +124,12 @@ public interface MembershipService extends IService<Membership> {
      * @return 是否成功
      */
     boolean rejectCandidate(Long id);
+
+    /**
+     * 强制退会：将成员状态设为已开除
+     *
+     * @param id 成员ID
+     * @return 是否成功
+     */
+    boolean expelMember(Long id);
 }

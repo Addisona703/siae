@@ -116,4 +116,16 @@ public interface UserFeignClient {
      */
     @GetMapping("/face-auth/{userId}")
     UserFaceAuthVO getUserFaceAuthInfo(@PathVariable("userId") @NotNull Long userId);
+
+    /**
+     * 更新用户密码
+     * <p>
+     * 供认证服务调用，更新用户的加密密码
+     *
+     * @param userId 用户ID
+     * @param encodedPassword 加密后的新密码
+     */
+    @PutMapping("/password/{userId}")
+    void updatePassword(@PathVariable("userId") @NotNull Long userId, 
+                        @RequestParam("encodedPassword") @NotBlank String encodedPassword);
 }

@@ -94,8 +94,9 @@ public class RuleController {
     @SiaeAuthorize("hasPermission('" + Rule.LIST + "')")
     public Result<List<AttendanceRuleVO>> listRules(
             @RequestParam(required = false) RuleStatus status,
+            @RequestParam(required = false) String attendanceType,
             @RequestParam(required = false) String targetType) {
-        List<AttendanceRuleVO> result = ruleService.listRules(status, targetType);
+        List<AttendanceRuleVO> result = ruleService.listRules(status, attendanceType, targetType);
         return Result.success(result);
     }
 

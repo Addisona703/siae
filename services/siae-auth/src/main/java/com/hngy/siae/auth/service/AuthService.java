@@ -1,6 +1,7 @@
 package com.hngy.siae.auth.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hngy.siae.auth.dto.request.ChangePasswordDTO;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.response.LoginVO;
@@ -61,4 +62,12 @@ public interface AuthService extends IService<UserAuth> {
      * @return 当前用户视图对象
      */
     CurrentUserVO getCurrentUser(Long userId);
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取）
+     * @param changePasswordDTO 修改密码请求
+     */
+    void changePassword(Long userId, ChangePasswordDTO changePasswordDTO);
 }

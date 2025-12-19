@@ -3,6 +3,7 @@ package com.hngy.siae.content.strategy.audit.impl;
 import com.hngy.siae.content.entity.Content;
 import com.hngy.siae.content.enums.TypeEnum;
 import com.hngy.siae.content.enums.status.ContentStatusEnum;
+import com.hngy.siae.content.service.ContentNotificationService;
 import com.hngy.siae.content.service.ContentService;
 import com.hngy.siae.content.service.StatisticsService;
 import com.hngy.siae.content.strategy.audit.AuditHandler;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
  * 内容审核处理器
  * 处理内容类型的审核逻辑
  * 
- * Requirements: 2.2, 2.3
+ * Requirements: 2.2, 2.3, 1.1, 1.2, 1.3
  * 
  * @author Kiro
  */
@@ -27,11 +28,13 @@ public class ContentAuditHandler implements AuditHandler {
 
     private final ContentService contentService;
     private final StatisticsService statisticsService;
+    private final ContentNotificationService contentNotificationService;
 
     /**
      * 审核通过处理
      * 1. 更新内容状态为已发布（使用乐观锁）
      * 2. 创建统计记录
+     * 3. 发送审核通过通知
      * 
      * @param targetId 内容ID
      * @return 是否成功（乐观锁冲突时返回 false）
@@ -47,6 +50,18 @@ public class ContentAuditHandler implements AuditHandler {
             } catch (Exception e) {
                 log.warn("创建内容统计记录失败，contentId: {}", targetId, e);
                 // 统计记录创建失败不影响审核结果
+            }
+            
+            // 3. 发送审核通过通知 (Requirements: 1.1, 1.2, 1.3)
+            try {
+                Content content = contentService.getById(targetId);
+                if (content != null) {
+                    contentNotificationService.sendContentApprovedNotification(content);
+                    log.info("发送内容审核通过通知成功，contentId: {}, userId: {}", targetId, content.getUploadedBy());
+                }
+            } catch (Exception e) {
+                log.error("发送内容审核通过通知失败，contentId: {}", targetId, e);
+                // 通知发送失败不影响审核结果
             }
         }
         return success;

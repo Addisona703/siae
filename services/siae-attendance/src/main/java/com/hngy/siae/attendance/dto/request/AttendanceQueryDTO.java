@@ -26,6 +26,11 @@ public class AttendanceQueryDTO {
     private List<Long> userIds;
 
     /**
+     * 用户名（模糊查询）
+     */
+    private String userName;
+
+    /**
      * 考勤类型
      */
     private AttendanceType attendanceType;

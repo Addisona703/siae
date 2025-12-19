@@ -176,7 +176,9 @@ public class UserServiceImpl
 
         if (userProfile != null) {
             // 更新已存在的用户详情
+            log.debug("更新前 userDTO: qq={}, idCard={}", userDTO.getQq(), userDTO.getIdCard());
             BeanConvertUtil.to(userDTO, userProfile, "id", "userId", "createdAt");
+            log.debug("更新后 userProfile: qq={}, idCard={}", userProfile.getQq(), userProfile.getIdCard());
             userProfileMapper.updateById(userProfile);
         } else {
             // 如果用户详情不存在，则创建
@@ -673,5 +675,19 @@ public class UserServiceImpl
                 .realName(profile != null ? profile.getRealName() : null)
                 .idCard(profile != null ? profile.getIdCard() : null)
                 .build();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePassword(Long userId, String encodedPassword) {
+        // 检查用户是否存在
+        User user = getById(userId);
+        AssertUtils.notNull(user, UserResultCodeEnum.USER_NOT_FOUND);
+
+        // 更新密码
+        user.setPassword(encodedPassword);
+        updateById(user);
+
+        log.info("用户密码更新成功，用户ID: {}", userId);
     }
 }

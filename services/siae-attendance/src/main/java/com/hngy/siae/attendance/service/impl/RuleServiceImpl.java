@@ -449,27 +449,46 @@ public class RuleServiceImpl implements IRuleService {
      * 查询规则列表（支持过滤）
      */
     @Override
-    public List<AttendanceRuleVO> listRules(com.hngy.siae.attendance.enums.RuleStatus status, String targetType) {
-        log.info("查询规则列表: status={}, targetType={}", status, targetType);
-        
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AttendanceRule> queryWrapper = 
+    public List<AttendanceRuleVO> listRules(com.hngy.siae.attendance.enums.RuleStatus status, String attendanceType, String targetType) {
+        log.info("查询规则列表: status={}, attendanceType={}, targetType={}", status, attendanceType, targetType);
+
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AttendanceRule> queryWrapper =
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        
+
         // 状态过滤
         if (status != null) {
             queryWrapper.eq(AttendanceRule::getStatus, status);
         }
-        
+
+        // 考勤类型过滤
+        if (attendanceType != null && !attendanceType.trim().isEmpty()) {
+            try {
+                // 将字符串转换为枚举类型
+                com.hngy.siae.attendance.enums.AttendanceType attendanceTypeEnum =
+                        com.hngy.siae.attendance.enums.AttendanceType.valueOf(attendanceType);
+                queryWrapper.eq(AttendanceRule::getAttendanceType, attendanceTypeEnum);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的 attendanceType 参数: {}", attendanceType);
+            }
+        }
+
         // 适用对象类型过滤
         if (targetType != null && !targetType.trim().isEmpty()) {
-            queryWrapper.eq(AttendanceRule::getTargetType, targetType);
+            try {
+                // 将字符串转换为枚举类型
+                com.hngy.siae.attendance.enums.RuleTargetType targetTypeEnum =
+                        com.hngy.siae.attendance.enums.RuleTargetType.valueOf(targetType);
+                queryWrapper.eq(AttendanceRule::getTargetType, targetTypeEnum);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的 targetType 参数: {}", targetType);
+            }
         }
-        
+
         queryWrapper.orderByDesc(AttendanceRule::getPriority)
                 .orderByDesc(AttendanceRule::getCreatedAt);
-        
+
         List<AttendanceRule> rules = attendanceRuleMapper.selectList(queryWrapper);
-        
+
         return rules.stream()
                 .map(rule -> com.hngy.siae.core.utils.BeanConvertUtil.to(rule, AttendanceRuleVO.class))
                 .collect(java.util.stream.Collectors.toList());

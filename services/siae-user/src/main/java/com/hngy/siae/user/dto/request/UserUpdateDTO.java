@@ -75,6 +75,11 @@ public class UserUpdateDTO implements Serializable {
     private String avatarFileId;
 
     /**
+     * 个人简介
+     */
+    private String bio;
+
+    /**
      * 专业ID
      */
     private Long majorId;
@@ -93,4 +98,16 @@ public class UserUpdateDTO implements Serializable {
      * 状态：0禁用，1启用
      */
     private UserStatusEnum status;
+
+    /**
+     * QQ号
+     */
+    @Pattern(regexp = "^[1-9]\\d{4,10}$", message = "QQ号格式不正确")
+    private String qq;
+
+    /**
+     * 身份证号
+     */
+    @Pattern(regexp = "^[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$", message = "身份证号格式不正确")
+    private String idCard;
 } 

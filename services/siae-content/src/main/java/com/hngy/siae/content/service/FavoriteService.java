@@ -104,7 +104,7 @@ public interface FavoriteService {
      *
      * @param userId 用户ID
      * @param contentId 内容ID
-     * @return 是否已收藏
+     * @return 如果已收藏则返回收藏ID，否则返回null
      */
-    Boolean checkFavorite(Long userId, Long contentId);
+    Long checkFavorite(Long userId, Long contentId);
 }

@@ -76,4 +76,12 @@ public interface ContentMapper extends BaseMapper<Content> {
      * AI获取最新内容
      */
     List<ContentInfo> getLatestContentForAi(@Param("limit") Integer limit);
+
+    /**
+     * 统计收藏夹中已发布内容的数量
+     *
+     * @param folderId 收藏夹ID
+     * @return 已发布内容数量
+     */
+    Long countPublishedFavoriteItems(@Param("folderId") Long folderId);
 }

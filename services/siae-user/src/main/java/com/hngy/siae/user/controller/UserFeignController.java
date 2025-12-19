@@ -147,4 +147,21 @@ public class UserFeignController {
             @Parameter(description = "用户ID") @PathVariable("userId") @NotNull Long userId) {
         return Result.success(userService.getUserFaceAuthInfo(userId));
     }
+
+    /**
+     * 更新用户密码
+     * <p>
+     * 供认证服务调用，更新用户的加密密码
+     *
+     * @param userId 用户ID
+     * @param encodedPassword 加密后的新密码
+     */
+    @PutMapping("/password/{userId}")
+    @Operation(summary = "更新用户密码", description = "供认证服务调用，更新用户的加密密码")
+    public Result<Void> updatePassword(
+            @Parameter(description = "用户ID") @PathVariable("userId") @NotNull Long userId,
+            @Parameter(description = "加密后的新密码") @RequestParam("encodedPassword") @NotBlank String encodedPassword) {
+        userService.updatePassword(userId, encodedPassword);
+        return Result.success();
+    }
 }

@@ -66,6 +66,10 @@ public class MembershipServiceImpl
         
         Membership membership;
         if (existing != null) {
+            // 检查是否被开除过，被开除的用户不允许再次申请
+            AssertUtils.isFalse(LifecycleStatusEnum.isExpelled(existing.getLifecycleStatus().getCode()),
+                    UserResultCodeEnum.MEMBERSHIP_EXPELLED);
+            
             // 如果记录存在且未删除，则不允许重复申请
             AssertUtils.isTrue(existing.getIsDeleted() == 1, UserResultCodeEnum.MEMBERSHIP_ALREADY_EXISTS);
             
@@ -173,6 +177,24 @@ public class MembershipServiceImpl
         boolean success = updateById(membership);
         if (success) {
             log.info("审核拒绝成功，成员ID: {}", id);
+        }
+        return success;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean expelMember(Long id) {
+        log.info("强制退会，成员ID: {}", id);
+
+        Membership membership = getById(id);
+        AssertUtils.notNull(membership, UserResultCodeEnum.MEMBERSHIP_NOT_FOUND);
+
+        // 更新为已开除
+        membership.setLifecycleStatus(LifecycleStatusEnum.EXPELLED);
+
+        boolean success = updateById(membership);
+        if (success) {
+            log.info("强制退会成功，成员ID: {}", id);
         }
         return success;
     }

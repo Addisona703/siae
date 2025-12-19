@@ -4,6 +4,14 @@
 
 This document describes the Nacos configuration setup for the siae-ai service.
 
+## Architecture Changes (v2.0)
+
+The AI service has been refactored with the following key changes:
+- **Removed Redis dependency**: Sessions are now stored directly in MySQL
+- **Removed Ollama dependency**: Using ZhipuAI as the primary LLM provider
+- **Multi-provider support**: Support for multiple LLM providers (ZhipuAI, OpenAI, DeepSeek)
+- **Simplified interfaces**: Only streaming chat interface is retained
+
 ## Nacos Configuration Files
 
 ### 1. Base Configuration (siae-ai.yaml)
@@ -27,33 +35,6 @@ server:
     context-path: /
 
 spring:
-  # AI Configuration - Spring AI OpenAI Compatible
-  ai:
-    openai:
-      # 使用阿里通义千问 (Qwen) - OpenAI兼容接口
-      base-url: ${QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
-      api-key: ${QWEN_API_KEY:your-api-key-here}
-      chat:
-        options:
-          model: ${QWEN_MODEL:qwen-turbo}
-          temperature: 0.7
-          max-tokens: 2000
-
-  # Redis Configuration
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: 0
-      timeout: 5000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
-
   # Cloud Configuration
   cloud:
     nacos:
@@ -65,25 +46,62 @@ spring:
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:nacos}
 
-# Custom AI Properties
+# ===================================================================
+# Custom AI Properties - 多供应商配置
+# Requirements: 1.1, 1.2, 1.3, 8.2, 8.3
+# ===================================================================
 siae:
   ai:
-    provider: qwen
-    api-key: ${QWEN_API_KEY:your-api-key-here}
-    model: ${QWEN_MODEL:qwen-turbo}
-    base-url: ${QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
-    max-tokens: 2000
-    temperature: 0.7
-    response-timeout: 30
-    system-prompt: "你是SIAE（学生创新与创业协会）的智能助手，可以帮助用户查询成员信息、获奖记录等数据。请用简洁、专业的中文回答问题。"
+    # 默认供应商
+    default-provider: zhipu
+    
+    # 供应商配置
+    providers:
+      # 智谱 AI 配置（默认供应商）
+      zhipu:
+        api-key: ${ZHIPU_API_KEY:}
+        base-url: https://open.bigmodel.cn/api/paas/v4
+        display-name: 智谱AI
+        models:
+          - glm-4-flash
+          - glm-4
+          - glm-4-plus
+        default-model: glm-4-flash
+      
+      # OpenAI 配置（可选）
+      openai:
+        api-key: ${OPENAI_API_KEY:}
+        base-url: https://api.openai.com/v1
+        display-name: OpenAI
+        models:
+          - gpt-3.5-turbo
+          - gpt-4
+          - gpt-4-turbo
+        default-model: gpt-3.5-turbo
+      
+      # DeepSeek 配置（可选）
+      deepseek:
+        api-key: ${DEEPSEEK_API_KEY:}
+        base-url: https://api.deepseek.com/v1
+        display-name: DeepSeek
+        models:
+          - deepseek-chat
+          - deepseek-coder
+        default-model: deepseek-chat
+    
+    # 聊天参数配置
+    chat:
+      temperature: 0.7
+      max-tokens: 2000
+      response-timeout: 60
+      system-prompt: >
+        您是SIAE（学生创新与创业协会）的智能助手，致力于为协会成员和访客提供高效、专业的信息查询和支持服务。
+        您将通过智能交互为用户提供各种协会相关数据、统计信息、资源推荐等内容。
+        回答应专业，避免重复用户问题。所有回答必须使用Markdown格式，并保持格式一致性。
+    
+    # 会话配置
     session:
       max-messages: 20
-      timeout-minutes: 30
-    retry:
-      max-attempts: 3
-      initial-interval: 1000
-      multiplier: 2.0
-      max-interval: 10000
   
   # Security Configuration
   security:
@@ -94,7 +112,6 @@ siae:
       token-prefix: "Bearer "
     permission:
       cache-enabled: true
-      redis-enabled: true
       log-enabled: true
     whitelist-paths:
       - /swagger-ui/**
@@ -115,7 +132,6 @@ logging:
   level:
     root: INFO
     com.hngy.siae.ai: INFO
-    org.springframework.ai: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -242,21 +258,23 @@ management:
 
 The following environment variables should be configured in your deployment environment:
 
-### Required Variables
+### Required Variables (至少配置一个供应商)
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `QWEN_API_KEY` | 阿里通义千问 API Key | `sk-xxxxxxxxxxxxx` |
-| `QWEN_BASE_URL` | 通义千问 API Base URL | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| `QWEN_MODEL` | LLM 模型名称 | `qwen-turbo` |
+| `ZHIPU_API_KEY` | 智谱 AI API Key | `xxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxx` |
 
-### Optional Variables
+### Optional Provider Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API Key | `sk-xxxxxxxxxxxxx` |
+| `DEEPSEEK_API_KEY` | DeepSeek API Key | `sk-xxxxxxxxxxxxx` |
+
+### Infrastructure Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `REDIS_HOST` | Redis 服务器地址 | `localhost` |
-| `REDIS_PORT` | Redis 端口 | `6379` |
-| `REDIS_PASSWORD` | Redis 密码 | (empty) |
 | `NACOS_SERVER_ADDR` | Nacos 服务器地址 | `localhost:8848` |
 | `NACOS_USERNAME` | Nacos 用户名 | `nacos` |
 | `NACOS_PASSWORD` | Nacos 密码 | `nacos` |
@@ -363,9 +381,10 @@ From highest to lowest priority:
 **Problem:** LLM API calls failing with authentication error
 
 **Solution:**
-1. Verify `QWEN_API_KEY` environment variable is set correctly
+1. Verify the appropriate API key environment variable is set (e.g., `ZHIPU_API_KEY`, `OPENAI_API_KEY`)
 2. Check that the API key is valid and has not expired
-3. Ensure the base URL is correct for your LLM provider
+3. Ensure the provider is correctly configured in `siae.ai.providers`
+4. Verify the default-provider setting matches an available provider
 
 ### Service Not Registering with Nacos
 
@@ -380,11 +399,12 @@ From highest to lowest priority:
 ## References
 
 - [Spring Cloud Alibaba Nacos Config](https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-config)
-- [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
-- [阿里通义千问 API](https://help.aliyun.com/zh/dashscope/)
+- [智谱 AI 开放平台](https://open.bigmodel.cn/)
+- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
+- [DeepSeek API Documentation](https://platform.deepseek.com/api-docs)
 
 ---
 
-**Document Version:** v1.0  
-**Last Updated:** 2024-12-10  
+**Document Version:** v3.0  
+**Last Updated:** 2024-12-20  
 **Maintainer:** SIAE Development Team

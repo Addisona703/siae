@@ -1,7 +1,10 @@
 package com.hngy.siae.attendance.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.attendance.dto.request.AnomalyQueryDTO;
+import com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO;
 import com.hngy.siae.attendance.entity.AttendanceAnomaly;
 import com.hngy.siae.attendance.entity.AttendanceRecord;
 import com.hngy.siae.attendance.entity.AttendanceRule;
@@ -18,6 +21,8 @@ import com.hngy.siae.attendance.mapper.AttendanceRuleMapper;
 import com.hngy.siae.attendance.mapper.LeaveRequestMapper;
 import com.hngy.siae.attendance.service.IAnomalyDetectionService;
 import com.hngy.siae.core.asserts.AssertUtils;
+import com.hngy.siae.core.dto.PageDTO;
+import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import com.hngy.siae.core.utils.PageConvertUtil;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +34,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,7 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
     private final AttendanceRuleMapper attendanceRuleMapper;
     private final LeaveRequestMapper leaveRequestMapper;
     private final com.hngy.siae.security.utils.SecurityUtil securityUtil;
+    private final UserFeignClient userFeignClient;
 
     /**
      * 检测考勤异常
@@ -454,7 +458,7 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO handleAnomaly(
+    public AttendanceAnomalyVO handleAnomaly(
             Long id, com.hngy.siae.attendance.dto.request.AnomalyHandleDTO dto) {
         Long currentUserId = securityUtil.getCurrentUserId();
         
@@ -469,8 +473,8 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
      * 查询个人考勤异常（自动获取当前用户）
      */
     @Override
-    public com.hngy.siae.core.dto.PageVO<com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO> getMyAnomalies(
-            com.hngy.siae.core.dto.PageDTO<Void> pageDTO) {
+    public PageVO<AttendanceAnomalyVO> getMyAnomalies(
+            PageDTO<Void> pageDTO) {
         Long currentUserId = securityUtil.getCurrentUserId();
         return getMyAnomalies(currentUserId, pageDTO.getPageNum(), pageDTO.getPageSize());
     }
@@ -479,8 +483,8 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
      * 查询未处理的考勤异常
      */
     @Override
-    public com.hngy.siae.core.dto.PageVO<com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO> getUnresolvedAnomalies(
-            com.hngy.siae.core.dto.PageDTO<Void> pageDTO) {
+    public PageVO<AttendanceAnomalyVO> getUnresolvedAnomalies(
+            PageDTO<Void> pageDTO) {
         log.info("查询未处理的考勤异常: pageNum={}, pageSize={}", pageDTO.getPageNum(), pageDTO.getPageSize());
         
         // 构建分页查询
@@ -495,19 +499,21 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<AttendanceAnomaly> resultPage = 
                 attendanceAnomalyMapper.selectPage(page, queryWrapper);
         
-        // 转换为VO
-        return PageConvertUtil.convert(
+        // 转换为VO并填充用户信息
+        PageVO<AttendanceAnomalyVO> pageVO = PageConvertUtil.convert(
                 resultPage, 
-                com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO.class
+                AttendanceAnomalyVO.class
         );
+        fillUserInfo(pageVO.getRecords());
+        return pageVO;
     }
 
     /**
      * 分页查询考勤异常
      */
     @Override
-    public com.hngy.siae.core.dto.PageVO<com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO> pageQuery(
-            com.hngy.siae.core.dto.PageDTO<com.hngy.siae.attendance.dto.request.AnomalyQueryDTO> pageDTO) {
+    public PageVO<AttendanceAnomalyVO> pageQuery(
+            PageDTO<AnomalyQueryDTO> pageDTO) {
         log.info("分页查询考勤异常: pageNum={}, pageSize={}", pageDTO.getPageNum(), pageDTO.getPageSize());
         
         AnomalyQueryDTO query = pageDTO.getParams();
@@ -569,31 +575,35 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<AttendanceAnomaly> resultPage = 
                 attendanceAnomalyMapper.selectPage(page, queryWrapper);
         
-        // 转换为VO
-        return PageConvertUtil.convert(
+        // 转换为VO并填充用户信息
+        PageVO<AttendanceAnomalyVO> pageVO = PageConvertUtil.convert(
                 resultPage, 
-                com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO.class
+                AttendanceAnomalyVO.class
         );
+        fillUserInfo(pageVO.getRecords());
+        return pageVO;
     }
 
     /**
      * 查询考勤异常详情
      */
     @Override
-    public com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO getAnomaly(Long id) {
+    public AttendanceAnomalyVO getAnomaly(Long id) {
         log.info("查询考勤异常详情: id={}", id);
         
         AttendanceAnomaly anomaly = attendanceAnomalyMapper.selectById(id);
         AssertUtils.notNull(anomaly, AttendanceResultCodeEnum.ANOMALY_NOT_FOUND);
         
-        return BeanConvertUtil.to(anomaly, com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO.class);
+        AttendanceAnomalyVO vo = BeanConvertUtil.to(anomaly, AttendanceAnomalyVO.class);
+        fillUserInfo(Collections.singletonList(vo));
+        return vo;
     }
 
     /**
      * 查询个人考勤异常
      */
     @Override
-    public com.hngy.siae.core.dto.PageVO<com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO> getMyAnomalies(
+    public PageVO<AttendanceAnomalyVO> getMyAnomalies(
             Long userId, Integer pageNum, Integer pageSize) {
         log.info("查询个人考勤异常: userId={}, pageNum={}, pageSize={}", userId, pageNum, pageSize);
         
@@ -609,10 +619,69 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<AttendanceAnomaly> resultPage = 
                 attendanceAnomalyMapper.selectPage(page, queryWrapper);
         
-        // 转换为VO
-        return PageConvertUtil.convert(
+        // 转换为VO并填充用户信息
+        PageVO<AttendanceAnomalyVO> pageVO = PageConvertUtil.convert(
                 resultPage, 
-                com.hngy.siae.attendance.dto.response.AttendanceAnomalyVO.class
+                AttendanceAnomalyVO.class
         );
+        fillUserInfo(pageVO.getRecords());
+        return pageVO;
+    }
+
+    /**
+     * 填充用户信息（用户名、处理人名称）
+     *
+     * @param records 异常记录列表
+     */
+    private void fillUserInfo(List<AttendanceAnomalyVO> records) {
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+
+        // 收集所有需要查询的用户ID
+        Set<Long> userIds = new HashSet<>();
+        for (AttendanceAnomalyVO record : records) {
+            if (record.getUserId() != null) {
+                userIds.add(record.getUserId());
+            }
+            if (record.getHandlerId() != null) {
+                userIds.add(record.getHandlerId());
+            }
+        }
+
+        if (userIds.isEmpty()) {
+            return;
+        }
+
+        // 批量查询用户信息
+        Map<Long, UserProfileSimpleVO> userMap;
+        try {
+            userMap = userFeignClient.batchGetUserProfiles(new ArrayList<>(userIds));
+        } catch (Exception e) {
+            log.warn("批量查询用户信息失败: {}", e.getMessage());
+            return;
+        }
+
+        if (userMap == null || userMap.isEmpty()) {
+            return;
+        }
+
+        // 填充用户信息
+        for (AttendanceAnomalyVO record : records) {
+            // 填充用户名
+            if (record.getUserId() != null) {
+                UserProfileSimpleVO user = userMap.get(record.getUserId());
+                if (user != null) {
+                    record.setUserName(user.getNickname() != null ? user.getNickname() : user.getUsername());
+                }
+            }
+            // 填充处理人名称
+            if (record.getHandlerId() != null) {
+                UserProfileSimpleVO handler = userMap.get(record.getHandlerId());
+                if (handler != null) {
+                    record.setHandlerName(handler.getNickname() != null ? handler.getNickname() : handler.getUsername());
+                }
+            }
+        }
     }
 }

@@ -51,6 +51,9 @@ public class UserAwardVO implements Serializable {
     @Schema(description = "证书文件ID")
     private String certificateFileId;
     
+    @Schema(description = "证书文件URL")
+    private String certificateUrl;
+    
     @Schema(description = "团队成员ID列表（JSON数组字符串）")
     private String teamMembers;
     

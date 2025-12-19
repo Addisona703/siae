@@ -10,23 +10,26 @@
 
 siae:
   oauth:
+    # OAuth回调成功后重定向的前端地址
+    frontend-base-url: http://localhost:5173
+    
     # QQ OAuth 配置
     qq:
       app-id: your_qq_app_id_here
       app-key: your_qq_app_key_here
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/qq
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/qq
     
     # Gitee OAuth 配置
     gitee:
       client-id: your_gitee_client_id_here
       client-secret: your_gitee_client_secret_here
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/gitee
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/gitee
     
     # GitHub OAuth 配置
     github:
       client-id: your_github_client_id_here
       client-secret: your_github_client_secret_here
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/github
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/github
     
     # State 参数配置
     state:

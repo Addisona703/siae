@@ -92,4 +92,10 @@ public class UserFeignClientFallback implements UserFeignClient {
         log.error("获取用户人脸认证信息服务不可用，触发降级。用户ID: {}", userId);
         throw new ServiceException(503, "用户服务暂时不可用，请稍后重试");
     }
+
+    @Override
+    public void updatePassword(Long userId, String encodedPassword) {
+        log.error("更新用户密码服务不可用，触发降级。用户ID: {}", userId);
+        throw new ServiceException(503, "用户服务暂时不可用，请稍后重试");
+    }
 }

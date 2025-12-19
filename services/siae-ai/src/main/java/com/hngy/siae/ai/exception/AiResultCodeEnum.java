@@ -17,6 +17,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AiResultCodeEnum implements IResultCode {
 
+    // ==================== 4xxx 客户端错误 ====================
+
     /**
      * 空消息或仅空白字符
      */
@@ -38,14 +40,40 @@ public enum AiResultCodeEnum implements IResultCode {
     PERMISSION_DENIED(4004, "您没有权限执行此操作"),
 
     /**
+     * 供应商不存在
+     * Requirements: 9.1
+     */
+    PROVIDER_NOT_FOUND(4005, "指定的AI供应商不存在"),
+
+    /**
+     * 模型不存在
+     * Requirements: 9.2
+     */
+    MODEL_NOT_FOUND(4006, "指定的模型不存在"),
+
+    /**
+     * 会话不存在
+     * Requirements: 9.3
+     */
+    SESSION_NOT_FOUND(4007, "会话不存在"),
+
+    /**
+     * 无效的消息内容
+     */
+    INVALID_MESSAGE(4008, "消息内容无效"),
+
+    // ==================== 5xxx 服务端错误 ====================
+
+    /**
      * LLM提供商错误
      */
     LLM_PROVIDER_ERROR(5001, "AI服务暂时不可用，请稍后重试"),
 
     /**
      * 响应超时
+     * Requirements: 9.1
      */
-    RESPONSE_TIMEOUT(5002, "响应超时，请重试"),
+    RESPONSE_TIMEOUT(5002, "API调用超时，请重试"),
 
     /**
      * 工具执行错误
@@ -54,8 +82,21 @@ public enum AiResultCodeEnum implements IResultCode {
 
     /**
      * 服务不可用
+     * Requirements: 9.3
      */
-    SERVICE_UNAVAILABLE(5004, "AI服务正在维护中");
+    SERVICE_UNAVAILABLE(5004, "AI服务正在维护中"),
+
+    /**
+     * API Key 无效
+     * Requirements: 9.2
+     */
+    API_KEY_INVALID(5005, "API Key无效，请检查配置"),
+
+    /**
+     * 流式响应错误
+     * Requirements: 4.5, 9.4
+     */
+    STREAM_ERROR(5006, "流式响应发生错误");
 
     private final Integer code;
     private final String message;

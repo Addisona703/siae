@@ -1,5 +1,6 @@
 package com.hngy.siae.auth.controller;
 
+import com.hngy.siae.auth.dto.request.ChangePasswordDTO;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
@@ -114,5 +115,20 @@ public class AuthController {
         Long userId = securityUtil.getCurrentUserId();
         CurrentUserVO currentUser = authService.getCurrentUser(userId);
         return Result.success(currentUser);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param changePasswordDTO 修改密码请求DTO
+     * @return 修改结果
+     */
+    @Operation(summary = "修改密码", description = "修改当前登录用户的密码")
+    @PostMapping("/change-password")
+    @SiaeAuthorize("isAuthenticated()")
+    public Result<Boolean> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+        Long userId = securityUtil.getCurrentUserId();
+        authService.changePassword(userId, changePasswordDTO);
+        return Result.success("密码修改成功", true);
     }
 }

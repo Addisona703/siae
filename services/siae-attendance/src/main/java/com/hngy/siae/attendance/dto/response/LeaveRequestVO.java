@@ -32,6 +32,11 @@ public class LeaveRequestVO {
     private String userName;
 
     /**
+     * 申请人头像URL
+     */
+    private String userAvatarUrl;
+
+    /**
      * 请假类型
      */
     private LeaveType leaveType;
@@ -70,6 +75,11 @@ public class LeaveRequestVO {
      * 审批人名称
      */
     private String approverName;
+
+    /**
+     * 审批人头像URL
+     */
+    private String approverAvatarUrl;
 
     /**
      * 审批意见

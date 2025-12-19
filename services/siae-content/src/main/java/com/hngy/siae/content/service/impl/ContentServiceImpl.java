@@ -2,6 +2,7 @@ package com.hngy.siae.content.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hngy.siae.api.media.client.MediaFeignClient;
@@ -10,6 +11,10 @@ import com.hngy.siae.api.media.dto.response.BatchUrlVO;
 import com.hngy.siae.api.user.client.UserFeignClient;
 import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.content.dto.response.content.ContentQueryResultVO;
+import com.hngy.siae.content.entity.FavoriteFolder;
+import com.hngy.siae.content.entity.FavoriteItem;
+import com.hngy.siae.content.mapper.FavoriteFolderMapper;
+import com.hngy.siae.content.mapper.FavoriteItemMapper;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
@@ -56,6 +61,8 @@ public class ContentServiceImpl
     private final UserFeignClient userFeignClient;
     private final MediaFeignClient mediaFeignClient;
     private final SecurityUtil securityUtil;
+    private final FavoriteItemMapper favoriteItemMapper;
+    private final FavoriteFolderMapper favoriteFolderMapper;
 
     @Override
     public Content createContent(ContentCreateDTO dto) {
@@ -142,6 +149,9 @@ public class ContentServiceImpl
             content.setStatus(ContentStatusEnum.DELETED);
             AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_PERMANENT_DELETE_FAILED);
         }
+
+        // 4. 更新包含该内容的收藏夹计数
+        updateAffectedFolderCounts(id.longValue());
     }
 
     @Override
@@ -156,6 +166,48 @@ public class ContentServiceImpl
         // 3. 恢复为已发布状态
         content.setStatus(ContentStatusEnum.PUBLISHED);
         AssertUtils.isTrue(this.updateById(content), ContentResultCodeEnum.CONTENT_RESTORE_FAILED);
+
+        // 4. 更新包含该内容的收藏夹计数
+        updateAffectedFolderCounts(contentId);
+    }
+
+    /**
+     * 更新包含指定内容的所有收藏夹计数
+     */
+    private void updateAffectedFolderCounts(Long contentId) {
+        // 查询包含该内容的收藏记录
+        LambdaQueryWrapper<FavoriteItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FavoriteItem::getContentId, contentId);
+        List<FavoriteItem> favoriteItems = favoriteItemMapper.selectList(queryWrapper);
+
+        if (CollUtil.isEmpty(favoriteItems)) {
+            return;
+        }
+
+        // 获取受影响的收藏夹ID并去重
+        List<Long> folderIds = favoriteItems.stream()
+                .map(FavoriteItem::getFolderId)
+                .distinct()
+                .toList();
+
+        // 更新每个收藏夹的计数
+        for (Long folderId : folderIds) {
+            updateFolderItemCount(folderId);
+        }
+    }
+
+    /**
+     * 更新收藏夹的有效内容数量（只统计已发布的内容）
+     */
+    private void updateFolderItemCount(Long folderId) {
+        // 统计收藏夹中已发布内容的数量
+        Long count = baseMapper.countPublishedFavoriteItems(folderId);
+
+        FavoriteFolder folder = favoriteFolderMapper.selectById(folderId);
+        if (folder != null) {
+            folder.setItemCount(count.intValue());
+            favoriteFolderMapper.updateById(folder);
+        }
     }
 
     @Override
@@ -233,12 +285,13 @@ public class ContentServiceImpl
                     userFeignClient.batchGetUserProfiles(userIds);
 
             if (userMap != null && !userMap.isEmpty()) {
-                // 填充昵称
+                // 填充昵称和头像
                 contentList.forEach(content -> {
                     com.hngy.siae.api.user.dto.response.UserProfileSimpleVO userProfile = 
                             userMap.get(content.getUploadedBy());
                     if (userProfile != null) {
                         content.setAuthorNickname(userProfile.getNickname());
+                        content.setAuthorAvatarUrl(userProfile.getAvatarUrl());
                     }
                 });
             }

@@ -83,6 +83,12 @@ spring:
           predicates:
             - Path=/api/v1/ai/**
 
+        # 资源管理服务路由（写死地址）
+        - id: resource-management-route
+          uri: http://localhost:4329
+          predicates:
+            - Path=/api/v1/rm/**
+
         # OpenAPI文档路由
         - id: openapi-route
           uri: lb://siae-gateway

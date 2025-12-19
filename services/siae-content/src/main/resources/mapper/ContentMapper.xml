@@ -324,4 +324,13 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 统计收藏夹中已发布内容的数量 -->
+    <select id="countPublishedFavoriteItems" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM favorite_item fi
+        INNER JOIN content c ON fi.content_id = c.id
+        WHERE fi.folder_id = #{folderId}
+        AND c.status = 2
+    </select>
+
 </mapper>

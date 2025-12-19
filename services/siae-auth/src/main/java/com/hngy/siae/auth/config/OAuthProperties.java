@@ -20,6 +20,12 @@ public class OAuthProperties {
     private StateConfig state;
     
     /**
+     * OAuth回调成功后重定向的前端地址
+     * 例如: http://localhost 或 http://localhost:7090
+     */
+    private String frontendBaseUrl = "http://localhost";
+    
+    /**
      * QQ登录配置
      */
     @Data

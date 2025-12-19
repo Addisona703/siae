@@ -52,6 +52,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         "/api/v1/notification/email/code/send",
         "/api/v1/auth/oauth/login",           // OAuth登录入口
         "/api/v1/auth/oauth/callback/",       // OAuth回调处理
+        "/api/v1/auth/oauth/register",        // OAuth新用户注册
         "/swagger-ui",
         "/v3/api-docs",
         "/actuator/health"
@@ -151,19 +152,28 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
 
     /**
      * 提取JWT Token
+     * 优先级：Authorization Header > Cookie > Query Parameter
      */
     private String extractToken(ServerHttpRequest request) {
+        // 1. 从 Authorization Header 获取
         String bearerToken = request.getHeaders().getFirst("Authorization");
         if (StrUtil.isNotBlank(bearerToken) && bearerToken.startsWith("Bearer ")) {
             log.debug("Token extracted from Authorization header");
             return bearerToken.substring(7);
         }
+        // 2. 从 Cookie 获取
         HttpCookie cookie = request.getCookies().getFirst(ACCESS_TOKEN_COOKIE);
         if (cookie != null && StrUtil.isNotBlank(cookie.getValue())) {
             log.debug("Token extracted from ACCESS_TOKEN cookie");
             return cookie.getValue();
         }
-        log.debug("No token found in headers or cookies");
+        // 3. 从 Query Parameter 获取（用于 SSE 等不支持自定义 Header 的场景）
+        String queryToken = request.getQueryParams().getFirst("token");
+        if (StrUtil.isNotBlank(queryToken)) {
+            log.debug("Token extracted from query parameter");
+            return queryToken;
+        }
+        log.debug("No token found in headers, cookies or query params");
         return null;
     }
 

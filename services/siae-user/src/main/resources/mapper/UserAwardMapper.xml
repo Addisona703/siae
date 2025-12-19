@@ -55,7 +55,7 @@
 
     <!-- 分页查询用户获奖记录（带关联信息，不含成员列表） -->
     <select id="selectUserAwardPageWithDetails" resultType="com.hngy.siae.user.dto.response.UserAwardVO">
-        SELECT
+        SELECT DISTINCT
             ua.id,
             ua.award_title AS awardTitle,
             ua.award_level_id AS awardLevelId,
@@ -72,6 +72,10 @@
         FROM user_award ua
         LEFT JOIN award_level al ON ua.award_level_id = al.id
         LEFT JOIN award_type at ON ua.award_type_id = at.id
+        <if test="query != null and (query.username != null and query.username != '')">
+            LEFT JOIN user u ON JSON_CONTAINS(ua.team_members, CAST(u.id AS JSON))
+            LEFT JOIN user_profile up ON u.id = up.user_id
+        </if>
         WHERE ua.is_deleted = 0
         <if test="query != null">
             <if test="query.id != null">
@@ -91,6 +95,10 @@
             </if>
             <if test="query.awardedBy != null and query.awardedBy != ''">
                 AND ua.awarded_by LIKE CONCAT('%', #{query.awardedBy}, '%')
+            </if>
+            <if test="query.username != null and query.username != ''">
+                AND (u.student_id LIKE CONCAT('%', #{query.username}, '%') 
+                     OR up.real_name LIKE CONCAT('%', #{query.username}, '%'))
             </if>
             <if test="query.awardDateStart != null">
                 AND ua.awarded_at &gt;= #{query.awardDateStart}

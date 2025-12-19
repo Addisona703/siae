@@ -55,6 +55,24 @@ public class BeanConvertUtil {
     }
 
     /**
+     * 将源对象属性复制到目标对象，支持排除特定字段和控制是否忽略null值
+     *
+     * @param source 源对象
+     * @param target 目标对象
+     * @param ignoreNullValue 是否忽略null值（true=忽略null值，false=复制null值）
+     * @param ignoreProperties 需要忽略的字段
+     */
+    public static void to(Object source, Object target, boolean ignoreNullValue, String... ignoreProperties) {
+        if (source == null || target == null) {
+            return;
+        }
+        BeanUtil.copyProperties(source, target, 
+            cn.hutool.core.bean.copier.CopyOptions.create()
+                .setIgnoreNullValue(ignoreNullValue)
+                .setIgnoreProperties(ignoreProperties));
+    }
+
+    /**
      * 批量转换 Entity → VO
      * @param sourceList 原始对象列表
      * @param targetClass 目标类

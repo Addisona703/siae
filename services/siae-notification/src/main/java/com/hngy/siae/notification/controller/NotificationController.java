@@ -161,6 +161,14 @@ public class NotificationController {
         return Result.success();
     }
 
+    @Operation(summary = "批量删除已读通知", description = "删除当前用户的全部已读通知")
+    @DeleteMapping("/read")
+    public Result<Integer> deleteReadNotifications(Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        int deletedCount = notificationService.deleteReadNotifications(userId);
+        return Result.success(deletedCount);
+    }
+
     /**
      * 从 Authentication 中获取用户ID
      */

@@ -19,8 +19,8 @@ spring:
     username: root
     password: 123456
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
+      maximum-pool-size: 3
+      minimum-idle: 1
       idle-timeout: 60000
       max-lifetime: 1800000
       connection-timeout: 30000
@@ -90,7 +90,7 @@ springdoc:
 siae:
   auth:
     enable-gateway-auth: true
-    enable-direct-access: false
+    enable-direct-access: true
   security:
     enabled: true  # 必须启用，否则缺少 PasswordEncoder Bean
     jwt:
@@ -116,23 +116,26 @@ siae:
   
   # OAuth 第三方登录配置（本地开发）
   oauth:
+    # OAuth回调成功后重定向的前端地址
+    frontend-base-url: http://localhost:7090
+
     # QQ OAuth 配置
     qq:
       app-id: your_qq_app_id_here
       app-key: your_qq_app_key_here
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/qq
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/qq
     
     # Gitee OAuth 配置
     gitee:
-      client-id: your_gitee_client_id_here
-      client-secret: your_gitee_client_secret_here
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/gitee
+      client-id: 24e86ef0693aa171d6fd4c3e5e38da695b11c8b05c612903cc6f3aae42b709da
+      client-secret: 4225e62d375101fe8c1ca797471e950248a4ce5aa47568e7f81644762ae8aa2e
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/gitee
     
     # GitHub OAuth 配置
     github:
       client-id: Ov23li822C4vwb3p1NWZ
       client-secret: d7cb377a8e075308fcaea1a589d57359940e5ef8
-      redirect-uri: http://localhost:8000/api/v1/auth/oauth/callback/github
+      redirect-uri: http://localhost:80/api/v1/auth/oauth/callback/github
     
     # State 参数配置
     state:

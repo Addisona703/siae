@@ -2,6 +2,8 @@ package com.hngy.siae.attendance.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hngy.siae.api.user.client.UserFeignClient;
+import com.hngy.siae.api.user.dto.response.UserProfileSimpleVO;
 import com.hngy.siae.attendance.dto.request.AttendanceQueryDTO;
 import com.hngy.siae.attendance.dto.request.CheckInDTO;
 import com.hngy.siae.attendance.dto.request.CheckOutDTO;
@@ -38,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -57,6 +60,7 @@ public class AttendanceServiceImpl implements IAttendanceService {
     private final StringRedisTemplate redisTemplate;
     private final IAnomalyDetectionService anomalyDetectionService;
     private final com.hngy.siae.security.utils.SecurityUtil securityUtil;
+    private final UserFeignClient userFeignClient;
 
     private static final String CHECK_IN_LOCK_PREFIX = "attendance:checkin:lock:";
     private static final long LOCK_EXPIRE_SECONDS = 300; // 5分钟
@@ -122,7 +126,7 @@ public class AttendanceServiceImpl implements IAttendanceService {
             record.setAttendanceType(attendanceType);
             record.setRelatedId(dto.getRelatedId());
             record.setCheckInTime(dto.getTimestamp());
-            record.setCheckInLocation(dto.getLocation());
+            record.setCheckInLocation(formatLocation(dto.getLocation()));
             record.setAttendanceDate(attendanceDate);
             record.setRuleId(rule.getId());
             record.setStatus(AttendanceStatus.IN_PROGRESS);
@@ -206,13 +210,31 @@ public class AttendanceServiceImpl implements IAttendanceService {
     }
 
     /**
+     * 将 LocationInfo 对象转换为字符串格式
+     *
+     * @param location 位置信息对象
+     * @return 格式化的位置字符串 "latitude,longitude"，如果位置为空则返回null
+     */
+    private String formatLocation(CheckInDTO.LocationInfo location) {
+        if (location == null) {
+            return null;
+        }
+        if (location.getLatitude() != null && location.getLongitude() != null) {
+            return location.getLatitude() + "," + location.getLongitude();
+        }
+        return null;
+    }
+
+    /**
      * 验证签到位置
      *
-     * @param checkInLocation 签到位置
+     * @param locationInfo 签到位置信息
      * @param rule 考勤规则
      */
-    private void validateLocation(String checkInLocation, AttendanceRule rule) {
-        AssertUtils.notEmpty(checkInLocation, AttendanceResultCodeEnum.LOCATION_OUT_OF_RANGE);
+    private void validateLocation(CheckInDTO.LocationInfo locationInfo, AttendanceRule rule) {
+        AssertUtils.notNull(locationInfo, AttendanceResultCodeEnum.LOCATION_OUT_OF_RANGE);
+        AssertUtils.notNull(locationInfo.getLatitude(), AttendanceResultCodeEnum.LOCATION_OUT_OF_RANGE);
+        AssertUtils.notNull(locationInfo.getLongitude(), AttendanceResultCodeEnum.LOCATION_OUT_OF_RANGE);
 
         List<AttendanceRule.Location> allowedLocations = rule.getAllowedLocations();
         AssertUtils.notEmpty(allowedLocations, AttendanceResultCodeEnum.LOCATION_OUT_OF_RANGE);
@@ -221,6 +243,9 @@ public class AttendanceServiceImpl implements IAttendanceService {
         if (radiusMeters == null || radiusMeters <= 0) {
             radiusMeters = 100; // 默认100米
         }
+
+        // 将 LocationInfo 转换为字符串格式以便调用 LocationUtil
+        String checkInLocation = formatLocation(locationInfo);
 
         // 检查签到位置是否在任一允许位置的范围内
         boolean isValid = false;
@@ -376,6 +401,15 @@ public class AttendanceServiceImpl implements IAttendanceService {
             log.info("无列表权限，限制查询当前用户数据: userId={}", currentUserId);
         }
 
+        // 如果有用户名查询条件，先通过用户名查询用户ID列表
+        if (StringUtils.hasText(queryDTO.getUserName())) {
+            // TODO: 调用用户服务根据用户名查询用户ID列表
+            // 这里暂时使用空列表，实际项目中需要调用用户服务
+            log.warn("用户名查询功能需要集成用户服务: userName={}", queryDTO.getUserName());
+            // 如果找不到用户，返回空结果
+            // queryDTO.setUserIds(Collections.emptyList());
+        }
+
         // 构建查询条件
         LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -430,6 +464,9 @@ public class AttendanceServiceImpl implements IAttendanceService {
                 .map(record -> BeanConvertUtil.to(record, AttendanceRecordVO.class))
                 .collect(Collectors.toList());
 
+        // 填充用户信息
+        fillUserInfo(voList);
+
         // 构建分页结果
         PageVO<AttendanceRecordVO> pageVO = new PageVO<>();
         pageVO.setTotal(resultPage.getTotal());
@@ -437,9 +474,79 @@ public class AttendanceServiceImpl implements IAttendanceService {
         pageVO.setPageSize(pageDTO.getPageSize());
         pageVO.setRecords(voList);
 
-        log.info("分页查询考勤记录成功: total={}, records={}", resultPage.getTotal(), voList.size());
+        log.info("分页查询考勤记录成功: total=, records={}", resultPage.getTotal(), voList.size());
 
         return pageVO;
+    }
+
+    /**
+     * 填充用户信息到考勤记录VO列表
+     *
+     * @param voList 考勤记录VO列表
+     */
+    private void fillUserInfo(List<AttendanceRecordVO> voList) {
+        if (CollectionUtils.isEmpty(voList)) {
+            return;
+        }
+
+        // 收集所有用户ID
+        List<Long> userIds = voList.stream()
+                .map(AttendanceRecordVO::getUserId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(userIds)) {
+            return;
+        }
+
+        try {
+            // 调用用户服务批量查询用户信息
+            Map<Long, UserProfileSimpleVO> userMap = userFeignClient.batchGetUserProfiles(userIds);
+
+            if (userMap != null && !userMap.isEmpty()) {
+                for (AttendanceRecordVO vo : voList) {
+                    if (vo.getUserId() != null) {
+                        UserProfileSimpleVO user = userMap.get(vo.getUserId());
+                        if (user != null) {
+                            // 优先使用昵称，如果没有昵称则使用用户名
+                            String displayName = StringUtils.hasText(user.getNickname())
+                                    ? user.getNickname()
+                                    : user.getUsername();
+                            vo.setUserName(displayName);
+
+                            // 填充头像URL
+                            if (StringUtils.hasText(user.getAvatarUrl())) {
+                                vo.setUserAvatarUrl(user.getAvatarUrl());
+                            }
+                        } else {
+                            // 如果用户服务中找不到该用户，使用默认名称
+                            vo.setUserName("用户" + vo.getUserId());
+                        }
+                    }
+                }
+                log.info("成功填充用户信息: userCount={}", userMap.size());
+            } else {
+                log.warn("用户服务返回空结果，使用默认用户名");
+                setDefaultUserNames(voList);
+            }
+        } catch (Exception e) {
+            log.error("调用用户服务失败，使用默认用户名: {}", e.getMessage(), e);
+            setDefaultUserNames(voList);
+        }
+    }
+
+    /**
+     * 设置默认用户名（当用户服务调用失败时使用）
+     *
+     * @param voList 考勤记录VO列表
+     */
+    private void setDefaultUserNames(List<AttendanceRecordVO> voList) {
+        for (AttendanceRecordVO vo : voList) {
+            if (vo.getUserId() != null && !StringUtils.hasText(vo.getUserName())) {
+                vo.setUserName("用户" + vo.getUserId());
+            }
+        }
     }
 
     /**
@@ -485,6 +592,9 @@ public class AttendanceServiceImpl implements IAttendanceService {
         List<AttendanceRecordVO> voList = resultPage.getRecords().stream()
                 .map(record -> BeanConvertUtil.to(record, AttendanceRecordVO.class))
                 .collect(Collectors.toList());
+
+        // 填充用户信息
+        fillUserInfo(voList);
 
         // 构建分页结果
         PageVO<AttendanceRecordVO> pageVO = new PageVO<>();
@@ -795,10 +905,15 @@ public class AttendanceServiceImpl implements IAttendanceService {
         queryWrapper.orderByDesc(AttendanceRecord::getCheckInTime);
         
         List<AttendanceRecord> records = attendanceRecordMapper.selectList(queryWrapper);
-        
-        return records.stream()
+
+        List<AttendanceRecordVO> voList = records.stream()
                 .map(record -> BeanConvertUtil.to(record, AttendanceRecordVO.class))
                 .collect(Collectors.toList());
+
+        // 填充用户信息
+        fillUserInfo(voList);
+
+        return voList;
     }
 
     /**
@@ -837,14 +952,17 @@ public class AttendanceServiceImpl implements IAttendanceService {
         List<AttendanceRecordVO> voList = resultPage.getRecords().stream()
                 .map(record -> BeanConvertUtil.to(record, AttendanceRecordVO.class))
                 .collect(Collectors.toList());
-        
+
+        // 填充用户信息
+        fillUserInfo(voList);
+
         // 构建分页结果
         PageVO<AttendanceRecordVO> pageVO = new PageVO<>();
         pageVO.setTotal(resultPage.getTotal());
         pageVO.setPageNum(pageDTO.getPageNum());
         pageVO.setPageSize(pageDTO.getPageSize());
         pageVO.setRecords(voList);
-        
+
         return pageVO;
     }
 

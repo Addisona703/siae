@@ -7,6 +7,8 @@ import com.hngy.siae.security.permissions.RoleConstants;
 import com.hngy.siae.core.result.Result;
 import com.hngy.siae.security.annotation.SiaeAuthorize;
 import static com.hngy.siae.user.permissions.UserPermissions.*;
+
+import com.hngy.siae.security.utils.SecurityUtil;
 import com.hngy.siae.user.dto.request.UserCreateDTO;
 import com.hngy.siae.user.dto.request.UserQueryDTO;
 import com.hngy.siae.user.dto.request.UserUpdateDTO;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final SecurityUtil securityUtil;
 
     /**
      * 创建用户
@@ -69,6 +72,24 @@ public class UserController {
             @Parameter(description = "用户ID") @PathVariable("id") @NotNull Long id,
             @Parameter(description = "用户更新参数") @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         userUpdateDTO.setId(id);
+        UserVO result = userService.updateUser(userUpdateDTO);
+        return Result.success(result);
+    }
+
+    /**
+     * 更新当前登录用户信息
+     *
+     * @param userUpdateDTO 用户更新参数
+     * @return 更新后的用户信息
+     */
+    @PutMapping
+    @Operation(summary = "更新当前用户信息", description = "更新当前登录用户的信息")
+    @SiaeAuthorize("isAuthenticated()")
+    public Result<UserVO> updateCurrentUser(
+            @Parameter(description = "用户更新参数") @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        // 从安全上下文获取当前用户ID
+        Long currentUserId = securityUtil.getCurrentUserId();
+        userUpdateDTO.setId(currentUserId);
         UserVO result = userService.updateUser(userUpdateDTO);
         return Result.success(result);
     }

@@ -55,6 +55,11 @@ public interface NotificationService extends IService<SystemNotification> {
     void deleteNotification(Long notificationId, Long userId);
 
     /**
+     * 批量删除当前用户的已读通知
+     */
+    int deleteReadNotifications(Long userId);
+
+    /**
      * 广播通知（向所有用户或指定用户发送通知）
      */
     int broadcastNotification(NotificationBroadcastDTO dto);

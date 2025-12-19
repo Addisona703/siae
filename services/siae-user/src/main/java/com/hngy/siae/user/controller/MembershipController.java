@@ -100,6 +100,16 @@ public class MembershipController {
         return Result.success(success);
     }
 
+    @PutMapping("/{id}/expel")
+    @Operation(summary = "强制退会", description = "将成员状态设为已开除，禁止再次申请")
+    @SiaeAuthorize(RoleConstants.ADMIN_LEVEL)
+    public Result<Boolean> expelMember(
+            @Parameter(description = "成员ID") @PathVariable Long id) {
+        log.info("强制退会，成员ID: {}", id);
+        boolean success = membershipService.expelMember(id);
+        return Result.success(success);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "查询成员信息", description = "根据成员ID查询成员详细信息（含用户、部门、职位）")
     @SiaeAuthorize(RoleConstants.MEMBER_LEVEL)

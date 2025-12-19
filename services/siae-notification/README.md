@@ -14,13 +14,15 @@ SIAE 通知服务接入指南
 ------------
 | 说明 | 方法 | 路径 | 备注 |
 | --- | --- | --- | --- |
-| 打开 SSE 推送通道 | GET | `/stream?userId={userId}` | `userId` 为监听者 ID；后续所有通知都会推送到该连接。 |
+| 打开 SSE 推送通道 | GET | `/stream` | 通过网关认证；原生 SSE 不支持自定义 Header，可在 query 中传 `token`。 |
 | 发送通知 | POST | `/send` | 需要认证；请求体为 `NotificationCreateDTO`。 |
+| 广播通知 | POST | `/broadcast` | 需要认证；向指定用户或全量用户发送。 |
 | 我的通知列表 | GET | `/my` | 支持分页、是否已读过滤。 |
 | 未读数量 | GET | `/unread-count` | 返回当前用户未读条数。 |
-| 标记已读 | PUT | `/{id}/read` | `id` 为通知 ID。 |
-| 全部标记已读 | PUT | `/read-all` | 无请求体。 |
+| 标记通知状态 | PUT | `/{id}/status?isRead=true|false` | `id` 为通知 ID。 |
+| 标记所有通知状态 | PUT | `/status-all?isRead=true|false` | 标记当前用户全部通知的已读状态。 |
 | 删除通知 | DELETE | `/{id}` | 删除单条通知。 |
+| 批量删除已读通知 | DELETE | `/read` | 删除当前用户全部已读通知，返回删除数量。 |
 
 SSE 最小化接入示例
 -----------------

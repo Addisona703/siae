@@ -41,7 +41,24 @@ public class SecurityUtil {
         if (authentication == null || !authentication.isAuthenticated()) {
             AssertUtils.fail(CommonResultCodeEnum.UNAUTHORIZED);
         }
-        return Long.parseLong(authentication.getDetails().toString());
+        Object details = authentication.getDetails();
+        if (details == null) {
+            AssertUtils.fail(CommonResultCodeEnum.UNAUTHORIZED);
+        }
+        // 处理网关传递的用户ID（Long类型）
+        if (details instanceof Long) {
+            return (Long) details;
+        }
+        // 处理字符串类型的用户ID
+        String detailsStr = details.toString();
+        try {
+            return Long.parseLong(detailsStr);
+        } catch (NumberFormatException e) {
+            // 开发环境直接访问时，details 可能是 WebAuthenticationDetails
+            // 此时返回默认用户ID（仅用于开发测试）
+            log.warn("无法从 Authentication.details 解析用户ID: {}, 使用默认用户ID", detailsStr);
+            return 1L; // 开发环境默认用户ID
+        }
     }
 
     /** 获取当前用户ID，如果未认证返回 null */

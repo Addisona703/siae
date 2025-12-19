@@ -13,10 +13,25 @@
         <result property="sortOrder" column="sort_order"/>
         <result property="createTime" column="create_time"/>
         
-        <!-- 内容信息 -->
+        <!-- 内容信息（与ContentVO一致） -->
         <result property="contentTitle" column="content_title"/>
         <result property="contentType" column="content_type"/>
         <result property="contentDescription" column="content_description"/>
+        <result property="coverFileId" column="cover_file_id"/>
+        <result property="uploadedBy" column="uploaded_by"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="contentStatus" column="content_status"/>
+        <result property="contentCreateTime" column="content_create_time"/>
+        <result property="contentUpdateTime" column="content_update_time"/>
+        
+        <!-- 统计信息嵌套对象 -->
+        <association property="statistics" javaType="com.hngy.siae.content.dto.response.statistics.StatisticsVO">
+            <result property="contentId" column="content_id"/>
+            <result property="viewCount" column="view_count"/>
+            <result property="likeCount" column="like_count"/>
+            <result property="favoriteCount" column="favorite_count"/>
+            <result property="commentCount" column="comment_count"/>
+        </association>
     </resultMap>
 
     <!-- 查询收藏夹中的内容列表（关联内容表） -->
@@ -31,10 +46,23 @@
             fi.create_time,
             c.title as content_title,
             c.type as content_type,
-            c.description as content_description
+            c.description as content_description,
+            c.cover_file_id,
+            c.uploaded_by,
+            cat.name as category_name,
+            c.status as content_status,
+            c.create_time as content_create_time,
+            c.update_time as content_update_time,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count
         FROM favorite_item fi
         INNER JOIN content c ON fi.content_id = c.id
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
         WHERE fi.folder_id = #{folderId}
+        AND fi.status = 1
         AND c.status != 3
         ORDER BY fi.sort_order ASC, fi.create_time DESC
         LIMIT #{offset}, #{limit}
@@ -52,10 +80,23 @@
             fi.create_time,
             c.title as content_title,
             c.type as content_type,
-            c.description as content_description
+            c.description as content_description,
+            c.cover_file_id,
+            c.uploaded_by,
+            cat.name as category_name,
+            c.status as content_status,
+            c.create_time as content_create_time,
+            c.update_time as content_update_time,
+            COALESCE(s.view_count, 0) as view_count,
+            COALESCE(s.like_count, 0) as like_count,
+            COALESCE(s.favorite_count, 0) as favorite_count,
+            COALESCE(s.comment_count, 0) as comment_count
         FROM favorite_item fi
         INNER JOIN content c ON fi.content_id = c.id
+        LEFT JOIN category cat ON c.category_id = cat.id
+        LEFT JOIN statistics s ON c.id = s.content_id
         WHERE fi.user_id = #{userId}
+        AND fi.status = 1
         AND c.status != 3
         ORDER BY fi.create_time DESC
         LIMIT #{offset}, #{limit}

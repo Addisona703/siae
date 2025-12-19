@@ -56,6 +56,13 @@
             <artifactId>api-user</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- 媒体服务API -->
+        <dependency>
+            <groupId>com.hngy</groupId>
+            <artifactId>api-media</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>

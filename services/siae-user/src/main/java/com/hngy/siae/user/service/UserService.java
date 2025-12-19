@@ -197,4 +197,14 @@ public interface UserService extends IService<User> {
      * @return 用户人脸认证信息
      */
     UserFaceAuthVO getUserFaceAuthInfo(Long userId);
+
+    /**
+     * 更新用户密码
+     * <p>
+     * 供认证服务调用，更新用户的加密密码
+     *
+     * @param userId 用户ID
+     * @param encodedPassword 加密后的新密码
+     */
+    void updatePassword(Long userId, String encodedPassword);
 } 

@@ -21,8 +21,8 @@ spring:
     username: root
     password: 123456
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
+      maximum-pool-size: 3
+      minimum-idle: 1
       idle-timeout: 60000
       max-lifetime: 1800000
       connection-timeout: 30000
@@ -79,10 +79,10 @@ springdoc:
 # SIAE 安全配置
 siae:
   auth:
-    enable-gateway-auth: false  # 禁用网关认证（开发环境）
+    enable-gateway-auth: true  # 禁用网关认证（开发环境）
     enable-direct-access: true  # 允许直接访问
   security:
-    enabled: false  # 启用权限检查
+    enabled: true  # 启用权限检查
 
 # Feign 配置
 feign:

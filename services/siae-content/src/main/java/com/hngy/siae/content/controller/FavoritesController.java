@@ -147,10 +147,10 @@ public class FavoritesController {
     }
 
 
-    @Operation(summary = "检查是否已收藏", description = "检查用户是否已收藏指定内容")
+    @Operation(summary = "检查是否已收藏", description = "检查用户是否已收藏指定内容，如果已收藏则返回收藏ID，否则返回null")
     @GetMapping("/items/check")
     @SiaeAuthorize("hasAuthority('" + CONTENT_FAVORITE_VIEW + "')")
-    public Result<Boolean> checkFavorite(
+    public Result<Long> checkFavorite(
             @Parameter(description = "用户ID", required = true, example = "1")
             @NotNull @RequestParam Long userId,
             @Parameter(description = "内容ID", required = true, example = "1")

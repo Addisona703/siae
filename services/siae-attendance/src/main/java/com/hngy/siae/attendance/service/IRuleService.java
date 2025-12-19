@@ -108,10 +108,11 @@ public interface IRuleService {
      * 查询规则列表（支持过滤）
      *
      * @param status 规则状态（可选）
+     * @param attendanceType 考勤类型（可选）
      * @param targetType 适用对象类型（可选）
      * @return 规则列表
      */
-    List<AttendanceRuleVO> listRules(com.hngy.siae.attendance.enums.RuleStatus status, String targetType);
+    List<AttendanceRuleVO> listRules(com.hngy.siae.attendance.enums.RuleStatus status, String attendanceType, String targetType);
 
     /**
      * 创建活动考勤规则

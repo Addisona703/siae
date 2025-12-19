@@ -33,6 +33,11 @@ public class LeaveRequestDetailVO {
     private String userName;
 
     /**
+     * 申请人头像URL
+     */
+    private String userAvatarUrl;
+
+    /**
      * 请假类型
      */
     private LeaveType leaveType;
@@ -73,6 +78,11 @@ public class LeaveRequestDetailVO {
     private String approverName;
 
     /**
+     * 审批人头像URL
+     */
+    private String approverAvatarUrl;
+
+    /**
      * 审批意见
      */
     private String approvalNote;
@@ -86,6 +96,11 @@ public class LeaveRequestDetailVO {
      * 附件文件ID列表
      */
     private List<String> attachmentFileIds;
+
+    /**
+     * 附件URL列表（可预览/下载）
+     */
+    private List<String> attachmentUrls;
 
     /**
      * 创建时间

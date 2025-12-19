@@ -6,6 +6,7 @@ import com.hngy.siae.api.user.client.UserFeignClient;
 import com.hngy.siae.api.user.dto.request.UserCreateDTO;
 import com.hngy.siae.api.user.dto.response.UserLoginVO;
 import com.hngy.siae.api.user.dto.response.UserVO;
+import com.hngy.siae.auth.dto.request.ChangePasswordDTO;
 import com.hngy.siae.auth.dto.request.LoginDTO;
 import com.hngy.siae.auth.dto.request.RegisterDTO;
 import com.hngy.siae.auth.dto.request.TokenRefreshDTO;
@@ -356,6 +357,42 @@ public class AuthServiceImpl
                 .roles(roleCodes != null ? roleCodes : new ArrayList<>())
                 .permissions(permissions != null ? permissions : new ArrayList<>())
                 .build();
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID（由 Controller 从 Security 上下文获取）
+     * @param changePasswordDTO 修改密码请求
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(Long userId, ChangePasswordDTO changePasswordDTO) {
+        // 1. 验证新密码与确认密码是否一致
+        AssertUtils.isTrue(changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword()),
+                AuthResultCodeEnum.PASSWORD_MISMATCH);
+
+        // 2. 获取用户信息
+        UserVO user = userClient.getUserById(userId);
+        AssertUtils.notNull(user, AuthResultCodeEnum.USER_NOT_FOUND);
+
+        // 3. 获取用户登录信息（包含密码）
+        UserLoginVO userLogin = userClient.getUserByUsername(user.getUsername());
+        AssertUtils.notNull(userLogin, AuthResultCodeEnum.USER_NOT_FOUND);
+
+        // 4. 验证旧密码是否正确
+        AssertUtils.isTrue(passwordEncoder.matches(changePasswordDTO.getOldPassword(), userLogin.getPassword()),
+                AuthResultCodeEnum.PASSWORD_ERROR);
+
+        // 5. 验证新密码不能与旧密码相同
+        AssertUtils.isTrue(!passwordEncoder.matches(changePasswordDTO.getNewPassword(), userLogin.getPassword()),
+                "新密码不能与旧密码相同");
+
+        // 6. 调用用户服务更新密码
+        String encodedNewPassword = passwordEncoder.encode(changePasswordDTO.getNewPassword());
+        userClient.updatePassword(userId, encodedNewPassword);
+
+        log.info("用户密码修改成功，用户ID: {}", userId);
     }
 
 

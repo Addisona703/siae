@@ -31,6 +31,11 @@ public class AttendanceRecordVO {
     private String userName;
 
     /**
+     * 用户头像URL
+     */
+    private String userAvatarUrl;
+
+    /**
      * 考勤类型
      */
     private AttendanceType attendanceType;

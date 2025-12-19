@@ -33,7 +33,12 @@ public enum LifecycleStatusEnum implements BaseEnum {
     /**
      * 已拒绝
      */
-    REJECTED(3, "已拒绝");
+    REJECTED(3, "已拒绝"),
+
+    /**
+     * 已开除（强制退会）
+     */
+    EXPELLED(4, "已开除");
 
     /**
      * 状态码
@@ -84,5 +89,15 @@ public enum LifecycleStatusEnum implements BaseEnum {
      */
     public static boolean isRejected(int code) {
         return REJECTED.getCode() == code;
+    }
+
+    /**
+     * 判断是否已开除
+     *
+     * @param code 状态码
+     * @return true 如果已开除
+     */
+    public static boolean isExpelled(int code) {
+        return EXPELLED.getCode() == code;
     }
 }

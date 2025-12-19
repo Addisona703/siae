@@ -20,6 +20,7 @@ import com.hngy.siae.content.mapper.FavoriteFolderMapper;
 import com.hngy.siae.content.mapper.UserActionMapper;
 import com.hngy.siae.content.entity.FavoriteItem;
 import com.hngy.siae.content.entity.FavoriteFolder;
+import com.hngy.siae.content.service.ContentNotificationService;
 import com.hngy.siae.content.service.InteractionsService;
 import com.hngy.siae.content.service.StatisticsService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -47,6 +48,7 @@ public class InteractionsServiceImpl
     private final ContentMapper contentMapper;
     private final FavoriteItemMapper favoriteItemMapper;
     private final FavoriteFolderMapper favoriteFolderMapper;
+    private final ContentNotificationService contentNotificationService;
 
 
     @Override
@@ -62,12 +64,14 @@ public class InteractionsServiceImpl
 
         UserAction existing = getExistingAction(userId, targetId, actionType);
 
+        boolean isNewAction = false;
         if (existing != null) {
             if (existing.getStatus() == ActionStatusEnum.ACTIVATED) {
                 return;
             }
             // 恢复为激活状态
             updateStatus(existing, ActionStatusEnum.ACTIVATED);
+            isNewAction = true;
             
             // 如果是恢复收藏行为，同步恢复收藏夹记录
             if (actionType == ActionTypeEnum.FAVORITE && targetType == TypeEnum.CONTENT) {
@@ -76,10 +80,52 @@ public class InteractionsServiceImpl
         } else {
             // 新建记录
             createUserAction(actionDTO);
+            isNewAction = true;
         }
 
         // 异步更新统计，不阻塞主流程
         updateStatisticsAsync(targetId, targetType, actionType, true);
+
+        // 发送通知（仅在新操作时发送）
+        if (isNewAction) {
+            sendNotificationAsync(targetId, targetType, actionType, userId);
+        }
+    }
+
+    /**
+     * 异步发送通知
+     * 根据 actionType 和 targetType 调用对应的通知方法
+     */
+    @Async
+    public void sendNotificationAsync(Long targetId, TypeEnum targetType, ActionTypeEnum actionType, Long operatorUserId) {
+        try {
+            if (targetType == TypeEnum.CONTENT) {
+                Content content = contentMapper.selectById(targetId);
+                if (content == null) {
+                    log.warn("发送通知失败：内容不存在, contentId={}", targetId);
+                    return;
+                }
+                
+                if (actionType == ActionTypeEnum.LIKE) {
+                    // 内容点赞通知
+                    contentNotificationService.sendContentLikeNotification(content, operatorUserId);
+                } else if (actionType == ActionTypeEnum.FAVORITE) {
+                    // 内容收藏通知
+                    contentNotificationService.sendContentFavoriteNotification(content, operatorUserId);
+                }
+            } else if (targetType == TypeEnum.COMMENT && actionType == ActionTypeEnum.LIKE) {
+                // 评论点赞通知
+                Comment comment = commentMapper.selectById(targetId);
+                if (comment == null) {
+                    log.warn("发送通知失败：评论不存在, commentId={}", targetId);
+                    return;
+                }
+                contentNotificationService.sendCommentLikeNotification(comment, operatorUserId);
+            }
+        } catch (Exception e) {
+            log.error("发送通知失败: targetId={}, targetType={}, actionType={}, operatorUserId={}",
+                    targetId, targetType, actionType, operatorUserId, e);
+        }
     }
 
     /**
@@ -224,12 +270,11 @@ public class InteractionsServiceImpl
     }
 
     /**
-     * 更新收藏夹的内容数量
+     * 更新收藏夹的内容数量（只统计已发布的内容）
      */
     private void updateFolderItemCount(Long folderId) {
-        LambdaQueryWrapper<FavoriteItem> countWrapper = new LambdaQueryWrapper<>();
-        countWrapper.eq(FavoriteItem::getFolderId, folderId);
-        Long count = favoriteItemMapper.selectCount(countWrapper);
+        // 只统计已发布状态的内容
+        Long count = contentMapper.countPublishedFavoriteItems(folderId);
 
         FavoriteFolder folder = favoriteFolderMapper.selectById(folderId);
         if (folder != null) {

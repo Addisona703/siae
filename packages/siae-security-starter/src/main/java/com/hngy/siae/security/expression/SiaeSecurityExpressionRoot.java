@@ -3,6 +3,8 @@ package com.hngy.siae.security.expression;
 import com.hngy.siae.security.utils.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -28,6 +30,8 @@ public class SiaeSecurityExpressionRoot extends SecurityExpressionRoot {
     public SiaeSecurityExpressionRoot(Authentication authentication, SecurityUtil securityUtil) {
         super(authentication);
         this.securityUtil = securityUtil;
+        // 初始化 trustResolver，否则 isAuthenticated() 等方法会报 NullPointerException
+        setTrustResolver(new AuthenticationTrustResolverImpl());
     }
 
     // ==================== 所有者判断 ====================

@@ -35,6 +35,7 @@ import java.util.Map;
 public class OAuthController {
 
     private final OAuthService oauthService;
+    private final com.hngy.siae.auth.config.OAuthProperties oAuthProperties;
 
     /**
      * 发起第三方登录
@@ -68,8 +69,10 @@ public class OAuthController {
                            HttpServletResponse response) throws Exception {
         OAuthCallbackVO result = oauthService.handleCallbackV2(provider, code, state);
         
-        // 构建重定向URL，将结果作为参数传递给前端
-        StringBuilder redirectUrl = new StringBuilder("/api/v1/auth/login.html?oauth_callback=true");
+        // 构建重定向URL，使用配置的前端地址
+        String baseUrl = oAuthProperties.getFrontendBaseUrl();
+        StringBuilder redirectUrl = new StringBuilder(baseUrl);
+        redirectUrl.append("/login?oauth_callback=true");
         redirectUrl.append("&provider=").append(provider);
         
         if (Boolean.TRUE.equals(result.getNeedRegister())) {
