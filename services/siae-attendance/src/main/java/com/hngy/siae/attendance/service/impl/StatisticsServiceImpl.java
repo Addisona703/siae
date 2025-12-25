@@ -116,20 +116,23 @@ public class StatisticsServiceImpl implements IStatisticsService {
             .count();
         vo.setActualDays((int) actualDays);
 
-        // 统计异常次数
+        // 统计异常次数（只统计未解决的异常，已解决的异常不计入统计）
         long lateCount = anomalies.stream()
             .filter(a -> a.getAnomalyType() == AnomalyType.LATE)
+            .filter(a -> !Boolean.TRUE.equals(a.getResolved())) // 排除已解决的异常
             .count();
         vo.setLateCount((int) lateCount);
 
         long earlyCount = anomalies.stream()
             .filter(a -> a.getAnomalyType() == AnomalyType.EARLY_DEPARTURE)
+            .filter(a -> !Boolean.TRUE.equals(a.getResolved())) // 排除已解决的异常
             .count();
         vo.setEarlyCount((int) earlyCount);
 
         long absenceCount = anomalies.stream()
             .filter(a -> a.getAnomalyType() == AnomalyType.ABSENCE)
             .filter(a -> a.getSuppressedByLeave() == null) // 排除被请假抑制的缺勤
+            .filter(a -> !Boolean.TRUE.equals(a.getResolved())) // 排除已解决的异常
             .count();
         vo.setAbsenceCount((int) absenceCount);
 

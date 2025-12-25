@@ -48,11 +48,11 @@ public class LeaveController {
 
     /**
      * 更新请假申请
-     * 权限要求：拥有更新权限或是申请人本人
+     * 权限要求：已认证用户
      */
     @Operation(summary = "更新请假申请")
     @PutMapping("/{id}")
-    @SiaeAuthorize("hasPermission('" + AttendancePermissions.Leave.UPDATE + "') or isOwner(#id)")
+    @SiaeAuthorize("isAuthenticated()")
     @OperationLog(type = "UPDATE_LEAVE", module = "LEAVE", description = "更新请假申请")
     public Result<LeaveRequestVO> updateLeaveRequest(
             @PathVariable Long id,
@@ -63,11 +63,11 @@ public class LeaveController {
 
     /**
      * 撤销请假申请
-     * 权限要求：申请人本人
+     * 权限要求：已认证用户
      */
     @Operation(summary = "撤销请假申请")
     @PostMapping("/{id}/cancel")
-    @SiaeAuthorize("isOwner(#id)")
+    @SiaeAuthorize("isAuthenticated()")
     @OperationLog(type = "CANCEL_LEAVE", module = "LEAVE", description = "撤销请假申请")
     public Result<Boolean> cancelLeaveRequest(@PathVariable Long id) {
         Boolean result = leaveService.cancelLeaveRequest(id);
@@ -76,11 +76,11 @@ public class LeaveController {
 
     /**
      * 审批请假申请
-     * 权限要求：拥有审批权限
+     * 权限要求：已认证用户
      */
     @Operation(summary = "审批请假申请")
     @PostMapping("/{id}/approve")
-    @SiaeAuthorize("hasPermission('" + AttendancePermissions.Leave.APPROVE + "')")
+    @SiaeAuthorize("isAuthenticated()")
     @OperationLog(type = "APPROVE_LEAVE", module = "LEAVE", description = "审批请假申请")
     public Result<LeaveRequestVO> approveLeaveRequest(
             @PathVariable Long id,
@@ -91,11 +91,11 @@ public class LeaveController {
 
     /**
      * 查询请假申请详情
-     * 权限要求：拥有查看权限或是申请人本人
+     * 权限要求：已认证用户
      */
     @Operation(summary = "查询请假申请详情")
     @GetMapping("/{id}")
-    @SiaeAuthorize("hasPermission('" + AttendancePermissions.Leave.VIEW + "') or isOwner(#id)")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<LeaveRequestDetailVO> getLeaveRequest(@PathVariable Long id) {
         LeaveRequestDetailVO result = leaveService.getLeaveRequestDetail(id);
         return Result.success(result);
@@ -103,11 +103,11 @@ public class LeaveController {
 
     /**
      * 分页查询请假申请
-     * 权限要求：拥有列表查询权限
+     * 权限要求：已认证用户
      */
     @Operation(summary = "分页查询请假申请")
     @PostMapping("/page")
-    @SiaeAuthorize("hasPermission('" + AttendancePermissions.Leave.LIST + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<PageVO<LeaveRequestVO>> pageQuery(@Valid @RequestBody PageDTO<LeaveQueryDTO> pageDTO) {
         PageVO<LeaveRequestVO> result = leaveService.pageQuery(pageDTO);
         return Result.success(result);
@@ -115,11 +115,11 @@ public class LeaveController {
 
     /**
      * 查询待审核请假列表
-     * 权限要求：拥有审批权限
+     * 权限要求：已认证用户
      */
     @Operation(summary = "查询待审核请假列表")
     @PostMapping("/pending")
-    @SiaeAuthorize("hasPermission('" + AttendancePermissions.Leave.APPROVE + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<PageVO<LeaveRequestVO>> getPendingLeaves(@Valid @RequestBody PageDTO<Void> pageDTO) {
         PageVO<LeaveRequestVO> result = leaveService.getPendingLeaves(pageDTO);
         return Result.success(result);

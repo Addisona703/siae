@@ -51,6 +51,34 @@ public class AttendanceController {
     }
 
     /**
+     * 人脸识别打卡
+     * 权限要求：已认证用户
+     * 无需传递任何参数，直接从上下文获取用户ID并记录打卡
+     */
+    @Operation(summary = "人脸识别打卡", description = "无需传递任何参数，直接从上下文获取用户ID并记录打卡")
+    @PostMapping("/face-check-in")
+    @SiaeAuthorize("isAuthenticated()")
+    @OperationLog(type = "FACE_CHECK_IN", module = "ATTENDANCE", description = "人脸识别打卡")
+    public Result<AttendanceRecordVO> faceCheckIn() {
+        // 传递空DTO，所有信息从上下文获取
+        AttendanceRecordVO result = attendanceService.faceCheckIn(new com.hngy.siae.attendance.dto.request.FaceCheckInDTO());
+        return Result.success(result);
+    }
+
+    /**
+     * 查询今天的签到状态
+     * 权限要求：已认证用户
+     * 返回今天所有时段的签到记录
+     */
+    @Operation(summary = "查询今天的签到状态", description = "查询当前用户今天的所有签到记录")
+    @GetMapping("/today-status")
+    @SiaeAuthorize("isAuthenticated()")
+    public Result<java.util.List<AttendanceRecordVO>> getTodayStatus() {
+        java.util.List<AttendanceRecordVO> result = attendanceService.getTodayStatus();
+        return Result.success(result);
+    }
+
+    /**
      * 签退
      * 权限要求：已认证用户
      */

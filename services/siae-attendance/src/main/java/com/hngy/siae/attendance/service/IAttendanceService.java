@@ -3,6 +3,7 @@ package com.hngy.siae.attendance.service;
 import com.hngy.siae.attendance.dto.request.AttendanceQueryDTO;
 import com.hngy.siae.attendance.dto.request.CheckInDTO;
 import com.hngy.siae.attendance.dto.request.CheckOutDTO;
+import com.hngy.siae.attendance.dto.request.FaceCheckInDTO;
 import com.hngy.siae.attendance.dto.response.AttendanceRecordDetailVO;
 import com.hngy.siae.attendance.dto.response.AttendanceRecordVO;
 import com.hngy.siae.core.dto.PageDTO;
@@ -24,6 +25,21 @@ public interface IAttendanceService {
      * @return 考勤记录VO
      */
     AttendanceRecordVO checkIn(CheckInDTO dto);
+
+    /**
+     * 人脸识别打卡
+     *
+     * @param dto 人脸识别打卡请求
+     * @return 考勤记录VO
+     */
+    AttendanceRecordVO faceCheckIn(FaceCheckInDTO dto);
+
+    /**
+     * 查询今天的签到状态
+     * 
+     * @return 今天的所有签到记录
+     */
+    java.util.List<AttendanceRecordVO> getTodayStatus();
 
     /**
      * 签退

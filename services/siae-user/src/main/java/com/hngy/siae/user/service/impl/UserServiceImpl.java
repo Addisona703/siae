@@ -678,6 +678,18 @@ public class UserServiceImpl
     }
 
     @Override
+    public Long verifyUserIdentity(String idCard, String realName) {
+        // 通过身份证和真实姓名查询用户
+        LambdaQueryWrapper<UserProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserProfile::getIdCard, idCard)
+                .eq(UserProfile::getRealName, realName)
+                .select(UserProfile::getUserId);
+        UserProfile profile = userProfileMapper.selectOne(wrapper);
+
+        return profile != null ? profile.getUserId() : null;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePassword(Long userId, String encodedPassword) {
         // 检查用户是否存在

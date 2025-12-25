@@ -118,6 +118,19 @@ public interface UserFeignClient {
     UserFaceAuthVO getUserFaceAuthInfo(@PathVariable("userId") @NotNull Long userId);
 
     /**
+     * 通过身份证和姓名验证用户身份
+     * <p>
+     * 用于人脸识别打卡场景，验证身份证和姓名是否匹配，返回用户ID
+     *
+     * @param idCard 身份证号
+     * @param realName 真实姓名
+     * @return 用户ID，如果验证失败返回null
+     */
+    @GetMapping("/verify-identity")
+    Long verifyUserIdentity(@RequestParam("idCard") @NotBlank String idCard,
+                           @RequestParam("realName") @NotBlank String realName);
+
+    /**
      * 更新用户密码
      * <p>
      * 供认证服务调用，更新用户的加密密码

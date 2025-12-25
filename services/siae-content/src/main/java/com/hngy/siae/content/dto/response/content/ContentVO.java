@@ -54,6 +54,9 @@ public class ContentVO<T extends ContentDetailVO> {
     @Schema(description = "分类名称", example = "技术文章")
     private String categoryName;
 
+    @Schema(description = "分类ID", example = "1")
+    private Long categoryId;
+
     @Schema(description = "内容状态")
     private ContentStatusEnum status;
 
@@ -62,6 +65,9 @@ public class ContentVO<T extends ContentDetailVO> {
 
     @Schema(description = "标签名称列表", example = "[\"Java\", \"Spring\", \"后端\"]")
     private List<String> tagNames;
+
+    @Schema(description = "标签ID列表", example = "[1, 2, 3]")
+    private List<Long> tagIds;
 
     @Schema(description = "内容详情，根据类型不同结构不同")
     private T detail;

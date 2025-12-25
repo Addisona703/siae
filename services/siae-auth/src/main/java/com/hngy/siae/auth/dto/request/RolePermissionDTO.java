@@ -14,7 +14,7 @@ import java.util.List;
 public class RolePermissionDTO {
     
     /**
-     * 权限ID列表
+     * 权限ID列表（追加权限时不能为空）
      */
     @NotEmpty(message = "权限ID列表不能为空")
     private List<Long> permissionIds;

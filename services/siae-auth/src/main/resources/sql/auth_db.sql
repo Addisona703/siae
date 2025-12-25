@@ -318,7 +318,52 @@ INSERT INTO `permission` (`id`, `name`, `code`, `type`, `parent_id`, `path`, `co
 (144, '获奖记录更新', 'user:award:update', 'button', 142, NULL, NULL, NULL, 2),
 (145, '获奖记录删除', 'user:award:delete', 'button', 142, NULL, NULL, NULL, 3),
 (146, '获奖记录查看', 'user:award:view', 'button', 142, NULL, NULL, NULL, 4),
-(147, '获奖记录列表', 'user:award:list', 'button', 142, NULL, NULL, NULL, 5);
+(147, '获奖记录列表', 'user:award:list', 'button', 142, NULL, NULL, NULL, 5),
+
+-- =================================================================
+-- 考勤管理服务模块 (attendance-service)
+-- 提供考勤打卡、请假管理、考勤统计等功能
+-- 基于 AttendancePermissions.java 中定义的权限常量
+-- =================================================================
+(200, '考勤管理', 'system:attendance:manage', 'menu', NULL, '/attendance', 'Layout', 'calendar', 4),
+
+-- 考勤记录管理子菜单
+(201, '考勤记录', 'attendance:record:manage', 'menu', 200, 'record', 'attendance/record/index', 'check', 1),
+(202, '考勤记录查看', 'attendance:record:view', 'button', 201, NULL, NULL, NULL, 1),
+(203, '考勤记录列表', 'attendance:record:list', 'button', 201, NULL, NULL, NULL, 2),
+(204, '考勤记录导出', 'attendance:record:export', 'button', 201, NULL, NULL, NULL, 3),
+
+-- 请假管理子菜单
+(205, '请假管理', 'attendance:leave:manage', 'menu', 200, 'leave', 'attendance/leave/index', 'leave', 2),
+(206, '请假申请更新', 'attendance:leave:update', 'button', 205, NULL, NULL, NULL, 1),
+(207, '请假申请审批', 'attendance:leave:approve', 'button', 205, NULL, NULL, NULL, 2),
+(208, '请假申请查看', 'attendance:leave:view', 'button', 205, NULL, NULL, NULL, 3),
+(209, '请假申请列表', 'attendance:leave:list', 'button', 205, NULL, NULL, NULL, 4),
+
+-- 考勤规则管理子菜单
+(210, '考勤规则', 'attendance:rule:manage', 'menu', 200, 'rule', 'attendance/rule/index', 'rule', 3),
+(211, '考勤规则创建', 'attendance:rule:create', 'button', 210, NULL, NULL, NULL, 1),
+(212, '考勤规则更新', 'attendance:rule:update', 'button', 210, NULL, NULL, NULL, 2),
+(213, '考勤规则删除', 'attendance:rule:delete', 'button', 210, NULL, NULL, NULL, 3),
+(214, '考勤规则查看', 'attendance:rule:view', 'button', 210, NULL, NULL, NULL, 4),
+(215, '考勤规则列表', 'attendance:rule:list', 'button', 210, NULL, NULL, NULL, 5),
+
+-- 考勤异常管理子菜单
+(216, '考勤异常', 'attendance:anomaly:manage', 'menu', 200, 'anomaly', 'attendance/anomaly/index', 'warning', 4),
+(217, '考勤异常查看', 'attendance:anomaly:view', 'button', 216, NULL, NULL, NULL, 1),
+(218, '考勤异常列表', 'attendance:anomaly:list', 'button', 216, NULL, NULL, NULL, 2),
+(219, '考勤异常处理', 'attendance:anomaly:handle', 'button', 216, NULL, NULL, NULL, 3),
+
+-- 考勤统计管理子菜单
+(220, '考勤统计', 'attendance:statistics:manage', 'menu', 200, 'statistics', 'attendance/statistics/index', 'chart', 5),
+(221, '考勤统计查看', 'attendance:statistics:view', 'button', 220, NULL, NULL, NULL, 1),
+(222, '考勤报表生成', 'attendance:statistics:report-generate', 'button', 220, NULL, NULL, NULL, 2),
+(223, '考勤报表导出', 'attendance:statistics:export', 'button', 220, NULL, NULL, NULL, 3),
+
+-- 活动考勤管理子菜单
+(224, '活动考勤', 'attendance:activity:manage', 'menu', 200, 'activity', 'attendance/activity/index', 'activity', 6),
+(225, '活动考勤列表', 'attendance:activity:list', 'button', 224, NULL, NULL, NULL, 1),
+(226, '活动考勤查看', 'attendance:activity:view', 'button', 224, NULL, NULL, NULL, 2);
 
 -- 初始化角色-权限关联关系
 -- 超级管理员(ROLE_ROOT)拥有所有权限
@@ -342,7 +387,8 @@ WHERE code NOT IN (
     'user:class:delete',
     'user:award-type:delete',
     'user:award-level:delete',
-    'user:award:delete'
+    'user:award:delete',
+    'attendance:rule:delete'
 );
 
 -- 协会成员(ROLE_MEMBER)拥有内容相关的基础权限和用户基础权限
@@ -402,7 +448,20 @@ WHERE code IN (
     'user:award-level:view',
     'user:award-level:list',
     'user:award:view',
-    'user:award:list'
+    'user:award:list',
+    -- 考勤管理菜单权限
+    'attendance:record:manage',
+    'attendance:leave:manage',
+    'attendance:anomaly:manage',
+    'attendance:statistics:manage',
+    'attendance:activity:manage',
+    -- 考勤基础操作权限
+    'attendance:record:view',
+    'attendance:leave:view',
+    'attendance:anomaly:view',
+    'attendance:statistics:view',
+    'attendance:activity:view',
+    'attendance:activity:list'
 );
 
 -- 普通用户(ROLE_USER)拥有基础的内容查看和交互权限，以及基础的用户信息查看权限

@@ -141,6 +141,9 @@ public class OperationLogAspect {
     /**
      * 解析操作描述（支持SpEL表达式）
      * 
+     * <p>只有当描述包含SpEL表达式标记（#变量引用）时才进行解析，
+     * 否则直接返回原字符串，避免普通文本被误解析</p>
+     * 
      * @param description 描述模板
      * @param joinPoint 切点
      * @return 解析后的描述
@@ -148,6 +151,11 @@ public class OperationLogAspect {
     private String parseDescription(String description, ProceedingJoinPoint joinPoint) {
         if (description == null || description.isEmpty()) {
             return "";
+        }
+        
+        // 如果不包含SpEL表达式标记，直接返回原字符串
+        if (!containsSpelExpression(description)) {
+            return description;
         }
         
         try {
@@ -170,6 +178,17 @@ public class OperationLogAspect {
             log.warn("解析操作描述失败: {}", description, e);
             return description;
         }
+    }
+    
+    /**
+     * 检查字符串是否包含SpEL表达式标记
+     * 
+     * @param text 待检查的字符串
+     * @return 是否包含SpEL表达式
+     */
+    private boolean containsSpelExpression(String text) {
+        // 检查是否包含 #变量名 或 #{} 表达式
+        return text.contains("#") || text.contains("${");
     }
 
     /**

@@ -14,6 +14,7 @@ import lombok.Getter;
 public enum AttendanceResultCodeEnum implements IResultCode {
 
     // 签到签退相关 (5001-5100)
+    USER_NOT_FOUND(5000, "用户不存在或未登录"),
     DUPLICATE_CHECK_IN(5001, "今日已签到，请勿重复签到"),
     LOCATION_OUT_OF_RANGE(5002, "签到位置超出允许范围"),
     CHECK_IN_NOT_FOUND(5003, "未找到签到记录，请先签到"),

@@ -352,6 +352,17 @@ public class FileServiceImpl implements IFileService {
         List<String> fileIds = request.getFileIds();
         Integer expirySeconds = request.getExpirySeconds();
         
+        // 验证输入参数
+        if (fileIds == null || fileIds.isEmpty()) {
+            log.warn("Batch get file URLs called with empty fileIds");
+            return com.hngy.siae.media.domain.dto.file.BatchUrlVO.builder()
+                    .urls(new HashMap<>())
+                    .expiresAt(java.time.LocalDateTime.now().plusSeconds(expirySeconds != null ? expirySeconds : 86400))
+                    .successCount(0)
+                    .failedCount(0)
+                    .build();
+        }
+        
         log.info("Batch getting file URLs for {} files", fileIds.size());
         
         Map<String, String> result = new HashMap<>();
@@ -376,7 +387,37 @@ public class FileServiceImpl implements IFileService {
         
         // 为未命中的文件生成URL
         if (!missedIds.isEmpty()) {
-            List<FileEntity> files = fileMapper.selectBatchIds(missedIds);
+            // 过滤掉null和空字符串，避免MyBatis异常
+            List<String> validIds = missedIds.stream()
+                    .filter(id -> id != null && !id.trim().isEmpty())
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+            
+            if (validIds.isEmpty()) {
+                log.warn("All missed IDs are invalid (null or empty)");
+                return com.hngy.siae.media.domain.dto.file.BatchUrlVO.builder()
+                        .urls(result)
+                        .expiresAt(java.time.LocalDateTime.now().plusSeconds(expirySeconds))
+                        .successCount(result.size())
+                        .failedCount(fileIds.size() - result.size())
+                        .build();
+            }
+            
+            List<FileEntity> files;
+            try {
+                files = fileMapper.selectBatchIds(validIds);
+            } catch (org.mybatis.spring.MyBatisSystemException e) {
+                // 捕获 MyBatis 异常，通常是 JSON 反序列化失败
+                log.error("Failed to query files by IDs, possibly due to invalid JSON format in biz_tags field. " +
+                        "Please check database data format. IDs: {}", validIds, e);
+                // 返回已有的缓存结果
+                return com.hngy.siae.media.domain.dto.file.BatchUrlVO.builder()
+                        .urls(result)
+                        .expiresAt(java.time.LocalDateTime.now().plusSeconds(expirySeconds))
+                        .successCount(result.size())
+                        .failedCount(fileIds.size() - result.size())
+                        .build();
+            }
             
             for (FileEntity file : files) {
                 // 验证文件状态

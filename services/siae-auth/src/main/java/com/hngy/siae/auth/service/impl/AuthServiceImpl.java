@@ -93,8 +93,8 @@ public class AuthServiceImpl
             assertUserEnabled(user, clientIp, browser, os);
             assertPasswordMatches(loginDTO.getPassword(), user, clientIp, browser, os);
 
-            // 查询用户权限和角色
-            List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(user.getId());
+            // 查询用户权限和角色（包括通过角色获得的权限）
+            List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(user.getId());
             List<String> roles = userRoleMapper.selectRoleCodesByUserId(user.getId());
 
             // 生成优化的JWT令牌（不包含权限信息）
@@ -274,8 +274,8 @@ public class AuthServiceImpl
         
         AssertUtils.notNull(userAuth, "刷新令牌不存在");
         
-        // 查询用户权限和角色
-        List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(userId);
+        // 查询用户权限和角色（包括通过角色获得的权限）
+        List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(userId);
         List<String> roles = userRoleMapper.selectRoleCodesByUserId(userId);
         
         // 生成新的优化JWT令牌（不包含权限信息）

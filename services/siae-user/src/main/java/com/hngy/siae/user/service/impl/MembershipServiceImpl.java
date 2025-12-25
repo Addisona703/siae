@@ -171,12 +171,22 @@ public class MembershipServiceImpl
         AssertUtils.isTrue(LifecycleStatusEnum.isPending(membership.getLifecycleStatus().getCode()),
                 UserResultCodeEnum.MEMBERSHIP_STATUS_INVALID);
 
-        // 更新为已拒绝
-        membership.setLifecycleStatus(LifecycleStatusEnum.REJECTED);
-
-        boolean success = updateById(membership);
+        // 删除关联的部门记录
+        memberDepartmentMapper.delete(
+                new LambdaQueryWrapper<MemberDepartment>()
+                        .eq(MemberDepartment::getMembershipId, id)
+        );
+        
+        // 删除关联的职位记录
+        memberPositionMapper.delete(
+                new LambdaQueryWrapper<MemberPosition>()
+                        .eq(MemberPosition::getMembershipId, id)
+        );
+        
+        // 直接删除成员记录，允许用户下次重新申请
+        boolean success = removeById(id);
         if (success) {
-            log.info("审核拒绝成功，成员ID: {}", id);
+            log.info("审核拒绝成功，已删除成员记录，成员ID: {}", id);
         }
         return success;
     }

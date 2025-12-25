@@ -149,6 +149,23 @@ public class UserFeignController {
     }
 
     /**
+     * 通过身份证和姓名验证用户身份
+     * <p>
+     * 用于人脸识别打卡场景，验证身份证和姓名是否匹配，返回用户ID
+     *
+     * @param idCard 身份证号
+     * @param realName 真实姓名
+     * @return 用户ID，如果验证失败返回null
+     */
+    @GetMapping("/verify-identity")
+    @Operation(summary = "验证用户身份", description = "通过身份证和姓名验证用户身份，用于人脸识别打卡")
+    public Result<Long> verifyUserIdentity(
+            @Parameter(description = "身份证号") @RequestParam("idCard") @NotBlank String idCard,
+            @Parameter(description = "真实姓名") @RequestParam("realName") @NotBlank String realName) {
+        return Result.success(userService.verifyUserIdentity(idCard, realName));
+    }
+
+    /**
      * 更新用户密码
      * <p>
      * 供认证服务调用，更新用户的加密密码

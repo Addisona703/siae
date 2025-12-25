@@ -98,4 +98,10 @@ public class UserFeignClientFallback implements UserFeignClient {
         log.error("更新用户密码服务不可用，触发降级。用户ID: {}", userId);
         throw new ServiceException(503, "用户服务暂时不可用，请稍后重试");
     }
+
+    @Override
+    public Long verifyUserIdentity(String idCard, String realName) {
+        log.error("验证用户身份服务不可用，触发降级。身份证: {}, 姓名: {}", idCard, realName);
+        throw new ServiceException(503, "用户服务暂时不可用，请稍后重试");
+    }
 }

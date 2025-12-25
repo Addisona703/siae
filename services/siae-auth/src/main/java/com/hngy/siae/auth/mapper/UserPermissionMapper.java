@@ -36,6 +36,7 @@ public interface UserPermissionMapper extends BaseMapper<UserPermission> {
 
     /**
      * 通过用户ID查询用户权限代码列表（使用JOIN查询）
+     * 注意：这只查询用户直接分配的权限，不包括通过角色获得的权限
      *
      * @param userId 用户ID
      * @return 权限代码列表
@@ -44,4 +45,23 @@ public interface UserPermissionMapper extends BaseMapper<UserPermission> {
             "JOIN permission p ON up.permission_id = p.id " +
             "WHERE up.user_id = #{userId} AND p.status = 1")
     List<String> selectPermissionCodesByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 通过用户ID查询用户的所有权限代码列表（包括角色权限）
+     * 包括：
+     * 1. 用户直接分配的权限
+     * 2. 用户通过角色获得的权限
+     *
+     * @param userId 用户ID
+     * @return 权限代码列表（去重）
+     */
+    @Select("SELECT DISTINCT p.code FROM permission p " +
+            "WHERE p.status = 1 AND p.id IN ( " +
+            "  SELECT up.permission_id FROM user_permission up WHERE up.user_id = #{userId} " +
+            "  UNION " +
+            "  SELECT rp.permission_id FROM role_permission rp " +
+            "  JOIN user_role ur ON rp.role_id = ur.role_id " +
+            "  WHERE ur.user_id = #{userId} " +
+            ")")
+    List<String> selectAllPermissionCodesByUserId(@Param("userId") Long userId);
 }

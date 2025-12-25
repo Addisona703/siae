@@ -170,8 +170,8 @@ public class OAuthServiceImpl implements OAuthService {
                         userId, provider, providerUserId);
             }
             
-            // 8. 查询用户权限和角色
-            List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(userId);
+            // 8. 查询用户权限和角色（包括通过角色获得的权限）
+            List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(userId);
             List<String> roles = userRoleMapper.selectRoleCodesByUserId(userId);
             
             // 9. 生成JWT令牌
@@ -369,8 +369,8 @@ public class OAuthServiceImpl implements OAuthService {
      * 生成登录响应
      */
     private LoginVO generateLoginResponse(Long userId, String username) {
-        // 查询用户权限和角色
-        List<String> permissions = userPermissionMapper.selectPermissionCodesByUserId(userId);
+        // 查询用户权限和角色（包括通过角色获得的权限）
+        List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(userId);
         List<String> roles = userRoleMapper.selectRoleCodesByUserId(userId);
         
         // 生成JWT令牌

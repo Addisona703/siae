@@ -42,7 +42,7 @@ public class UserResumeController {
      */
     @PostMapping
     @Operation(summary = "创建简历", description = "为当前用户创建简历，每个用户只能有一份简历")
-    @SiaeAuthorize("hasAuthority('" + USER_RESUME_CREATE + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<UserResumeVO> createResume(@Valid @RequestBody UserResumeCreateDTO dto) {
         UserResumeVO result = userResumeService.createResume(dto);
         return Result.success(result);
@@ -57,7 +57,7 @@ public class UserResumeController {
      */
     @GetMapping
     @Operation(summary = "获取当前用户简历", description = "获取当前登录用户的简历信息")
-    @SiaeAuthorize("hasAuthority('" + USER_RESUME_VIEW + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<UserResumeVO> getMyResume() {
         UserResumeVO result = userResumeService.getMyResume();
         return Result.success(result);
@@ -73,7 +73,7 @@ public class UserResumeController {
      */
     @PutMapping
     @Operation(summary = "更新简历", description = "更新当前用户的简历信息")
-    @SiaeAuthorize("hasAuthority('" + USER_RESUME_UPDATE + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<UserResumeVO> updateResume(@Valid @RequestBody UserResumeUpdateDTO dto) {
         UserResumeVO result = userResumeService.updateResume(dto);
         return Result.success(result);
@@ -88,7 +88,7 @@ public class UserResumeController {
      */
     @DeleteMapping
     @Operation(summary = "删除简历", description = "删除当前用户的简历（物理删除）")
-    @SiaeAuthorize("hasAuthority('" + USER_RESUME_DELETE + "')")
+    @SiaeAuthorize("isAuthenticated()")
     public Result<Boolean> deleteResume() {
         boolean result = userResumeService.deleteResume();
         return Result.success(result);

@@ -29,7 +29,6 @@ import com.hngy.siae.core.dto.PageVO;
 import com.hngy.siae.core.utils.BeanConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -41,7 +40,6 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -57,13 +55,9 @@ public class AttendanceServiceImpl implements IAttendanceService {
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final AttendanceRuleMapper attendanceRuleMapper;
     private final AttendanceAnomalyMapper attendanceAnomalyMapper;
-    private final StringRedisTemplate redisTemplate;
     private final IAnomalyDetectionService anomalyDetectionService;
     private final com.hngy.siae.security.utils.SecurityUtil securityUtil;
     private final UserFeignClient userFeignClient;
-
-    private static final String CHECK_IN_LOCK_PREFIX = "attendance:checkin:lock:";
-    private static final long LOCK_EXPIRE_SECONDS = 300; // 5分钟
 
     /**
      * 签到
@@ -86,69 +80,127 @@ public class AttendanceServiceImpl implements IAttendanceService {
         AttendanceRule rule = getApplicableRule(dto.getUserId(), attendanceDate, attendanceType, dto.getRelatedId());
         AssertUtils.notNull(rule, AttendanceResultCodeEnum.NO_APPLICABLE_RULE);
 
-        // 2. 防重复签到检查（使用 Redis 分布式锁，基于规则ID区分不同时段）
-        // 锁的key包含规则ID，这样不同时段（不同规则）可以分别签到
-        String lockKey = CHECK_IN_LOCK_PREFIX + dto.getUserId() + ":" + attendanceDate + ":" + rule.getId();
-        Boolean lockAcquired = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, "1", LOCK_EXPIRE_SECONDS, TimeUnit.SECONDS);
+        // 2. 检查数据库中是否已有该时段（该规则）的签到记录
+        LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AttendanceRecord::getUserId, dto.getUserId())
+                .eq(AttendanceRecord::getAttendanceDate, attendanceDate)
+                .eq(AttendanceRecord::getAttendanceType, attendanceType)
+                .eq(AttendanceRecord::getRuleId, rule.getId()); // 关键：通过规则ID区分不同时段
 
-        AssertUtils.isTrue(Boolean.TRUE.equals(lockAcquired), AttendanceResultCodeEnum.DUPLICATE_CHECK_IN);
-
-        try {
-            // 3. 检查数据库中是否已有该时段（该规则）的签到记录
-            LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AttendanceRecord::getUserId, dto.getUserId())
-                    .eq(AttendanceRecord::getAttendanceDate, attendanceDate)
-                    .eq(AttendanceRecord::getAttendanceType, attendanceType)
-                    .eq(AttendanceRecord::getRuleId, rule.getId()); // 关键：通过规则ID区分不同时段
-
-            if (attendanceType == AttendanceType.ACTIVITY && dto.getRelatedId() != null) {
-                queryWrapper.eq(AttendanceRecord::getRelatedId, dto.getRelatedId());
-            }
-
-            Long count = attendanceRecordMapper.selectCount(queryWrapper);
-            AssertUtils.isTrue(count == 0, AttendanceResultCodeEnum.DUPLICATE_CHECK_IN);
-
-            // 4. 验证签到时间窗口
-            LocalTime checkInTime = dto.getTimestamp().toLocalTime();
-            boolean isInTimeWindow = !checkInTime.isBefore(rule.getCheckInStartTime()) && 
-                                    !checkInTime.isAfter(rule.getCheckInEndTime());
-            AssertUtils.isTrue(isInTimeWindow, AttendanceResultCodeEnum.CHECK_IN_TIME_INVALID);
-
-            // 5. 验证签到位置（如果规则要求）
-            if (Boolean.TRUE.equals(rule.getLocationRequired())) {
-                validateLocation(dto.getLocation(), rule);
-            }
-
-            // 6. 创建考勤记录
-            AttendanceRecord record = new AttendanceRecord();
-            record.setUserId(dto.getUserId());
-            record.setAttendanceType(attendanceType);
-            record.setRelatedId(dto.getRelatedId());
-            record.setCheckInTime(dto.getTimestamp());
-            record.setCheckInLocation(formatLocation(dto.getLocation()));
-            record.setAttendanceDate(attendanceDate);
-            record.setRuleId(rule.getId());
-            record.setStatus(AttendanceStatus.IN_PROGRESS);
-
-            attendanceRecordMapper.insert(record);
-
-            log.info("签到成功: userId={}, recordId={}, ruleId={}, ruleName={}", 
-                    dto.getUserId(), record.getId(), rule.getId(), rule.getName());
-
-            // 7. 检测考勤异常（迟到）
-            anomalyDetectionService.detectAnomalies(record);
-
-            // 8. 转换为 VO 返回
-            return BeanConvertUtil.to(record, AttendanceRecordVO.class);
-
-        } catch (Exception e) {
-            // 发生异常时删除 Redis 锁，避免锁住后续请求
-            redisTemplate.delete(lockKey);
-            log.warn("签到失败，已释放锁: userId={}, lockKey={}, error={}", 
-                    dto.getUserId(), lockKey, e.getMessage());
-            throw e;
+        if (attendanceType == AttendanceType.ACTIVITY && dto.getRelatedId() != null) {
+            queryWrapper.eq(AttendanceRecord::getRelatedId, dto.getRelatedId());
         }
+
+        Long count = attendanceRecordMapper.selectCount(queryWrapper);
+        AssertUtils.isTrue(count == 0, AttendanceResultCodeEnum.DUPLICATE_CHECK_IN);
+
+        // 3. 验证签到时间窗口
+        LocalTime checkInTime = dto.getTimestamp().toLocalTime();
+        boolean isInTimeWindow = !checkInTime.isBefore(rule.getCheckInStartTime()) && 
+                                !checkInTime.isAfter(rule.getCheckInEndTime());
+        AssertUtils.isTrue(isInTimeWindow, AttendanceResultCodeEnum.CHECK_IN_TIME_INVALID);
+
+        // 4. 验证签到位置（如果规则要求）
+        // 位置验证已关闭，直接接受任何位置
+        // if (Boolean.TRUE.equals(rule.getLocationRequired())) {
+        //     validateLocation(dto.getLocation(), rule);
+        // }
+
+        // 5. 创建考勤记录
+        AttendanceRecord record = new AttendanceRecord();
+        record.setUserId(dto.getUserId());
+        record.setAttendanceType(attendanceType);
+        record.setRelatedId(dto.getRelatedId());
+        record.setCheckInTime(dto.getTimestamp());
+        record.setCheckInLocation(formatLocation(dto.getLocation()));
+        record.setAttendanceDate(attendanceDate);
+        record.setRuleId(rule.getId());
+        record.setStatus(AttendanceStatus.IN_PROGRESS);
+
+        attendanceRecordMapper.insert(record);
+
+        log.info("签到成功: userId={}, recordId={}, ruleId={}, ruleName={}", 
+                dto.getUserId(), record.getId(), rule.getId(), rule.getName());
+
+        // 6. 检测考勤异常（迟到）
+        anomalyDetectionService.detectAnomalies(record);
+
+        // 7. 转换为 VO 返回
+        return BeanConvertUtil.to(record, AttendanceRecordVO.class);
+    }
+
+    /**
+     * 人脸识别打卡
+     * <p>
+     * 通过身份证和姓名验证用户身份后进行打卡
+     * 不需要位置验证，自动设置固定位置
+     * 直接从安全上下文获取当前用户ID，无需传递任何参数
+     *
+     * @param dto 人脸识别打卡请求（空对象，无需参数）
+     * @return 考勤记录VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AttendanceRecordVO faceCheckIn(com.hngy.siae.attendance.dto.request.FaceCheckInDTO dto) {
+        // 1. 从安全上下文获取当前用户ID
+        Long userId = securityUtil.getCurrentUserId();
+        AssertUtils.notNull(userId, AttendanceResultCodeEnum.USER_NOT_FOUND);
+
+        log.info("开始处理人脸识别打卡请求: userId={}", userId);
+
+        // 2. 构建普通签到DTO
+        CheckInDTO checkInDTO = new CheckInDTO();
+        checkInDTO.setUserId(userId);
+        // 使用当前时间
+        checkInDTO.setTimestamp(java.time.LocalDateTime.now());
+        // 默认为日常考勤
+        checkInDTO.setAttendanceType(0);
+        checkInDTO.setRelatedId(null);
+
+        // 3. 设置固定位置（人脸识别打卡点）
+        CheckInDTO.LocationInfo locationInfo = new CheckInDTO.LocationInfo();
+        locationInfo.setName("人脸识别打卡点");
+        locationInfo.setLatitude(39.9042);  // 可以根据实际情况修改
+        locationInfo.setLongitude(116.4074); // 可以根据实际情况修改
+        checkInDTO.setLocation(locationInfo);
+
+        // 4. 调用普通签到逻辑
+        AttendanceRecordVO result = checkIn(checkInDTO);
+
+        log.info("人脸识别打卡成功: userId={}, recordId={}", userId, result.getId());
+
+        return result;
+    }
+
+    /**
+     * 查询今天的签到状态
+     * 
+     * @return 今天的所有签到记录
+     */
+    @Override
+    public List<AttendanceRecordVO> getTodayStatus() {
+        // 从安全上下文获取当前用户ID
+        Long userId = securityUtil.getCurrentUserId();
+        AssertUtils.notNull(userId, AttendanceResultCodeEnum.USER_NOT_FOUND);
+
+        log.info("查询今天的签到状态: userId={}", userId);
+
+        // 查询今天的所有签到记录
+        LambdaQueryWrapper<AttendanceRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AttendanceRecord::getUserId, userId)
+                .eq(AttendanceRecord::getAttendanceDate, LocalDate.now())
+                .orderByAsc(AttendanceRecord::getCheckInTime);
+
+        List<AttendanceRecord> records = attendanceRecordMapper.selectList(queryWrapper);
+
+        // 转换为VO
+        List<AttendanceRecordVO> voList = records.stream()
+                .map(record -> BeanConvertUtil.to(record, AttendanceRecordVO.class))
+                .collect(Collectors.toList());
+
+        log.info("查询今天的签到状态成功: userId={}, recordCount={}", userId, voList.size());
+
+        return voList;
     }
 
     /**
@@ -395,10 +447,16 @@ public class AttendanceServiceImpl implements IAttendanceService {
             queryDTO = new AttendanceQueryDTO();
         }
 
-        // 数据权限过滤：如果没有列表查询权限，只能查看自己的数据
-        if (!hasListPermission && currentUserId != null) {
+        // 数据权限过滤：
+        // 1. 如果有列表查询权限，可以查看所有数据
+        // 2. 如果是超级管理员（ROLE_ROOT），可以查看所有数据
+        // 3. 否则只能查看自己的数据
+        boolean isSuperAdmin = securityUtil.isSuperAdmin();
+        if (!hasListPermission && !isSuperAdmin && currentUserId != null) {
             queryDTO.setUserId(currentUserId);
-            log.info("无列表权限，限制查询当前用户数据: userId={}", currentUserId);
+            log.info("无列表权限且非超级管理员，限制查询当前用户数据: userId={}", currentUserId);
+        } else if (isSuperAdmin || hasListPermission) {
+            log.info("超级管理员或拥有列表权限，可查询所有用户数据");
         }
 
         // 如果有用户名查询条件，先通过用户名查询用户ID列表

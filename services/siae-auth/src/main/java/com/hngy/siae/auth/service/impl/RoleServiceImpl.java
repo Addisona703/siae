@@ -22,6 +22,7 @@ import com.hngy.siae.auth.service.RoleService;
 import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.dto.PageDTO;
 import com.hngy.siae.core.dto.PageVO;
+import com.hngy.siae.security.service.SecurityCacheService;
 
 import com.hngy.siae.core.exception.ServiceException;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
@@ -57,6 +58,8 @@ public class RoleServiceImpl
     private final RolePermissionService rolePermissionService;
     private final UserRoleMapper userRoleMapper;
     private final PermissionService permissionService;
+    private final SecurityCacheService securityCacheService;
+    private final com.hngy.siae.auth.mapper.UserPermissionMapper userPermissionMapper;
     
     /**
      * 创建角色
@@ -341,7 +344,14 @@ public class RoleServiceImpl
                 .toList();
 
         // 批量插入新的权限关联
-        return batchRolePermissionLink(roleId, newPermissionIds);
+        boolean result = batchRolePermissionLink(roleId, newPermissionIds);
+        
+        // 清除该角色下所有用户的权限缓存
+        if (result && !newPermissionIds.isEmpty()) {
+            clearRoleUsersPermissionCache(roleId);
+        }
+        
+        return result;
     }
 
     /**
@@ -374,7 +384,14 @@ public class RoleServiceImpl
         );
 
         // 添加新的角色权限关联
-        return batchRolePermissionLink(roleId, permissionIds);
+        boolean result = batchRolePermissionLink(roleId, permissionIds);
+        
+        // 清除该角色下所有用户的权限缓存
+        if (result) {
+            clearRoleUsersPermissionCache(roleId);
+        }
+        
+        return result;
     }
 
     /**
@@ -446,5 +463,69 @@ public class RoleServiceImpl
         List<Permission> permissions = permissionService.listByIds(permissionIds);
 
         return BeanConvertUtil.toList(permissions, PermissionVO.class);
+    }
+    
+    /**
+     * 清除角色下所有用户的权限缓存
+     * <p>
+     * 当角色权限发生变更时，需要清除该角色下所有用户的权限缓存，
+     * 确保用户下次访问时能获取到最新的权限信息
+     *
+     * @param roleId 角色ID
+     */
+    private void clearRoleUsersPermissionCache(Long roleId) {
+        try {
+            // 查询该角色下的所有用户ID
+            List<UserRole> userRoles = userRoleMapper.selectList(
+                    new LambdaQueryWrapper<UserRole>()
+                            .eq(UserRole::getRoleId, roleId)
+            );
+            
+            if (userRoles.isEmpty()) {
+                log.info("角色下没有用户，无需清除缓存，roleId={}", roleId);
+                return;
+            }
+            
+            // 清除并重新加载每个用户的权限缓存
+            int clearedCount = 0;
+            for (UserRole userRole : userRoles) {
+                try {
+                    Long userId = userRole.getUserId();
+                    // 清除旧缓存
+                    securityCacheService.clearUserPermissions(userId);
+                    
+                    // 重新加载权限到Redis
+                    reloadUserPermissionsToCache(userId);
+                    
+                    clearedCount++;
+                } catch (Exception e) {
+                    log.error("清除并重新加载用户权限缓存失败，userId={}", userRole.getUserId(), e);
+                }
+            }
+            
+            log.info("角色权限变更，已更新{}个用户的权限缓存，roleId={}, 总用户数={}", 
+                    clearedCount, roleId, userRoles.size());
+        } catch (Exception e) {
+            log.error("清除角色用户权限缓存失败，roleId={}", roleId, e);
+        }
+    }
+    
+    /**
+     * 重新加载用户权限到Redis缓存
+     *
+     * @param userId 用户ID
+     */
+    private void reloadUserPermissionsToCache(Long userId) {
+        try {
+            // 从数据库查询最新权限（包括角色权限）
+            List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(userId);
+            
+            // 缓存到Redis，设置较长的过期时间（24小时）
+            securityCacheService.cacheUserPermissions(userId, permissions, 24, java.util.concurrent.TimeUnit.HOURS);
+            
+            log.debug("已重新加载用户权限到缓存，userId={}, 权限数量={}", userId, permissions.size());
+        } catch (Exception e) {
+            log.error("重新加载用户权限到缓存失败，userId={}", userId, e);
+        }
     }
 }

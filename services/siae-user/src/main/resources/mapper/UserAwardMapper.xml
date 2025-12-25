@@ -29,7 +29,7 @@
                 AND id = #{query.id}
             </if>
             <if test="query.userId != null">
-                AND JSON_CONTAINS(team_members, #{query.userId})
+                AND JSON_CONTAINS(team_members, CAST(#{query.userId} AS JSON))
             </if>
             <if test="query.awardTypeId != null">
                 AND award_type_id = #{query.awardTypeId}
@@ -82,7 +82,7 @@
                 AND ua.id = #{query.id}
             </if>
             <if test="query.userId != null">
-                AND JSON_CONTAINS(ua.team_members, #{query.userId})
+                AND JSON_CONTAINS(ua.team_members, CAST(#{query.userId} AS JSON))
             </if>
             <if test="query.awardTypeId != null">
                 AND ua.award_type_id = #{query.awardTypeId}

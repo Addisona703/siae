@@ -21,6 +21,7 @@ import com.hngy.siae.core.asserts.AssertUtils;
 import com.hngy.siae.core.result.AuthResultCodeEnum;
 import com.hngy.siae.core.result.CommonResultCodeEnum;
 import com.hngy.siae.core.utils.PageConvertUtil;
+import com.hngy.siae.security.service.SecurityCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,9 @@ public class UserRoleServiceImpl
 
     private final RoleService roleService;
     private final UserFeignClient userClient;
+    private final SecurityCacheService securityCacheService;
+    private final com.hngy.siae.auth.mapper.UserPermissionMapper userPermissionMapper;
+    private final com.hngy.siae.auth.mapper.UserRoleMapper userRoleMapper;
 
     /**
      * 批量分配角色给用户
@@ -96,7 +100,14 @@ public class UserRoleServiceImpl
                 })
                 .toList();
 
-        return saveBatch(userRoles);
+        boolean result = saveBatch(userRoles);
+        
+        // 清除所有受影响用户的权限和角色缓存
+        if (result) {
+            clearUsersCache(userIds, "批量分配角色");
+        }
+        
+        return result;
     }
 
     /**
@@ -194,7 +205,14 @@ public class UserRoleServiceImpl
         userRole.setUserId(updateDTO.getUserId());
         userRole.setRoleId(updateDTO.getRoleId());
 
-        return updateById(userRole);
+        boolean result = updateById(userRole);
+        
+        // 清除受影响用户的权限和角色缓存
+        if (result) {
+            clearUserCache(updateDTO.getUserId(), "更新用户角色");
+        }
+        
+        return result;
     }
 
     /**
@@ -227,6 +245,84 @@ public class UserRoleServiceImpl
         userRole.setRoleId(roleId);
         userRole.setCreatedAt(LocalDateTime.now());
 
-        return save(userRole);
+        boolean result = save(userRole);
+        
+        // 清除用户的权限和角色缓存
+        if (result) {
+            clearUserCache(userId, "分配用户角色");
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 清除单个用户的权限和角色缓存
+     *
+     * @param userId 用户ID
+     * @param operation 操作描述
+     */
+    private void clearUserCache(Long userId, String operation) {
+        try {
+            // 清除旧缓存
+            securityCacheService.clearUserCache(userId);
+            
+            // 重新加载权限和角色到Redis
+            reloadUserCacheToRedis(userId);
+            
+            log.info("{}成功，已更新用户缓存，userId={}", operation, userId);
+        } catch (Exception e) {
+            log.error("{}后更新用户缓存失败，userId={}", operation, userId, e);
+        }
+    }
+    
+    /**
+     * 批量清除用户的权限和角色缓存
+     *
+     * @param userIds 用户ID列表
+     * @param operation 操作描述
+     */
+    private void clearUsersCache(List<Long> userIds, String operation) {
+        if (userIds == null || userIds.isEmpty()) {
+            return;
+        }
+        
+        int updatedCount = 0;
+        for (Long userId : userIds) {
+            try {
+                // 清除旧缓存
+                securityCacheService.clearUserCache(userId);
+                
+                // 重新加载权限和角色到Redis
+                reloadUserCacheToRedis(userId);
+                
+                updatedCount++;
+            } catch (Exception e) {
+                log.error("{}后更新用户缓存失败，userId={}", operation, userId, e);
+            }
+        }
+        
+        log.info("{}成功，已更新{}个用户的缓存，总用户数={}", operation, updatedCount, userIds.size());
+    }
+    
+    /**
+     * 重新加载用户权限和角色到Redis缓存
+     *
+     * @param userId 用户ID
+     */
+    private void reloadUserCacheToRedis(Long userId) {
+        try {
+            // 从数据库查询最新权限（包括角色权限）
+            List<String> permissions = userPermissionMapper.selectAllPermissionCodesByUserId(userId);
+            List<String> roles = userRoleMapper.selectRoleCodesByUserId(userId);
+            
+            // 缓存到Redis，设置较长的过期时间（24小时）
+            securityCacheService.cacheUserPermissions(userId, permissions, 24, java.util.concurrent.TimeUnit.HOURS);
+            securityCacheService.cacheUserRoles(userId, roles, 24, java.util.concurrent.TimeUnit.HOURS);
+            
+            log.debug("已重新加载用户权限和角色到缓存，userId={}, 权限数量={}, 角色数量={}", 
+                    userId, permissions.size(), roles.size());
+        } catch (Exception e) {
+            log.error("重新加载用户缓存失败，userId={}", userId, e);
+        }
     }
 }

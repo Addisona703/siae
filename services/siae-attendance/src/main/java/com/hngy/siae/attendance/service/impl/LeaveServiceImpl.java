@@ -953,27 +953,19 @@ public class LeaveServiceImpl implements ILeaveService {
     }
 
     /**
-     * 批量获取文件URL
+     * 批量获取文件预览URL
      *
      * @param fileIds 文件ID列表
-     * @return 文件URL列表（与fileIds顺序对应）
+     * @return 文件预览URL列表（与fileIds顺序对应）
      */
     private List<String> fetchFileUrls(List<String> fileIds) {
         try {
-            BatchUrlDTO request = new BatchUrlDTO();
-            request.setFileIds(fileIds);
-            request.setExpirySeconds(86400); // 24小时有效期
-            BatchUrlVO response = mediaFeignClient.batchGetFileUrls(request);
-            
-            if (response != null && response.getUrls() != null) {
-                // 按原始fileIds顺序返回URL
-                return fileIds.stream()
-                        .map(fileId -> response.getUrls().get(fileId))
-                        .collect(Collectors.toList());
-            }
-            return Collections.emptyList();
+            // 生成预览URL，格式为: /api/v1/media/files/{fileId}/preview
+            return fileIds.stream()
+                    .map(fileId -> "/api/v1/media/files/" + fileId + "/preview")
+                    .collect(Collectors.toList());
         } catch (Exception e) {
-            log.warn("批量获取文件URL失败: fileIds={}, error={}", fileIds, e.getMessage());
+            log.warn("批量生成文件预览URL失败: fileIds={}, error={}", fileIds, e.getMessage());
             return Collections.emptyList();
         }
     }

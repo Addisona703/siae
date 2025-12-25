@@ -409,14 +409,25 @@ public class AnomalyDetectionServiceImpl implements IAnomalyDetectionService {
         AttendanceAnomaly anomaly = attendanceAnomalyMapper.selectById(anomalyId);
         AssertUtils.notNull(anomaly, AttendanceResultCodeEnum.ANOMALY_NOT_FOUND);
 
-        // 2. 检查是否已处理
+        // 2. 如果标记为"未解决"，则重置处理信息，允许再次处理
+        if (Boolean.FALSE.equals(resolved)) {
+            anomaly.setHandlerId(null);
+            anomaly.setHandlerNote(null);
+            anomaly.setResolved(false);
+            anomaly.setHandledAt(null);
+            attendanceAnomalyMapper.updateById(anomaly);
+            log.info("考勤异常已标记为未解决，重置处理信息: anomalyId={}", anomalyId);
+            return;
+        }
+
+        // 3. 检查是否已处理（只有标记为"已解决"时才检查）
         AssertUtils.isFalse(Boolean.TRUE.equals(anomaly.getResolved()), 
                 AttendanceResultCodeEnum.ANOMALY_ALREADY_HANDLED);
 
-        // 3. 更新异常记录
+        // 4. 更新异常记录为已解决
         anomaly.setHandlerId(handlerId);
         anomaly.setHandlerNote(handlerNote);
-        anomaly.setResolved(resolved);
+        anomaly.setResolved(true);
         anomaly.setHandledAt(LocalDateTime.now());
 
         attendanceAnomalyMapper.updateById(anomaly);

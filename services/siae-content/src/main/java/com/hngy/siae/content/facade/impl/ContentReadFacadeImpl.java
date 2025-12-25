@@ -85,6 +85,16 @@ public class ContentReadFacadeImpl implements ContentReadFacade {
             vo.setTagNames(tagNames);
         }
 
+        // 6.1 解析标签ID列表
+        if (StrUtil.isNotBlank(contentQueryResultVO.getTagIdsStr())) {
+            List<Long> tagIds = Arrays.stream(contentQueryResultVO.getTagIdsStr().split(","))
+                    .map(String::trim)
+                    .filter(StrUtil::isNotBlank)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            vo.setTagIds(tagIds);
+        }
+
         // 7. 设置统计信息
         vo.setStatistics(StatisticsVO.builder()
                 .contentId(contentQueryResultVO.getId())
